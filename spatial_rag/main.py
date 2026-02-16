@@ -110,7 +110,9 @@ def main():
         memory.save()
     
     # 3. Retrieval Example
-    query = "Where did I see a man?"
+    # query = "Where did I see a painting with human?"
+    query = "Where did I see a pillow?"
+
     print(f"\nTest Query: '{query}'")
     
     results = retriever.retrieve(query, k=10) # Overriding config to show usage
@@ -122,9 +124,18 @@ def main():
             shutil.rmtree(res_dir)
         os.makedirs(res_dir)
         
-        print(f"\nTop {len(results)} Results (Weighted Search):")
+        print(f"\nTop {len(results)} Results (Hybrid Search):")
         for i, res in enumerate(results):
-            print(f"[{i+1}] {res['label']} (Combined: {res['retrieval_score']:.4f}, CLIP: {res.get('clip_score', 0):.2f}, YOLO: {res.get('yolo_conf', 0):.2f})")
+            # Safe get for new fields
+            combined = res.get('retrieval_score', 0)
+            clip = res.get('clip_score', 0)
+            yolo = res.get('yolo_conf', 0)
+            bm25 = res.get('bm25_score', 0)
+            query_used = res.get('matched_query', 'original')
+            
+            print(f"[{i+1}] {res['label']}")
+            print(f"    Scores: Combined={combined:.4f} (CLIP={clip:.2f}, YOLO={yolo:.2f}, BM25={bm25:.2f})")
+            print(f"    Matched Query: '{query_used}'")
             print(f"    Position: {res['position']}")
             print(f"    Image: {res['image_path']}")
             
@@ -137,7 +148,7 @@ def main():
                 cv2.rectangle(res_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
                 
                 # Draw label
-                text = f"#{i+1} {res['label']} (S:{res['retrieval_score']:.2f})"
+                text = f"#{i+1} {res['label']} (S:{combined:.2f})"
                 cv2.putText(res_img, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                 
                 # Save

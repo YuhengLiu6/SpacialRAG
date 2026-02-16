@@ -74,7 +74,7 @@ Our approach has evolved through several phases to address limitations in standa
     ```bash
     pip install torch torchvision torchaudio
     pip install git+https://github.com/openai/CLIP.git
-    pip install ultralytics faiss-cpu numpy opencv-python matplotlib
+    pip install ultralytics faiss-cpu numpy opencv-python matplotlib rank_bm25 openai
     ```
 
     *Note: For Mac users with Apple Silicon, `faiss-cpu` is recommended over `faiss-gpu`.*

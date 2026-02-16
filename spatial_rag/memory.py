@@ -43,15 +43,80 @@ class Memory:
         if query_embedding.ndim == 1:
             query_embedding = query_embedding.reshape(1, -1)
             
-        distances, indices = self.index.search(query_embedding.astype('float32'), k)
-        
         results = []
+        if self.index.ntotal > 0:
+            distances, indices = self.index.search(query_embedding.astype('float32'), k)
+            if indices.size > 0:
+                for i, idx in enumerate(indices[0]):
+                    if idx != -1 and idx < len(self.metadata):
+                        results.append((self.metadata[idx], float(distances[0][i])))
+                    
+        return results
+
+    def search_hybrid(self, query_text, query_embedding, k=5):
+        """
+        Perform hybrid search using BM25 (keyword) + CLIP (semantic).
+        """
+        # 1. Get CLIP Results (Dense)
+        # We fetch more candidates to allow BM25 to boost lower-ranked items
+        dense_results = self.search(query_embedding, k=k*3)
+        
+        # 2. Get BM25 Results (Sparse)
+        # We rebuild the index on the fly (simple for small memory)
+        try:
+            from rank_bm25 import BM25Okapi
+            
+            # Prepare corpus from metadata labels
+            tokenized_corpus = [meta['label'].lower().split() for meta in self.metadata]
+            bm25 = BM25Okapi(tokenized_corpus)
+            
+            tokenized_query = query_text.lower().split()
+            bm25_scores = bm25.get_scores(tokenized_query)
+            
+            # Normalize BM25 scores (roughly 0-1)
+            if len(bm25_scores) > 0 and max(bm25_scores) > 0:
+                bm25_scores = bm25_scores / max(bm25_scores)
+            
+        except ImportError:
+            print("Warning: rank_bm25 not installed. Skipping hybrid search.")
+            bm25_scores = np.zeros(len(self.metadata))
+        except Exception as e:
+            print(f"BM25 Error: {e}")
+            bm25_scores = np.zeros(len(self.metadata))
+
+        # 3. Fuse Scores
+        final_results = []
+        
+        # We need to map dense results back to their original index to get BM25 score
+        # But wait, 'dense_results' is a list of (meta, score). 
+        # We don't easily know the original index 'idx' from 'dense_results' unless we store acts.
+        # Efficient approach: Just calculate combined score for the items returned by dense search?
+        # NO, BM25 might find something that CLIP missed completely (e.g. exact match but bad visual).
+        
+        # correct approach for small scale: Calculate Combined Score for ALL items?
+        # For < 10,000 items, this is fast.
+        
+        # Ensure 2D shape for FAISS
+        if query_embedding.ndim == 1:
+            query_embedding = query_embedding.reshape(1, -1)
+            
+        distances, indices = self.index.search(query_embedding.astype('float32'), len(self.metadata))
+        
+        all_results = []
         if indices.size > 0:
             for i, idx in enumerate(indices[0]):
                 if idx != -1 and idx < len(self.metadata):
-                    results.append((self.metadata[idx], float(distances[0][i])))
+                    meta = self.metadata[idx]
+                    clip_score = float(distances[0][i])
+                    bm25_score = float(bm25_scores[idx]) if idx < len(bm25_scores) else 0.0
                     
-        return results
+                    all_results.append({
+                        "meta": meta,
+                        "clip_score": clip_score,
+                        "bm25_score": bm25_score
+                    })
+                    
+        return all_results
 
     def save(self, filepath="memory_index.faiss", meta_filepath="memory_meta.npy"):
         """
