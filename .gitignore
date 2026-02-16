@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Mac
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project specific
+memory_store/
+captured_images/
+retrieval_results/
+data/
+*.pt
+*.log
+*.jpg
