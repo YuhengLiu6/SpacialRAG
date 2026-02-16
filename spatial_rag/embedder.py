@@ -21,10 +21,6 @@ class Embedder:
         )
         self.tokenizer = open_clip.get_tokenizer(CLIP_MODEL_NAME)
         self.model.eval()
-        
-        # Get embedding dimension dynamically
-        self.output_dim = self.model.visual.output_dim
-        print(f"Embedding dimension: {self.output_dim}")
 
     def embed_image(self, image_np):
         """

@@ -25,8 +25,7 @@ def main():
 
     detector = Detector()
     embedder = Embedder()
-    memory = Memory(dimension=embedder.output_dim) # Dynamic dimension
-
+    memory = Memory(dimension=512) # ViT-B-32 has 512 dims
     
     # Load existing memory if available and persistence is enabled
     if PERSIST_MEMORY and os.path.exists("memory_index.faiss") and os.path.exists("memory_meta.npy"):
@@ -123,9 +122,9 @@ def main():
             shutil.rmtree(res_dir)
         os.makedirs(res_dir)
         
-        print(f"\nTop {len(results)} Results:")
+        print(f"\nTop {len(results)} Results (Weighted Search):")
         for i, res in enumerate(results):
-            print(f"[{i+1}] {res['label']} (Conf: {res['confidence']:.2f}, Score: {res['retrieval_score']:.4f})")
+            print(f"[{i+1}] {res['label']} (Combined: {res['retrieval_score']:.4f}, CLIP: {res.get('clip_score', 0):.2f}, YOLO: {res.get('yolo_conf', 0):.2f})")
             print(f"    Position: {res['position']}")
             print(f"    Image: {res['image_path']}")
             
@@ -138,7 +137,7 @@ def main():
                 cv2.rectangle(res_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
                 
                 # Draw label
-                text = f"#{i+1} {res['label']} ({res['confidence']:.2f})"
+                text = f"#{i+1} {res['label']} (S:{res['retrieval_score']:.2f})"
                 cv2.putText(res_img, text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                 
                 # Save
@@ -149,7 +148,7 @@ def main():
 
         print(f"\n[Visual Verification] Saved {len(results)} annotated images to '{os.path.abspath(res_dir)}'")
     else:
-        print("No matches found.")
+        print(f"\nI'm sorry, I didn't see any '{query.replace('Where did I see a ', '').replace('?', '')}' with high enough confidence during my walk.")
 
     explorer.close()
 

@@ -1,10 +1,10 @@
 # ===== detector.py =====
 from ultralytics import YOLO
-from spatial_rag.config import YOLO_MODEL_NAME
+from spatial_rag.config import YOLO_MODEL_PATH
 import torch
 
 class Detector:
-    def __init__(self, model_path=YOLO_MODEL_NAME):
+    def __init__(self, model_path=YOLO_MODEL_PATH):
         if torch.cuda.is_available():
             self.device = 'cuda'
         elif torch.backends.mps.is_available():

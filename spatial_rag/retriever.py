@@ -1,5 +1,4 @@
-# ===== retriever.py =====
-from spatial_rag.config import TOP_K
+from spatial_rag.config import TOP_K, W_CLIP, W_YOLO, RETRIEVAL_THRESHOLD_COMBINED
 
 class Retriever:
     def __init__(self, embedder, memory):
@@ -8,22 +7,29 @@ class Retriever:
 
     def retrieve(self, query_text, k=TOP_K):
         """
-        Retrieve objects based on text query.
-        Args:
-            query_text: str
-            k: int
-        Returns:
-            list of dicts (metadata + score)
+        Retrieve objects based on text query using weighted scoring.
         """
         print(f"Retrieving for query: '{query_text}'...")
         query_emb = self.embedder.embed_text(query_text)
-        results = self.memory.search(query_emb, k=k)
+        
+        # Fetch more results than needed to allow for filtering/re-ranking
+        raw_results = self.memory.search(query_emb, k=k*3)
         
         formatted_results = []
-        for meta, score in results:
-            # Create a copy to avoid modifying original info
-            res = meta.copy()
-            res['retrieval_score'] = score
-            formatted_results.append(res)
+        for meta, clip_score in raw_results:
+            yolo_conf = meta.get('confidence', 0.0)
             
-        return formatted_results
+            # Combine scores
+            combined_score = (W_CLIP * clip_score) + (W_YOLO * yolo_conf)
+            
+            # Filter by threshold
+            if combined_score >= RETRIEVAL_THRESHOLD_COMBINED:
+                res = meta.copy()
+                res['clip_score'] = clip_score
+                res['yolo_conf'] = yolo_conf
+                res['retrieval_score'] = combined_score # Using as primary score now
+                formatted_results.append(res)
+        
+        # Re-sort by combined score and return top k
+        formatted_results.sort(key=lambda x: x['retrieval_score'], reverse=True)
+        return formatted_results[:k]
