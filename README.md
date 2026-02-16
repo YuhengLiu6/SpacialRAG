@@ -32,6 +32,30 @@ $$ Score = w_{clip} \cdot S_{semantic} + w_{yolo} \cdot S_{detection} $$
 
 This ensures that we return images that not only *look* like the answer but arguably *contain* the specific object requested.
 
+## Strategy Iteration & Experiments
+
+Our approach has evolved through several phases to address limitations in standard retrieval methods:
+
+### Phase 1: Baseline (CLIP Only)
+*   **Approach**: We started by simply embedding every ego-centric image with CLIP (`ViT-B-16`) and performing cosine similarity search against the text query.
+*   **Limitation**: CLIP is excellent at global scene understanding (e.g., "a kitchen") but struggles with small, specific objects (e.g., "keys on the table") or spatial prepositions. It often retrieves images that have the right *vibe* but miss the target object.
+
+### Phase 2: Object-Aware Retrieval (CLIP + YOLO)
+*   **Improvement**: We integrated `YOLOv8` (medium model) to detect visible objects in every frame.
+*   **Logic**: If the user asks for a "chair", we explicitly boost the score of images where YOLO detected a `chair`.
+*   **Result**: Recall for specific common objects improved significantly. However, vague queries like "Where can I sleep?" failed because YOLO doesn't detect "sleeping places," only "beds" or "couches".
+
+### Phase 3: Semantic Expansion & Hybrid Scoring (Current)
+*   **Query Expansion**: We now use an LLM (`gpt-4o-mini`) to translate vague user intentions into specific visual targets.
+    *   *User*: "Where can I sleep?" -> *LLM*: "bed, couch, sofa"
+*   **Hybrid Scoring**: We tuned a weighted scoring formula to balance semantic similarity, object detection confidence, and keyword matching.
+    *   `Score = 0.55 * CLIP + 0.15 * YOLO + 0.3 * BM25`
+*   **Benefit**: This handles specific object queries with high precision (YOLO/BM25) while maintaining the ability to find "similar looking" scenes (CLIP) when detections fail.
+
+### Phase 4: Future Experiments
+*   **Open-Vocabulary Detection**: We are experimenting with **GroundingDINO** to detect arbitrary objects not in the COCO dataset (e.g., "red pill", "specific painting").
+*   **Diverse Environments**: Testing generalization across different Habitat scenes (e.g., `apartment_1`, `van-gogh-room`).
+
 ## Installation
 
 1.  **Clone the repository**:
