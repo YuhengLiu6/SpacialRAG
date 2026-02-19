@@ -1,0 +1,14 @@
+torch
+torchvision
+torchaudio
+git+https://github.com/openai/CLIP.git
+ultralytics
+faiss-gpu
+numpy
+opencv-python-headless
+matplotlib
+rank_bm25
+openai
+habitat-sim
+magnum
+numpy-quaternion

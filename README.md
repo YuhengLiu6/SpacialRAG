@@ -77,10 +77,25 @@ Our approach has evolved through several phases to address limitations in standa
     pip install ultralytics faiss-cpu numpy opencv-python matplotlib rank_bm25 openai
     ```
 
+
     *Note: For Mac users with Apple Silicon, `faiss-cpu` is recommended over `faiss-gpu`.*
+
+    **For V100 (Linux/CUDA) Users:**
+    If running on a remote server with a V100 GPU:
+    1.  Ensure you have CUDA installed (e.g., CUDA 11.8).
+    2.  Install `habitat-sim` with headless support:
+        ```bash
+        conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+        ```
+    3.  Install dependencies using the updated requirements:
+        ```bash
+        pip install -r requirements.txt
+        ```
+    4.  The code automatically detects CUDA (`torch.cuda.is_available()`) and will run on the GPU.
 
 4.  **Download Habitat Scene**:
     Ensure you have the `habitat-test-scenes` data. This project is configured to use `apartment_1.glb`.
+
 
 ## Usage
 
