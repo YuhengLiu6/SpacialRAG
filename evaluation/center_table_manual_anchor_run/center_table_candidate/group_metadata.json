@@ -1,0 +1,9 @@
+{
+  "anchor": {
+    "anchor_id": "center_table_candidate",
+    "center_x": -3.5,
+    "center_z": -2.16,
+    "radius_m": 1.5
+  },
+  "skip_reason": "Pose is not navigable and cannot be snapped: (-3.5, -0.6600000000000001)"
+}

@@ -1,0 +1,6 @@
+{
+  "output_dir": "test/pipeline_same_object_groups",
+  "num_groups": 70,
+  "num_positive_pairs": 100,
+  "copied_images": 163
+}

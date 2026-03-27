@@ -1,0 +1,29 @@
+{
+  "order_mode": "label_alphabetical",
+  "axis_label_format": "view_id|object_label|obj<object_global_id>",
+  "sort_key": "label.lower(), view_id.lower(), object_global_id",
+  "num_objects": 49,
+  "unique_labels_in_order": [
+    "art",
+    "cabinet",
+    "ceiling light",
+    "chair",
+    "couch",
+    "curtain",
+    "door",
+    "lamp",
+    "microwave",
+    "mirror",
+    "pet item",
+    "picture frame",
+    "plant",
+    "refrigerator",
+    "sink",
+    "stairs",
+    "stove",
+    "table",
+    "tv",
+    "unknown",
+    "window"
+  ]
+}

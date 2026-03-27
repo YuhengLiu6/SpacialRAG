@@ -75,6 +75,8 @@ Our approach has evolved through several phases to address limitations in standa
     pip install torch torchvision torchaudio
     pip install git+https://github.com/openai/CLIP.git
     pip install ultralytics faiss-cpu numpy opencv-python matplotlib rank_bm25 openai
+    pip install git+https://github.com/NVIDIA-AI-IOT/nanosam.git
+    pip install git+https://github.com/apple/ml-depth-pro.git
     ```
 
 
@@ -131,3 +133,19 @@ All hyperparameters are centralled in `spatial_rag/config.py`:
 *   `YOLO_MODEL_PATH`: `yolov8n.pt`, `yolov8m.pt`, etc.
 *   `CLIP_MODEL_NAME`: `ViT-B/32`, `ViT-L/14`, etc.
 *   `TOP_K`: Number of retrieval results to return.
+
+### Geometry-Aware Builder
+The builder now supports a geometry-first object pipeline for better global coordinate estimates:
+*   Full-image VLM first selects a subset of likely household object categories from a shared pre-list.
+*   `YOLO-World` detects only those categories.
+*   `NanoSAM` refines each detection into a mask.
+*   `Depth Pro` predicts dense depth for the full view.
+*   Object depth, angle, and projected global coordinates are computed from mask + depth geometry, while crop-level VLM still provides object descriptions.
+
+Relevant config flags in `spatial_rag/config.py`:
+*   `OBJECT_GEOMETRY_PIPELINE_ENABLE`
+*   `SAVE_GEOMETRY_ARTIFACTS`
+*   `YOLO_WORLD_MODEL_PATH`
+*   `NANOSAM_ENCODER_PATH`
+*   `NANOSAM_DECODER_PATH`
+*   `DEPTH_PRO_MODEL_PATH`

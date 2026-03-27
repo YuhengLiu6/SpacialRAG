@@ -1,0 +1,153 @@
+{
+  "timestamp": "20260306_215555",
+  "query": {
+    "x0": -7.759162902832031,
+    "y0": 7.47385311126709,
+    "theta0": 0.0,
+    "query_image_path": "vpr_results/probe_short/query_image.jpg",
+    "query_text": "large beige draped fabric partially blocking the view | wood floor with visible planks and light finish | decorative lower wall panels with painted botanical motifs | blue patterned heavy curtain tied back at the right window | floral patterned wallpaper on the right and rear walls | tall panels or window shutters with painted floral squares | ornate carved wooden armchair with striped upholstery | ornate carved wooden arm/leg detail of the chair | decorative swan- or animal-shaped sculptural object on the floor | upper moulding/trim near ceiling and picture frame | framed dark oil portrait in a gilt frame",
+    "query_text_input_for_clip": "large beige draped fabric partially blocking the view | wood floor with visible planks and light finish | decorative lower wall panels with painted botanical motifs | blue patterned heavy curtain tied back at the right window | floral patterned wallpaper on the right and rear walls | tall panels or window shutters with painted floral squares | ornate carved wooden armchair with striped upholstery | ornate carved wooden arm/leg detail of the chair | decorative swan- or animal-shaped sculptural object on the floor | upper moulding/trim near ceiling and picture frame | framed dark oil portrait in a gilt frame",
+    "query_text_short": "large beige draped fabric partially blocking the view | wood floor with visible planks and light finish | decorative lower wall panels with painted botanical motifs | blue patterned heavy curtain tied back at the right window | floral patterned wallpaper on the right and rear walls | tall panels or window shutters with painted floral squares | ornate carved wooden armchair with striped upholstery | ornate carved wooden arm/leg detail of the chair | decorative swan- or animal-shaped sculptural object on the floor | upper moulding/trim near ceiling and picture frame | framed dark oil portrait in a gilt frame",
+    "query_text_long": "Thick beige/cream fabric with soft vertical folds, appears to be a heavy curtain or draped cloth immediately in front of the camera and occupying much of the central plane. Opaque, slightly wrinkled, with a smooth matte texture and subtle shadowing indicating weight. Blocks a substantial portion of the scene to its right. | Wide plank wooden flooring with a light, slightly grayish finish. Planks run roughly left-right in the image and show natural grain and some wear/staining consistent with an older interior. Floor visible beneath the chair and decorative object. | Wooden or plaster wainscoting/panels along the lower portion of the wall. Each panel contains a painted floral/leaf motif centered on a light cream background with a narrow decorative border (gold or tan trim). Panels run horizontally along the base of the wall and are visibly aged with slight discoloration near the floor. | Full-length blue curtain with a subtle pattern (possibly floral or damask) pulled to the right and tied back. Fabric appears thick and lined, with a lighter inner facing. Tied back high enough to reveal the painted panels behind it. | Dense, vintage-style wallpaper with small-to-medium scale floral motifs in muted colors (pinks, greens, beiges) on a darker ground. Pattern is continuous across the upper wall and appears slightly faded, giving an aged appearance. Covers the right-side and rear wall surfaces visible in the frame. | Vertical white panels that look like window shutters or decorative door panels, each containing inset painted floral squares (single flower motifs in soft colors). Panels are framed in pale wood with narrow moulding and sit adjacent to the blue patterned curtain which is tied back. | A single antique-style armchair featuring dark carved wooden frame with scrolled armrests and cabriole legs. Seat and back cushions upholstered in a narrow beige-and-white vertical stripe fabric. Visible wear/discoloration consistent with age. Chair sits on the floor near the right wall in front of the window/panel area. | Close-up view of the chair's carved wooden structural elements\u2014scrollwork and turned supports forming the arm and leg. Dark wood with intricate curves and a polished but aged finish. Visible joinery and shadowed recesses emphasize depth of carving. | A carved or molded decorative object with a curved neck resembling a swan or stylized animal; light beige/stone color and textured surface. Sits on the floor near the chair base and in front of the wainscoting, likely a floor ornament or small pedestal. | Decorative upper moulding and picture-rail style trim along the top of the wall, continuing above the framed portrait. Painted in a pale tone with some gilded or darker accent visible on the moulding edge. Adds to the period character of the room. | Rectangular framed portrait of a bearded figure painted in dark tones; housed in an ornate gold/gilt frame. The painting hangs on the right wall above the wainscoting and to the side of the window/panel area. Frame appears traditional and slightly worn.",
+    "query_object_lines": [
+      "large beige draped fabric partially blocking the view",
+      "wood floor with visible planks and light finish",
+      "decorative lower wall panels with painted botanical motifs",
+      "blue patterned heavy curtain tied back at the right window",
+      "floral patterned wallpaper on the right and rear walls",
+      "tall panels or window shutters with painted floral squares",
+      "ornate carved wooden armchair with striped upholstery",
+      "ornate carved wooden arm/leg detail of the chair",
+      "decorative swan- or animal-shaped sculptural object on the floor",
+      "upper moulding/trim near ceiling and picture frame",
+      "framed dark oil portrait in a gilt frame"
+    ],
+    "query_object_text_inputs_for_clip": [
+      "large beige draped fabric partially blocking the view",
+      "wood floor with visible planks and light finish",
+      "decorative lower wall panels with painted botanical motifs",
+      "blue patterned heavy curtain tied back at the right window",
+      "floral patterned wallpaper on the right and rear walls",
+      "tall panels or window shutters with painted floral squares",
+      "ornate carved wooden armchair with striped upholstery",
+      "ornate carved wooden arm/leg detail of the chair",
+      "decorative swan- or animal-shaped sculptural object on the floor",
+      "upper moulding/trim near ceiling and picture frame",
+      "framed dark oil portrait in a gilt frame"
+    ],
+    "query_object_lines_short": [
+      "large beige draped fabric partially blocking the view",
+      "wood floor with visible planks and light finish",
+      "decorative lower wall panels with painted botanical motifs",
+      "blue patterned heavy curtain tied back at the right window",
+      "floral patterned wallpaper on the right and rear walls",
+      "tall panels or window shutters with painted floral squares",
+      "ornate carved wooden armchair with striped upholstery",
+      "ornate carved wooden arm/leg detail of the chair",
+      "decorative swan- or animal-shaped sculptural object on the floor",
+      "upper moulding/trim near ceiling and picture frame",
+      "framed dark oil portrait in a gilt frame"
+    ],
+    "query_object_lines_long": [
+      "Thick beige/cream fabric with soft vertical folds, appears to be a heavy curtain or draped cloth immediately in front of the camera and occupying much of the central plane. Opaque, slightly wrinkled, with a smooth matte texture and subtle shadowing indicating weight. Blocks a substantial portion of the scene to its right.",
+      "Wide plank wooden flooring with a light, slightly grayish finish. Planks run roughly left-right in the image and show natural grain and some wear/staining consistent with an older interior. Floor visible beneath the chair and decorative object.",
+      "Wooden or plaster wainscoting/panels along the lower portion of the wall. Each panel contains a painted floral/leaf motif centered on a light cream background with a narrow decorative border (gold or tan trim). Panels run horizontally along the base of the wall and are visibly aged with slight discoloration near the floor.",
+      "Full-length blue curtain with a subtle pattern (possibly floral or damask) pulled to the right and tied back. Fabric appears thick and lined, with a lighter inner facing. Tied back high enough to reveal the painted panels behind it.",
+      "Dense, vintage-style wallpaper with small-to-medium scale floral motifs in muted colors (pinks, greens, beiges) on a darker ground. Pattern is continuous across the upper wall and appears slightly faded, giving an aged appearance. Covers the right-side and rear wall surfaces visible in the frame.",
+      "Vertical white panels that look like window shutters or decorative door panels, each containing inset painted floral squares (single flower motifs in soft colors). Panels are framed in pale wood with narrow moulding and sit adjacent to the blue patterned curtain which is tied back.",
+      "A single antique-style armchair featuring dark carved wooden frame with scrolled armrests and cabriole legs. Seat and back cushions upholstered in a narrow beige-and-white vertical stripe fabric. Visible wear/discoloration consistent with age. Chair sits on the floor near the right wall in front of the window/panel area.",
+      "Close-up view of the chair's carved wooden structural elements\u2014scrollwork and turned supports forming the arm and leg. Dark wood with intricate curves and a polished but aged finish. Visible joinery and shadowed recesses emphasize depth of carving.",
+      "A carved or molded decorative object with a curved neck resembling a swan or stylized animal; light beige/stone color and textured surface. Sits on the floor near the chair base and in front of the wainscoting, likely a floor ornament or small pedestal.",
+      "Decorative upper moulding and picture-rail style trim along the top of the wall, continuing above the framed portrait. Painted in a pale tone with some gilded or darker accent visible on the moulding edge. Adds to the period character of the room.",
+      "Rectangular framed portrait of a bearded figure painted in dark tones; housed in an ornate gold/gilt frame. The painting hangs on the right wall above the wainscoting and to the side of the window/panel area. Frame appears traditional and slightly worn."
+    ],
+    "object_text_mode": "short",
+    "actual_world_position": [
+      -7.759162902832031,
+      -0.39008140563964844,
+      7.47385311126709
+    ],
+    "used_snap_fallback": false
+  },
+  "weights": {
+    "w_img": 0.5,
+    "w_txt": 0.5
+  },
+  "object_rerank_enabled": true,
+  "object_rerank_applied": true,
+  "object_score_weight": 0.25,
+  "query_object_count": 11,
+  "parse_status": "ok",
+  "parse_warnings": [],
+  "prediction": {
+    "id": 0,
+    "x": -7.759162902832031,
+    "y": 7.47385311126709,
+    "orientation": 0,
+    "file_name": "images/pose_00000_o000_000000.jpg",
+    "score": 1.1061655282974243
+  },
+  "metrics": {
+    "pos_error": 0.0,
+    "yaw_error": 0.0
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 0,
+      "x": -7.759162902832031,
+      "y": 7.47385311126709,
+      "orientation": 0,
+      "file_name": "images/pose_00000_o000_000000.jpg",
+      "sim_img": 0.9999924898147583,
+      "sim_txt": 0.7882112860679626,
+      "sim_fused": 0.8941018581390381,
+      "sim_rerank": 1.1061655282974243,
+      "object_score": 0.8482545451684431,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_01_id_000000_ori_000_sim_1p1062.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 3,
+      "x": -7.602224826812744,
+      "y": 6.50938081741333,
+      "orientation": 0,
+      "file_name": "images/pose_00003_o000_000003.jpg",
+      "sim_img": 0.7723554372787476,
+      "sim_txt": 0.6951507329940796,
+      "sim_fused": 0.7337530851364136,
+      "sim_rerank": 0.9203551411628723,
+      "object_score": 0.7464082782918756,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_02_id_000003_ori_000_sim_0p9204.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 4,
+      "x": -6.611258029937744,
+      "y": 6.643486976623535,
+      "orientation": 0,
+      "file_name": "images/pose_00004_o000_000004.jpg",
+      "sim_img": 0.6201798915863037,
+      "sim_txt": 0.7782607078552246,
+      "sim_fused": 0.6992202997207642,
+      "sim_rerank": 0.8911155462265015,
+      "object_score": 0.7675810835578225,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_03_id_000004_ori_000_sim_0p8911.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_overlay": "vpr_results/probe_short/query_overlay.jpg",
+    "top_k_dir": "vpr_results/probe_short/top_k",
+    "top_k_images": [
+      "vpr_results/probe_short/top_k/rank_01_id_000000_ori_000_sim_1p1062.jpg",
+      "vpr_results/probe_short/top_k/rank_02_id_000003_ori_000_sim_0p9204.jpg",
+      "vpr_results/probe_short/top_k/rank_03_id_000004_ori_000_sim_0p8911.jpg"
+    ]
+  },
+  "object_debug": {
+    "object_db_loaded": true,
+    "object_faiss_loaded": true,
+    "object_db_error": null,
+    "object_rerank_candidates": 30
+  }
+}

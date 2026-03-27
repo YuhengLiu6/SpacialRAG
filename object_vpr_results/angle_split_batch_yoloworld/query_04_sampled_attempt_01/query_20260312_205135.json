@@ -1,0 +1,349 @@
+{
+  "timestamp": "20260312_205135",
+  "pose": {
+    "x0": 4.459653854370117,
+    "y0": 10.350687026977539,
+    "theta0": 234.0,
+    "actual_world_position": [
+      4.459653854370117,
+      0.17580008506774902,
+      10.350687026977539
+    ],
+    "used_snap_fallback": true
+  },
+  "query": {
+    "query_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/query_image.jpg",
+    "query_object_crop_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/query_object_crop.jpg",
+    "query_object_text": "dark wooden spindle chair",
+    "query_object_text_long": "Antique-style dark brown wooden chair with turned spindle uprights and legs, a rectangular woven cane back panel and a woven cane seat, horizontal stretcher rails between the legs and visible surface wear; fully visible in the crop and estimated ~2.0 meters from the camera.",
+    "query_text_used_for_retrieval": "dark wooden spindle chair",
+    "query_object_text_source": "api",
+    "yolo_label_hint": "chair",
+    "yolo_confidence_hint": 0.5266152620315552,
+    "query_bbox_laterality": "right",
+    "query_object_orientation_deg_approx": 264.0,
+    "query_object_distance_from_camera_m": 2.0,
+    "query_object_xy_approx": [
+      6.448697645106664,
+      10.559743953512847
+    ],
+    "object_text_mode": "short",
+    "selection_seed": 40043
+  },
+  "selected_detection": {
+    "label": "chair",
+    "confidence": 0.5266152620315552,
+    "bbox_xyxy": [
+      1600,
+      526,
+      1695,
+      669
+    ],
+    "area_ratio": 0.006551408179012346,
+    "crop_bbox_xyxy": [
+      1576,
+      490,
+      1719,
+      705
+    ]
+  },
+  "valid_detections": [
+    {
+      "label": "chair",
+      "confidence": 0.6478685140609741,
+      "bbox_xyxy": [
+        1740,
+        520,
+        1886,
+        691
+      ],
+      "area_ratio": 0.012039930555555555
+    },
+    {
+      "label": "chair",
+      "confidence": 0.5266152620315552,
+      "bbox_xyxy": [
+        1600,
+        526,
+        1695,
+        669
+      ],
+      "area_ratio": 0.006551408179012346
+    },
+    {
+      "label": "picture",
+      "confidence": 0.6154307723045349,
+      "bbox_xyxy": [
+        1111,
+        411,
+        1343,
+        860
+      ],
+      "area_ratio": 0.05023533950617284
+    },
+    {
+      "label": "picture",
+      "confidence": 0.5691002607345581,
+      "bbox_xyxy": [
+        237,
+        3,
+        1088,
+        471
+      ],
+      "area_ratio": 0.19206597222222221
+    }
+  ],
+  "prediction": {
+    "id": 19,
+    "x": -5.050173282623291,
+    "y": 5.1801886558532715,
+    "orientation": 270,
+    "file_name": "images/pose_00004_o270_000019.jpg",
+    "object_score": 0.7500789165496826
+  },
+  "metrics": {
+    "pos_error": 10.82454920914931,
+    "yaw_error": 36.0,
+    "num_valid_detections": 4,
+    "selected_detection_confidence": 0.5266152620315552,
+    "selected_detection_label": "chair",
+    "selected_detection_bbox_xyxy": [
+      1600,
+      526,
+      1695,
+      669
+    ],
+    "top1_object_score": 0.7500789165496826,
+    "top1_distance_to_query_entry_m": 10.82454920914931,
+    "top1_distance_to_query_object_m_approx": 10.411730603566955
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 19,
+      "x": -5.050173282623291,
+      "y": 5.1801886558532715,
+      "orientation": 270,
+      "file_name": "images/pose_00004_o270_000019.jpg",
+      "object_score": 0.7500789165496826,
+      "distance_to_query_entry_m": 10.82454920914931,
+      "distance_to_query_object_m_approx": 10.411730603566955,
+      "query_object_xy_approx": [
+        6.448697645106664,
+        10.559743953512847
+      ],
+      "matched_object_xy_approx": [
+        1.0120045438677794,
+        1.6801886558532706
+      ],
+      "matched_object": {
+        "object_index": 258,
+        "label": "chair",
+        "description": "dark carved wooden dining chairs",
+        "long_form_open_description": "Several dark wooden chairs with carved backs and upholstered seats grouped near the right edge of the image. They are part of a larger dining set and show turned legs and traditional joinery.",
+        "laterality": "right",
+        "distance_from_camera_m": 7.0,
+        "object_orientation_deg": 300,
+        "score": 0.7500789165496826
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_01_id_000019_ori_270_score_0p7501.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 27,
+      "x": -4.186160087585449,
+      "y": 6.27672004699707,
+      "orientation": 270,
+      "file_name": "images/pose_00006_o270_000027.jpg",
+      "object_score": 0.7054988145828247,
+      "distance_to_query_entry_m": 9.557578441890207,
+      "distance_to_query_object_m_approx": 8.754161660732239,
+      "query_object_xy_approx": [
+        6.448697645106664,
+        10.559743953512847
+      ],
+      "matched_object_xy_approx": [
+        -1.1861600875854492,
+        6.276720046997071
+      ],
+      "matched_object": {
+        "object_index": 368,
+        "label": "table",
+        "description": "Ornate wooden side table with turned legs",
+        "long_form_open_description": "Medium-sized carved wooden table with barley-twist/turned legs and a polished dark wood surface. It holds decorative objects (glass cloche/lantern) and is positioned near the window, oriented lengthwise into the room.",
+        "laterality": "center",
+        "distance_from_camera_m": 3.0,
+        "object_orientation_deg": 270,
+        "score": 0.7054988145828247
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_02_id_000027_ori_270_score_0p7055.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 28,
+      "x": -3.9284145832061768,
+      "y": 7.2429327964782715,
+      "orientation": 0,
+      "file_name": "images/pose_00007_o000_000028.jpg",
+      "object_score": 0.7018520832061768,
+      "distance_to_query_entry_m": 8.945268496286163,
+      "distance_to_query_object_m_approx": 12.285979417977364,
+      "query_object_xy_approx": [
+        6.448697645106664,
+        10.559743953512847
+      ],
+      "matched_object_xy_approx": [
+        -4.828414583206177,
+        5.6840870696662815
+      ],
+      "matched_object": {
+        "object_index": 390,
+        "label": "table",
+        "description": "wooden side table with turned legs on right edge",
+        "long_form_open_description": "Rectangular wooden side table with a polished darker brown tabletop and carved turned legs, visible at the right edge of the image. Table appears to have a stretcher between legs and a classic antique finish; top is clear of objects in the visible portion.",
+        "laterality": "right",
+        "distance_from_camera_m": 1.8,
+        "object_orientation_deg": 30,
+        "score": 0.7018520832061768
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_03_id_000028_ori_000_score_0p7019.jpg"
+    },
+    {
+      "rank": 4,
+      "id": 36,
+      "x": -5.405601501464844,
+      "y": 7.01353120803833,
+      "orientation": 0,
+      "file_name": "images/pose_00009_o000_000036.jpg",
+      "object_score": 0.6989152431488037,
+      "distance_to_query_entry_m": 10.414406953624878,
+      "distance_to_query_object_m_approx": 12.213532261184838,
+      "query_object_xy_approx": [
+        6.448697645106664,
+        10.559743953512847
+      ],
+      "matched_object_xy_approx": [
+        -5.005601501464843,
+        6.320710885010779
+      ],
+      "matched_object": {
+        "object_index": 503,
+        "label": "chair",
+        "description": "partial secondary wooden chair, left foreground",
+        "long_form_open_description": "Partial view of a second wooden chair or bench arm in the left foreground; visible carved wooden leg and armrest with dark wood finish. Only a fragment is visible at the extreme left edge of the frame.",
+        "laterality": "left",
+        "distance_from_camera_m": 0.8,
+        "object_orientation_deg": 330,
+        "score": 0.6989152431488037
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p6989.jpg"
+    },
+    {
+      "rank": 5,
+      "id": 32,
+      "x": -4.7689528465271,
+      "y": 7.784685134887695,
+      "orientation": 0,
+      "file_name": "images/pose_00008_o000_000032.jpg",
+      "object_score": 0.6810785531997681,
+      "distance_to_query_entry_m": 9.578702801008792,
+      "distance_to_query_object_m_approx": 11.281990287654963,
+      "query_object_xy_approx": [
+        6.448697645106664,
+        10.559743953512847
+      ],
+      "matched_object_xy_approx": [
+        -4.168952846527099,
+        6.745454650346369
+      ],
+      "matched_object": {
+        "object_index": 440,
+        "label": "chair",
+        "description": "cane-backed wooden chair with curved legs (left)",
+        "long_form_open_description": "Antique wooden chair with woven cane back and seat frame, carved wooden arms and cabriole legs. Finish is dark brown wood with wear on edges. Positioned near the left wall, partially cropped at image left.",
+        "laterality": "left",
+        "distance_from_camera_m": 1.2,
+        "object_orientation_deg": 330,
+        "score": 0.6810785531997681
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_05_id_000032_ori_000_score_0p6811.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/query_detection_overlay.jpg",
+    "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/retrieval_topk_overlay.jpg",
+    "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k",
+    "top_k_images": [
+      "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_01_id_000019_ori_270_score_0p7501.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_02_id_000027_ori_270_score_0p7055.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_03_id_000028_ori_000_score_0p7019.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p6989.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_05_id_000032_ori_000_score_0p6811.jpg"
+    ],
+    "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k_contact_sheet.jpg"
+  },
+  "debug": {
+    "object_candidate_pool": 256,
+    "ranked_entry_scores_top10": [
+      {
+        "entry_id": 19,
+        "score": 0.7500789165496826
+      },
+      {
+        "entry_id": 27,
+        "score": 0.7054988145828247
+      },
+      {
+        "entry_id": 28,
+        "score": 0.7018520832061768
+      },
+      {
+        "entry_id": 36,
+        "score": 0.6989152431488037
+      },
+      {
+        "entry_id": 32,
+        "score": 0.6810785531997681
+      },
+      {
+        "entry_id": 15,
+        "score": 0.6773019433021545
+      },
+      {
+        "entry_id": 24,
+        "score": 0.6747595071792603
+      },
+      {
+        "entry_id": 9,
+        "score": 0.6740385293960571
+      },
+      {
+        "entry_id": 0,
+        "score": 0.6727031469345093
+      },
+      {
+        "entry_id": 40,
+        "score": 0.6703405380249023
+      }
+    ],
+    "crop_description": {
+      "label": "chair",
+      "short_description": "dark wooden spindle chair",
+      "long_description": "Antique-style dark brown wooden chair with turned spindle uprights and legs, a rectangular woven cane back panel and a woven cane seat, horizontal stretcher rails between the legs and visible surface wear; fully visible in the crop and estimated ~2.0 meters from the camera.",
+      "attributes": [
+        "dark brown wood",
+        "turned spindle uprights",
+        "woven cane seat",
+        "caned back panel",
+        "turned legs",
+        "horizontal stretcher rails",
+        "antique/vintage style",
+        "visible surface wear"
+      ],
+      "distance_from_camera_m": 2.0,
+      "source": "api",
+      "yolo_label_hint": "chair",
+      "yolo_confidence_hint": 0.5266152620315552
+    }
+  }
+}

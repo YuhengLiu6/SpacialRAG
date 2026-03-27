@@ -1,0 +1,87 @@
+{
+  "started_at": "2026-03-25T21:32:33.451429+00:00",
+  "scene_path": "data/scene_datasets/hm3d/minival/00800-TEEsavR23oF/TEEsavR23oF.basis.glb",
+  "meters_per_step": 1.5,
+  "max_positions": null,
+  "output_dir": "spatial_db_nd",
+  "vlm_model": "gpt-5-mini",
+  "use_cache": true,
+  "builder_variant": "angle_split",
+  "object_prompt_variant": "angle_split",
+  "angle_split_enabled": true,
+  "angle_step_deg": 30,
+  "object_orientation_mode": "laterality_offset",
+  "object_config": {
+    "max_per_frame": 24,
+    "stored_text_modes": [
+      "short",
+      "long"
+    ],
+    "parse_retries": 1,
+    "use_cache": true,
+    "cache_dir": "spatial_db_nd/vlm_object_cache"
+  },
+  "geometry_config": {
+    "pipeline_enabled": true,
+    "horizontal_fov_deg": 90.0,
+    "image_width_px": 1920,
+    "image_height_px": 1080,
+    "taxonomy_path": "spatial_rag/household_taxonomy.py",
+    "save_artifacts": true,
+    "nanosam_encoder_path": "models/nanosam/resnet18_image_encoder.engine",
+    "nanosam_decoder_path": "models/nanosam/mobile_sam_mask_decoder.engine",
+    "depth_pro_model_path": "models/depth_pro/depth_pro.pt"
+  },
+  "tour_mode": "full_house",
+  "random_config": {
+    "num_steps": 50,
+    "step_size": 1.0,
+    "scan_angles": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "seed": null,
+    "max_attempts_per_step": 32,
+    "include_start_scan": true
+  },
+  "scan_angles": [
+    0,
+    90,
+    180,
+    270
+  ],
+  "total_frames_raw": 164,
+  "total_frames_processed": 164,
+  "total_entries": 164,
+  "failed_entries": 0,
+  "image_index_ntotal": 164,
+  "text_index_ntotal_short": 164,
+  "text_index_ntotal_long": 164,
+  "object_index_ntotal_short": 1095,
+  "object_index_ntotal_long": 1095,
+  "total_objects": 1095,
+  "avg_objects_per_frame": 6.676829268292683,
+  "parse_ok_count": 164,
+  "parse_fallback_count": 0,
+  "parse_failed_count": 0,
+  "geometry_ok_count": 120,
+  "geometry_fallback_count": 44,
+  "total_left_bucket_objects": 316,
+  "total_center_bucket_objects": 447,
+  "total_right_bucket_objects": 332,
+  "failure_examples": [],
+  "overview_outputs": {
+    "center_highest_view": "spatial_db_nd/overview/center_highest_view.jpg",
+    "trajectory_on_center_highest_view": "spatial_db_nd/overview/trajectory_on_center_highest_view.jpg",
+    "textured_floor_plan": "spatial_db_nd/overview/textured_floor_plan.jpg",
+    "floor_plan_projection": "spatial_db_nd/overview/floor_plan_projection.json"
+  },
+  "resumed_entry_count": 0,
+  "regenerated_length_entry_count": 0,
+  "generated_entry_count": 164,
+  "total_view_object_relations": 1088,
+  "total_object_object_relations": 10522,
+  "finished_at": "2026-03-26T01:17:54.577062+00:00"
+}

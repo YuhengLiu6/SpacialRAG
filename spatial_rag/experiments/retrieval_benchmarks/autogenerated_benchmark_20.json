@@ -1,0 +1,240 @@
+[
+    {
+        "query_text": "a large wooden chair",
+        "gt_frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "query_id": "q1",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a painting of a man with a beard",
+        "gt_frames": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            7,
+            8,
+            10,
+            12,
+            14,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+        ],
+        "query_id": "q2",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a painting of a man in a ruffled collar",
+        "gt_frames": [
+            5,
+            7,
+            8,
+            10,
+            12,
+            14,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+        ],
+        "query_id": "q3",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a chandelier hanging from the ceiling",
+        "gt_frames": [
+            30,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "query_id": "q4",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a painting of a horse",
+        "gt_frames": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "query_id": "q5",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a curtain with floral patterns",
+        "gt_frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+        ],
+        "query_id": "q6",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a small wooden table",
+        "gt_frames": [
+            30,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "query_id": "q7",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a doorway with floral designs",
+        "gt_frames": [
+            6,
+            7,
+            9,
+            22,
+            23
+        ],
+        "query_id": "q8",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a large room with checkered flooring",
+        "gt_frames": [
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "query_id": "q9",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a wall with multiple portraits",
+        "gt_frames": [
+            0,
+            1,
+            2,
+            3,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+        ],
+        "query_id": "q10",
+        "video_idx": 0
+    },
+    {
+        "query_text": "a ceiling with ornate decorations",
+        "gt_frames": [
+            8
+        ],
+        "query_id": "q11",
+        "video_idx": 0
+    }
+]

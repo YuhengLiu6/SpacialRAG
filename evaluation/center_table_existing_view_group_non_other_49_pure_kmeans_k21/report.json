@@ -1,0 +1,164 @@
+{
+  "method": "pure_kmeans_raw_text_embeddings",
+  "text_mode": "long",
+  "k": 21,
+  "n_objects": 49,
+  "n_clusters": 21,
+  "size_histogram": {
+    "1": 5,
+    "2": 8,
+    "3": 4,
+    "4": 4
+  },
+  "cluster_purity": 0.7959183673469388,
+  "num_mixed_clusters": 8,
+  "mixed_clusters": [
+    {
+      "cluster_id": 0,
+      "num_members": 2,
+      "label_histogram": {
+        "mirror": 1,
+        "art": 1
+      },
+      "member_object_ids": [
+        191,
+        267
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00024"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "num_members": 4,
+      "label_histogram": {
+        "lamp": 1,
+        "ceiling light": 3
+      },
+      "member_object_ids": [
+        193,
+        196,
+        667,
+        753
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00058",
+        "view_00065"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "num_members": 3,
+      "label_histogram": {
+        "refrigerator": 1,
+        "microwave": 1,
+        "stove": 1
+      },
+      "member_object_ids": [
+        197,
+        668,
+        672
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00058",
+        "view_00058"
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "num_members": 3,
+      "label_histogram": {
+        "table": 1,
+        "cabinet": 2
+      },
+      "member_object_ids": [
+        199,
+        200,
+        666
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00058"
+      ]
+    },
+    {
+      "cluster_id": 10,
+      "num_members": 4,
+      "label_histogram": {
+        "couch": 2,
+        "chair": 2
+      },
+      "member_object_ids": [
+        257,
+        674,
+        752,
+        756
+      ],
+      "member_view_ids": [
+        "view_00024",
+        "view_00058",
+        "view_00065",
+        "view_00065"
+      ]
+    },
+    {
+      "cluster_id": 14,
+      "num_members": 3,
+      "label_histogram": {
+        "window": 2,
+        "picture frame": 1
+      },
+      "member_object_ids": [
+        669,
+        754,
+        755
+      ],
+      "member_view_ids": [
+        "view_00058",
+        "view_00065",
+        "view_00065"
+      ]
+    },
+    {
+      "cluster_id": 16,
+      "num_members": 2,
+      "label_histogram": {
+        "unknown": 1,
+        "curtain": 1
+      },
+      "member_object_ids": [
+        673,
+        676
+      ],
+      "member_view_ids": [
+        "view_00058",
+        "view_00058"
+      ]
+    },
+    {
+      "cluster_id": 18,
+      "num_members": 3,
+      "label_histogram": {
+        "tv": 2,
+        "mirror": 1
+      },
+      "member_object_ids": [
+        677,
+        750,
+        751
+      ],
+      "member_view_ids": [
+        "view_00058",
+        "view_00065",
+        "view_00065"
+      ]
+    }
+  ],
+  "axis_label_format": "view_id|object_label|obj<object_global_id>",
+  "sort_order": "cluster_id, then object_id"
+}

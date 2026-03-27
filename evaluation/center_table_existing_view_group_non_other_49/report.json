@@ -1,0 +1,73 @@
+{
+  "source_report": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group/report.json",
+  "db_dir": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_srd",
+  "selected_view_ids": [
+    "view_00024",
+    "view_00065",
+    "view_00058",
+    "view_00019"
+  ],
+  "selection_logic": {
+    "type": "all_non_other_in_selected_4_views",
+    "base_views_source": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group/report.json",
+    "excluded_label": "other",
+    "same_view_policy": "soft_penalty",
+    "same_view_penalty": 0.25,
+    "min_similarity": 0.6,
+    "cluster_count_mode": "eigengap",
+    "text_mode": "long"
+  },
+  "n_objects": 49,
+  "n_clusters": 48,
+  "cluster_backend": "scipy_fallback",
+  "cluster_fallback_reason": null,
+  "selected_views": [
+    {
+      "sector": "north",
+      "view_id": "view_00024",
+      "place_id": "place_00005",
+      "file_name": "images/pose_00006_o000_000024.jpg",
+      "orientation_deg": 0,
+      "camera_x": -6.4470014572143555,
+      "camera_z": -0.9728803634643555,
+      "dist_to_table": 1.3027218870638655,
+      "facing_score": 0.980347109553886
+    },
+    {
+      "sector": "east",
+      "view_id": "view_00065",
+      "place_id": "place_00011",
+      "file_name": "images/pose_00016_o090_000065.jpg",
+      "orientation_deg": 90,
+      "camera_x": -4.085801601409912,
+      "camera_z": -2.9006404876708984,
+      "dist_to_table": 2.2024949363904827,
+      "facing_score": 0.9553703683144508
+    },
+    {
+      "sector": "south",
+      "view_id": "view_00058",
+      "place_id": "place_00009",
+      "file_name": "images/pose_00014_o180_000058.jpg",
+      "orientation_deg": 180,
+      "camera_x": -6.4470014572143555,
+      "camera_z": -3.9728803634643555,
+      "dist_to_table": 1.741943310162926,
+      "facing_score": 0.9890565056926063
+    },
+    {
+      "sector": "west",
+      "view_id": "view_00019",
+      "place_id": "place_00003",
+      "file_name": "images/pose_00004_o270_000019.jpg",
+      "orientation_deg": 270,
+      "camera_x": -7.9470014572143555,
+      "camera_z": -2.4728803634643555,
+      "dist_to_table": 1.7710815275055438,
+      "facing_score": 0.9920500157262554
+    }
+  ],
+  "custom_axis_label_format": "view_id|object_label|obj<object_global_id>",
+  "view_annotations_manifest": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49/view_annotations/manifest.json",
+  "view_annotations_grid": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49/view_annotations/annotated_views_grid.jpg"
+}

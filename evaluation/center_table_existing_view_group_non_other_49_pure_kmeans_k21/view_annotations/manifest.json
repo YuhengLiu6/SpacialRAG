@@ -1,0 +1,387 @@
+{
+  "views": [
+    {
+      "view_id": "view_00019",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_srd/images/pose_00004_o270_000019.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49_pure_kmeans_k21/view_annotations/view_00019_annotated.jpg",
+      "source_file_name": "images/pose_00004_o270_000019.jpg",
+      "num_objects": 11,
+      "objects": [
+        {
+          "object_global_id": 191,
+          "label": "mirror",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 193,
+          "label": "lamp",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 194,
+          "label": "chair",
+          "cluster_id": 2,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 195,
+          "label": "table",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 196,
+          "label": "ceiling light",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 197,
+          "label": "refrigerator",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 198,
+          "label": "door",
+          "cluster_id": 5,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 199,
+          "label": "table",
+          "cluster_id": 6,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 200,
+          "label": "cabinet",
+          "cluster_id": 6,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 201,
+          "label": "window",
+          "cluster_id": 7,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 203,
+          "label": "sink",
+          "cluster_id": 8,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00024",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_srd/images/pose_00006_o000_000024.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49_pure_kmeans_k21/view_annotations/view_00024_annotated.jpg",
+      "source_file_name": "images/pose_00006_o000_000024.jpg",
+      "num_objects": 8,
+      "objects": [
+        {
+          "object_global_id": 256,
+          "label": "lamp",
+          "cluster_id": 9,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 257,
+          "label": "couch",
+          "cluster_id": 10,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 258,
+          "label": "table",
+          "cluster_id": 11,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 259,
+          "label": "stairs",
+          "cluster_id": 12,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 262,
+          "label": "door",
+          "cluster_id": 5,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 265,
+          "label": "chair",
+          "cluster_id": 2,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 266,
+          "label": "table",
+          "cluster_id": 3,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 267,
+          "label": "art",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00058",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_srd/images/pose_00014_o180_000058.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49_pure_kmeans_k21/view_annotations/view_00058_annotated.jpg",
+      "source_file_name": "images/pose_00014_o180_000058.jpg",
+      "num_objects": 15,
+      "objects": [
+        {
+          "object_global_id": 661,
+          "label": "chair",
+          "cluster_id": 2,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 663,
+          "label": "table",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 665,
+          "label": "pet item",
+          "cluster_id": 13,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 666,
+          "label": "cabinet",
+          "cluster_id": 6,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 667,
+          "label": "ceiling light",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 668,
+          "label": "microwave",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 669,
+          "label": "window",
+          "cluster_id": 14,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 671,
+          "label": "sink",
+          "cluster_id": 15,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 672,
+          "label": "stove",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 673,
+          "label": "unknown",
+          "cluster_id": 16,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 674,
+          "label": "chair",
+          "cluster_id": 10,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 675,
+          "label": "table",
+          "cluster_id": 17,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 676,
+          "label": "curtain",
+          "cluster_id": 16,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 677,
+          "label": "tv",
+          "cluster_id": 18,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 679,
+          "label": "plant",
+          "cluster_id": 19,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00065",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_srd/images/pose_00016_o090_000065.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/center_table_existing_view_group_non_other_49_pure_kmeans_k21/view_annotations/view_00065_annotated.jpg",
+      "source_file_name": "images/pose_00016_o090_000065.jpg",
+      "num_objects": 15,
+      "objects": [
+        {
+          "object_global_id": 747,
+          "label": "chair",
+          "cluster_id": 2,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 748,
+          "label": "table",
+          "cluster_id": 3,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 749,
+          "label": "window",
+          "cluster_id": 7,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 750,
+          "label": "mirror",
+          "cluster_id": 18,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 751,
+          "label": "tv",
+          "cluster_id": 18,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 752,
+          "label": "chair",
+          "cluster_id": 10,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 753,
+          "label": "ceiling light",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 754,
+          "label": "picture frame",
+          "cluster_id": 14,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 755,
+          "label": "window",
+          "cluster_id": 14,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 756,
+          "label": "couch",
+          "cluster_id": 10,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 758,
+          "label": "lamp",
+          "cluster_id": 9,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 759,
+          "label": "stairs",
+          "cluster_id": 12,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 760,
+          "label": "couch",
+          "cluster_id": 20,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 761,
+          "label": "plant",
+          "cluster_id": 19,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 762,
+          "label": "table",
+          "cluster_id": 17,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

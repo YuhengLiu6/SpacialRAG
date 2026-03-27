@@ -1,0 +1,381 @@
+{
+  "timestamp": "20260312_205038",
+  "pose": {
+    "x0": 4.114011764526367,
+    "y0": 6.62084436416626,
+    "theta0": 120.0,
+    "actual_world_position": [
+      4.114011764526367,
+      0.14388491213321686,
+      6.62084436416626
+    ],
+    "used_snap_fallback": true
+  },
+  "query": {
+    "query_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/query_image.jpg",
+    "query_object_crop_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/query_object_crop.jpg",
+    "query_object_text": "beige upholstered wooden chair edge-crop",
+    "query_object_text_long": "Partial beige upholstered wooden armchair with padded seat and back, dark turned wooden legs and stretchers visible; right/top edges of the chair are slightly cropped in the image; visible armrest and low profile suggest a small dining or accent chair approximately 1.5 meters from the camera.",
+    "query_text_used_for_retrieval": "beige upholstered wooden chair edge-crop",
+    "query_object_text_source": "api",
+    "yolo_label_hint": "chair",
+    "yolo_confidence_hint": 0.7162455916404724,
+    "query_bbox_laterality": "left",
+    "query_object_orientation_deg_approx": 90.0,
+    "query_object_distance_from_camera_m": 1.5,
+    "query_object_xy_approx": [
+      2.614011764526367,
+      6.62084436416626
+    ],
+    "object_text_mode": "short",
+    "selection_seed": 10043
+  },
+  "selected_detection": {
+    "label": "chair",
+    "confidence": 0.7162455916404724,
+    "bbox_xyxy": [
+      0,
+      519,
+      97,
+      657
+    ],
+    "area_ratio": 0.006455439814814815,
+    "crop_bbox_xyxy": [
+      0,
+      485,
+      121,
+      691
+    ]
+  },
+  "valid_detections": [
+    {
+      "label": "chair",
+      "confidence": 0.7162455916404724,
+      "bbox_xyxy": [
+        0,
+        519,
+        97,
+        657
+      ],
+      "area_ratio": 0.006455439814814815
+    },
+    {
+      "label": "picture",
+      "confidence": 0.6899141073226929,
+      "bbox_xyxy": [
+        1236,
+        432,
+        1344,
+        541
+      ],
+      "area_ratio": 0.0056770833333333335
+    },
+    {
+      "label": "picture",
+      "confidence": 0.4791968762874603,
+      "bbox_xyxy": [
+        146,
+        316,
+        286,
+        433
+      ],
+      "area_ratio": 0.007899305555555555
+    },
+    {
+      "label": "picture",
+      "confidence": 0.4721567630767822,
+      "bbox_xyxy": [
+        919,
+        345,
+        1098,
+        557
+      ],
+      "area_ratio": 0.01830054012345679
+    },
+    {
+      "label": "picture",
+      "confidence": 0.46400776505470276,
+      "bbox_xyxy": [
+        784,
+        370,
+        921,
+        557
+      ],
+      "area_ratio": 0.012354841820987655
+    },
+    {
+      "label": "picture",
+      "confidence": 0.4503600597381592,
+      "bbox_xyxy": [
+        1574,
+        437,
+        1717,
+        557
+      ],
+      "area_ratio": 0.008275462962962964
+    },
+    {
+      "label": "picture",
+      "confidence": 0.4194830358028412,
+      "bbox_xyxy": [
+        1101,
+        338,
+        1202,
+        467
+      ],
+      "area_ratio": 0.006283275462962963
+    }
+  ],
+  "prediction": {
+    "id": 36,
+    "x": -5.405601501464844,
+    "y": 7.01353120803833,
+    "orientation": 0,
+    "file_name": "images/pose_00009_o000_000036.jpg",
+    "object_score": 0.7021662592887878
+  },
+  "metrics": {
+    "pos_error": 9.52770904737262,
+    "yaw_error": 120.0,
+    "num_valid_detections": 7,
+    "selected_detection_confidence": 0.7162455916404724,
+    "selected_detection_label": "chair",
+    "selected_detection_bbox_xyxy": [
+      0,
+      519,
+      97,
+      657
+    ],
+    "top1_object_score": 0.7021662592887878,
+    "top1_distance_to_query_entry_m": 9.52770904737262,
+    "top1_distance_to_query_object_m_approx": 7.625522043019692
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 36,
+      "x": -5.405601501464844,
+      "y": 7.01353120803833,
+      "orientation": 0,
+      "file_name": "images/pose_00009_o000_000036.jpg",
+      "object_score": 0.7021662592887878,
+      "distance_to_query_entry_m": 9.52770904737262,
+      "distance_to_query_object_m_approx": 7.625522043019692,
+      "query_object_xy_approx": [
+        2.614011764526367,
+        6.62084436416626
+      ],
+      "matched_object_xy_approx": [
+        -5.005601501464843,
+        6.320710885010779
+      ],
+      "matched_object": {
+        "object_index": 503,
+        "label": "chair",
+        "description": "partial secondary wooden chair, left foreground",
+        "long_form_open_description": "Partial view of a second wooden chair or bench arm in the left foreground; visible carved wooden leg and armrest with dark wood finish. Only a fragment is visible at the extreme left edge of the frame.",
+        "laterality": "left",
+        "distance_from_camera_m": 0.8,
+        "object_orientation_deg": 330,
+        "score": 0.7021662592887878
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_01_id_000036_ori_000_score_0p7022.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 13,
+      "x": -5.289779186248779,
+      "y": 6.151058673858643,
+      "orientation": 90,
+      "file_name": "images/pose_00003_o090_000013.jpg",
+      "object_score": 0.6852614283561707,
+      "distance_to_query_entry_m": 9.41551819289296,
+      "distance_to_query_object_m_approx": 8.33970028794752,
+      "query_object_xy_approx": [
+        2.614011764526367,
+        6.62084436416626
+      ],
+      "matched_object_xy_approx": [
+        -5.722791888140999,
+        6.401058673858643
+      ],
+      "matched_object": {
+        "object_index": 174,
+        "label": "chair",
+        "description": "Foreground arm and seat of an upholstered armchair, partially visible",
+        "long_form_open_description": "Close foreground view of a striped upholstered armchair's arm and seat cushion occupying the rightmost foreground. Upholstery is light-colored with narrow horizontal stripes; wooden armrest is dark and curved. The chair is partially out of frame but clearly in the nearest plane to the camera.",
+        "laterality": "right",
+        "distance_from_camera_m": 0.5,
+        "object_orientation_deg": 120,
+        "score": 0.6852614283561707
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_02_id_000013_ori_090_score_0p6853.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 23,
+      "x": -5.180624008178711,
+      "y": 6.171643257141113,
+      "orientation": 270,
+      "file_name": "images/pose_00005_o270_000023.jpg",
+      "object_score": 0.6713750958442688,
+      "distance_to_query_entry_m": 9.30548417772023,
+      "distance_to_query_object_m_approx": 4.318460836562333,
+      "query_object_xy_approx": [
+        2.614011764526367,
+        6.62084436416626
+      ],
+      "matched_object_xy_approx": [
+        0.015528414527921086,
+        3.1716432571411124
+      ],
+      "matched_object": {
+        "object_index": 313,
+        "label": "chair",
+        "description": "set of carved wooden dining chairs with upholstered seats",
+        "long_form_open_description": "Several high-backed carved wooden chairs in a matching dark finish, with shaped backs and possibly upholstered seats. Chairs are arranged around the dining table and along the right wall; visible legs and carved details indicate antique style.",
+        "laterality": "right",
+        "distance_from_camera_m": 6.0,
+        "object_orientation_deg": 300,
+        "score": 0.6713750958442688
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_03_id_000023_ori_270_score_0p6714.jpg"
+    },
+    {
+      "rank": 4,
+      "id": 32,
+      "x": -4.7689528465271,
+      "y": 7.784685134887695,
+      "orientation": 0,
+      "file_name": "images/pose_00008_o000_000032.jpg",
+      "object_score": 0.6681128740310669,
+      "distance_to_query_entry_m": 8.958883056543474,
+      "distance_to_query_object_m_approx": 6.7841091263500175,
+      "query_object_xy_approx": [
+        2.614011764526367,
+        6.62084436416626
+      ],
+      "matched_object_xy_approx": [
+        -4.168952846527099,
+        6.745454650346369
+      ],
+      "matched_object": {
+        "object_index": 440,
+        "label": "chair",
+        "description": "cane-backed wooden chair with curved legs (left)",
+        "long_form_open_description": "Antique wooden chair with woven cane back and seat frame, carved wooden arms and cabriole legs. Finish is dark brown wood with wear on edges. Positioned near the left wall, partially cropped at image left.",
+        "laterality": "left",
+        "distance_from_camera_m": 1.2,
+        "object_orientation_deg": 330,
+        "score": 0.6681128740310669
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_04_id_000032_ori_000_score_0p6681.jpg"
+    },
+    {
+      "rank": 5,
+      "id": 7,
+      "x": -6.759200572967529,
+      "y": 7.482508659362793,
+      "orientation": 270,
+      "file_name": "images/pose_00001_o270_000007.jpg",
+      "object_score": 0.6562975645065308,
+      "distance_to_query_entry_m": 10.907300852816247,
+      "distance_to_query_object_m_approx": 9.089020222222779,
+      "query_object_xy_approx": [
+        2.614011764526367,
+        6.62084436416626
+      ],
+      "matched_object_xy_approx": [
+        -6.412790411453754,
+        7.682508659362793
+      ],
+      "matched_object": {
+        "object_index": 80,
+        "label": "chair",
+        "description": "carved wooden upholstered bench (foreground left)",
+        "long_form_open_description": "Low carved wooden bench/chair with striped beige upholstery; ornate cabriole legs and carved arm detail visible at extreme left foreground, fabric shows faint wear, wood finish light to medium brown.",
+        "laterality": "left",
+        "distance_from_camera_m": 0.4,
+        "object_orientation_deg": 240,
+        "score": 0.6562975645065308
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_05_id_000007_ori_270_score_0p6563.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/query_detection_overlay.jpg",
+    "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/retrieval_topk_overlay.jpg",
+    "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k",
+    "top_k_images": [
+      "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_01_id_000036_ori_000_score_0p7022.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_02_id_000013_ori_090_score_0p6853.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_03_id_000023_ori_270_score_0p6714.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_04_id_000032_ori_000_score_0p6681.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_05_id_000007_ori_270_score_0p6563.jpg"
+    ],
+    "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k_contact_sheet.jpg"
+  },
+  "debug": {
+    "object_candidate_pool": 256,
+    "ranked_entry_scores_top10": [
+      {
+        "entry_id": 36,
+        "score": 0.7021662592887878
+      },
+      {
+        "entry_id": 13,
+        "score": 0.6852614283561707
+      },
+      {
+        "entry_id": 23,
+        "score": 0.6713750958442688
+      },
+      {
+        "entry_id": 32,
+        "score": 0.6681128740310669
+      },
+      {
+        "entry_id": 7,
+        "score": 0.6562975645065308
+      },
+      {
+        "entry_id": 39,
+        "score": 0.6513096690177917
+      },
+      {
+        "entry_id": 15,
+        "score": 0.6464860439300537
+      },
+      {
+        "entry_id": 24,
+        "score": 0.6419114470481873
+      },
+      {
+        "entry_id": 25,
+        "score": 0.6356704831123352
+      },
+      {
+        "entry_id": 28,
+        "score": 0.6336963176727295
+      }
+    ],
+    "crop_description": {
+      "label": "chair",
+      "short_description": "beige upholstered wooden chair edge-crop",
+      "long_description": "Partial beige upholstered wooden armchair with padded seat and back, dark turned wooden legs and stretchers visible; right/top edges of the chair are slightly cropped in the image; visible armrest and low profile suggest a small dining or accent chair approximately 1.5 meters from the camera.",
+      "attributes": [
+        "beige fabric upholstery",
+        "dark stained wooden frame",
+        "turned front legs",
+        "padded seat and back",
+        "visible armrest",
+        "edge-cropped (partial)",
+        "low-rise profile"
+      ],
+      "distance_from_camera_m": 1.5,
+      "source": "api",
+      "yolo_label_hint": "chair",
+      "yolo_confidence_hint": 0.7162455916404724
+    }
+  }
+}

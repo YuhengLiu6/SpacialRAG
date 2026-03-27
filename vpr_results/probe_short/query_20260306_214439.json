@@ -1,0 +1,149 @@
+{
+  "timestamp": "20260306_214439",
+  "query": {
+    "x0": -7.759162902832031,
+    "y0": 7.47385311126709,
+    "theta0": 0.0,
+    "query_image_path": "vpr_results/probe_short/query_image.jpg",
+    "query_text": "Textured wallpaper adorned with floral patterns. | Wooden cabinet with drawers. | Table lamp on the cabinet. | Antique chair with ornate designs. | Floor made of patterned tiles. | Decorative rug on the floor. | Ornate chandelier hanging from the ceiling. | Green indoor plant in a pot. | Ornate picture frame on the wall. | Tall window with curtains.",
+    "query_text_input_for_clip": "Textured wallpaper adorned with floral patterns. | Wooden cabinet with drawers. | Table lamp on the cabinet. | Antique chair with ornate designs. | Floor made of patterned tiles. | Decorative rug on the floor. | Ornate chandelier hanging from the ceiling. | Green indoor plant in a pot. | Ornate picture frame on the wall. | Tall window with curtains.",
+    "query_text_short": "Textured wallpaper adorned with floral patterns. | Wooden cabinet with drawers. | Table lamp on the cabinet. | Antique chair with ornate designs. | Floor made of patterned tiles. | Decorative rug on the floor. | Ornate chandelier hanging from the ceiling. | Green indoor plant in a pot. | Ornate picture frame on the wall. | Tall window with curtains.",
+    "query_text_long": "The wall displays an intricate floral patterned wallpaper that exhibits a vintage aesthetic. The colors are a mix of muted pastels, with the floral motifs woven throughout the design, contributing to an ornate and classic look. | A wooden cabinet, crafted with a glossy finish, features several drawers and ornate handles. The cabinet's design complements the overall vintage style. | An elegant table lamp rests on the cabinet, featuring a classic shade. The lamp is designed with ornate details that echo the room's vintage charm, providing a warm light source. | An antique chair, exhibiting elaborate carvings and detailed upholstery, stands in the middle-left area. Its backrest is tall and arched, showcasing intricate details in its wooden frame. | The flooring consists of intricate patterned tiles, predominantly in light hues. The tiles form an elaborate geometric pattern that enhances the vintage charm of the space. | The floor is covered with a decorative rug that showcases intricate designs and patterns, forming a warm centerpiece that enhances the aesthetic appeal of the room. | A stunning chandelier hangs from the ceiling, adorned with crystals and metalwork. It adds elegance and illuminates the space with a warm glow, particularly when lit at night. | A healthy, lush indoor plant is housed in a decorative pot, situated in the background. The greenery adds life and color to the room, harmonizing with the vintage decor. | An ornate picture frame hangs on the wall, exhibiting gold accents and intricate detailing. The frame encases an artwork that appears to be a landscape painting, contributing to the elegance of the room. | A tall, narrow window is positioned on the right, adorned with sheer curtains that gently diffuse the light. The window features an ornate framing that adds to the classical style of the room.",
+    "query_object_lines": [
+      "Textured wallpaper adorned with floral patterns.",
+      "Wooden cabinet with drawers.",
+      "Table lamp on the cabinet.",
+      "Antique chair with ornate designs.",
+      "Floor made of patterned tiles.",
+      "Decorative rug on the floor.",
+      "Ornate chandelier hanging from the ceiling.",
+      "Green indoor plant in a pot.",
+      "Ornate picture frame on the wall.",
+      "Tall window with curtains."
+    ],
+    "query_object_text_inputs_for_clip": [
+      "Textured wallpaper adorned with floral patterns.",
+      "Wooden cabinet with drawers.",
+      "Table lamp on the cabinet.",
+      "Antique chair with ornate designs.",
+      "Floor made of patterned tiles.",
+      "Decorative rug on the floor.",
+      "Ornate chandelier hanging from the ceiling.",
+      "Green indoor plant in a pot.",
+      "Ornate picture frame on the wall.",
+      "Tall window with curtains."
+    ],
+    "query_object_lines_short": [
+      "Textured wallpaper adorned with floral patterns.",
+      "Wooden cabinet with drawers.",
+      "Table lamp on the cabinet.",
+      "Antique chair with ornate designs.",
+      "Floor made of patterned tiles.",
+      "Decorative rug on the floor.",
+      "Ornate chandelier hanging from the ceiling.",
+      "Green indoor plant in a pot.",
+      "Ornate picture frame on the wall.",
+      "Tall window with curtains."
+    ],
+    "query_object_lines_long": [
+      "The wall displays an intricate floral patterned wallpaper that exhibits a vintage aesthetic. The colors are a mix of muted pastels, with the floral motifs woven throughout the design, contributing to an ornate and classic look.",
+      "A wooden cabinet, crafted with a glossy finish, features several drawers and ornate handles. The cabinet's design complements the overall vintage style.",
+      "An elegant table lamp rests on the cabinet, featuring a classic shade. The lamp is designed with ornate details that echo the room's vintage charm, providing a warm light source.",
+      "An antique chair, exhibiting elaborate carvings and detailed upholstery, stands in the middle-left area. Its backrest is tall and arched, showcasing intricate details in its wooden frame.",
+      "The flooring consists of intricate patterned tiles, predominantly in light hues. The tiles form an elaborate geometric pattern that enhances the vintage charm of the space.",
+      "The floor is covered with a decorative rug that showcases intricate designs and patterns, forming a warm centerpiece that enhances the aesthetic appeal of the room.",
+      "A stunning chandelier hangs from the ceiling, adorned with crystals and metalwork. It adds elegance and illuminates the space with a warm glow, particularly when lit at night.",
+      "A healthy, lush indoor plant is housed in a decorative pot, situated in the background. The greenery adds life and color to the room, harmonizing with the vintage decor.",
+      "An ornate picture frame hangs on the wall, exhibiting gold accents and intricate detailing. The frame encases an artwork that appears to be a landscape painting, contributing to the elegance of the room.",
+      "A tall, narrow window is positioned on the right, adorned with sheer curtains that gently diffuse the light. The window features an ornate framing that adds to the classical style of the room."
+    ],
+    "object_text_mode": "short",
+    "actual_world_position": [
+      -7.759162902832031,
+      -0.39008140563964844,
+      7.47385311126709
+    ],
+    "used_snap_fallback": false
+  },
+  "weights": {
+    "w_img": 0.5,
+    "w_txt": 0.5
+  },
+  "object_rerank_enabled": true,
+  "object_rerank_applied": true,
+  "object_score_weight": 0.25,
+  "query_object_count": 10,
+  "parse_status": "ok",
+  "parse_warnings": [],
+  "prediction": {
+    "id": 0,
+    "x": -7.759162902832031,
+    "y": 7.47385311126709,
+    "orientation": 0,
+    "file_name": "images/pose_00000_o000_000000.jpg",
+    "score": 0.9749844670295715
+  },
+  "metrics": {
+    "pos_error": 0.0,
+    "yaw_error": 0.0
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 0,
+      "x": -7.759162902832031,
+      "y": 7.47385311126709,
+      "orientation": 0,
+      "file_name": "images/pose_00000_o000_000000.jpg",
+      "sim_img": 0.9999924898147583,
+      "sim_txt": 0.6176888942718506,
+      "sim_fused": 0.8088406920433044,
+      "sim_rerank": 0.9749844670295715,
+      "object_score": 0.6645750999450684,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_01_id_000000_ori_000_sim_0p9750.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 3,
+      "x": -7.602224826812744,
+      "y": 6.50938081741333,
+      "orientation": 0,
+      "file_name": "images/pose_00003_o000_000003.jpg",
+      "sim_img": 0.7723554372787476,
+      "sim_txt": 0.591456413269043,
+      "sim_fused": 0.6819059252738953,
+      "sim_rerank": 0.8444159030914307,
+      "object_score": 0.6500398755073548,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_02_id_000003_ori_000_sim_0p8444.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 2,
+      "x": -6.794567584991455,
+      "y": 7.099032878875732,
+      "orientation": 0,
+      "file_name": "images/pose_00002_o000_000002.jpg",
+      "sim_img": 0.5899362564086914,
+      "sim_txt": 0.6323257088661194,
+      "sim_fused": 0.611130952835083,
+      "sim_rerank": 0.7856579422950745,
+      "object_score": 0.6981079876422882,
+      "retrieved_image_path": "vpr_results/probe_short/top_k/rank_03_id_000002_ori_000_sim_0p7857.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_overlay": "vpr_results/probe_short/query_overlay.jpg",
+    "top_k_dir": "vpr_results/probe_short/top_k",
+    "top_k_images": [
+      "vpr_results/probe_short/top_k/rank_01_id_000000_ori_000_sim_0p9750.jpg",
+      "vpr_results/probe_short/top_k/rank_02_id_000003_ori_000_sim_0p8444.jpg",
+      "vpr_results/probe_short/top_k/rank_03_id_000002_ori_000_sim_0p7857.jpg"
+    ]
+  },
+  "object_debug": {
+    "object_db_loaded": true,
+    "object_faiss_loaded": true,
+    "object_db_error": null,
+    "object_rerank_candidates": 30
+  }
+}

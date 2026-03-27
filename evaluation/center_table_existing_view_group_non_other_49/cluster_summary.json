@@ -1,0 +1,1598 @@
+{
+  "group_id": "center_table_existing_views_non_other_49",
+  "group_type": "table_fallback_non_other",
+  "n_objects": 49,
+  "n_clusters": 48,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_000",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        191
+      ],
+      "member_observation_ids": [
+        "obs_000191"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "mirror"
+      ],
+      "member_descriptions": [
+        "object: mirror | attrs: round, dark metal scalloped frame, analog clock face | anchor: x=-7.0, z=-3.0 | nearby: wall light switch@(-7.0,-3.0), doorway to adjacent room@(-6.0,-3.0)"
+      ],
+      "member_long_descriptions": [
+        "object: mirror | attributes: round, dark metal scalloped frame, analog clock face | camera_relation: distance=1.0, bearing=45.0, laterality=left, verticality=middle | global_anchor: x=-7.0, z=-3.0 | surroundings: wall light switch | relation=below and slightly right | primary_dist=0.6 | global=(-7.0,-3.0); doorway to adjacent room | relation=further along wall to right | primary_dist=1.3 | global=(-6.0,-3.0); kitchen island | relation=across the corridor to the right | primary_dist=1.8 | global=(-5.5,-2.0); dining table (in back) | relation=far ahead past corridor | primary_dist=5.0 | global=(-2.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "mirror": 1
+      },
+      "representative_object_id": 191,
+      "representative_label": "mirror",
+      "representative_description": "object: mirror | attributes: round, dark metal scalloped frame, analog clock face | camera_relation: distance=1.0, bearing=45.0, laterality=left, verticality=middle | global_anchor: x=-7.0, z=-3.0 | surroundings: wall light switch | relation=below and slightly right | primary_dist=0.6 | global=(-7.0,-3.0); doorway to adjacent room | relation=further along wall to right | primary_dist=1.3 | global=(-6.0,-3.0); kitchen island | relation=across the corridor to the right | primary_dist=1.8 | global=(-5.5,-2.0); dining table (in back) | relation=far ahead past corridor | primary_dist=5.0 | global=(-2.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_001",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        193
+      ],
+      "member_observation_ids": [
+        "obs_000193"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "lamp"
+      ],
+      "member_descriptions": [
+        "object: lamp | attrs: three fixtures, glass shades, metal accents | anchor: x=-6.0, z=-2.5 | nearby: kitchen island@(-6.0,-2.5), bar stools@(-6.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: lamp | attributes: three fixtures, glass shades, metal accents | camera_relation: distance=1.9, bearing=-5.0, laterality=center, verticality=high | global_anchor: x=-6.0, z=-2.5 | surroundings: kitchen island | relation=directly above | primary_dist=0.4 | global=(-6.0,-2.5); bar stools | relation=above seating area | primary_dist=0.5 | global=(-6.0,-2.0); upper cabinets | relation=toward right/rear | primary_dist=1.8 | global=(-5.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "lamp": 1
+      },
+      "representative_object_id": 193,
+      "representative_label": "lamp",
+      "representative_description": "object: lamp | attributes: three fixtures, glass shades, metal accents | camera_relation: distance=1.9, bearing=-5.0, laterality=center, verticality=high | global_anchor: x=-6.0, z=-2.5 | surroundings: kitchen island | relation=directly above | primary_dist=0.4 | global=(-6.0,-2.5); bar stools | relation=above seating area | primary_dist=0.5 | global=(-6.0,-2.0); upper cabinets | relation=toward right/rear | primary_dist=1.8 | global=(-5.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_002",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        194
+      ],
+      "member_observation_ids": [
+        "obs_000194"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: ornate carved wood, dark leather or vinyl seat, high-back | anchor: x=-6.0, z=-2.0 | nearby: kitchen island@(-6.0,-2.5), pendant lights@(-6.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: ornate carved wood, dark leather or vinyl seat, high-back | camera_relation: distance=1.9, bearing=-10.0, laterality=center, verticality=low | global_anchor: x=-6.0, z=-2.0 | surroundings: kitchen island | relation=adjacent, placed against island | primary_dist=0.3 | global=(-6.0,-2.5); pendant lights | relation=above and slightly forward | primary_dist=0.5 | global=(-6.0,-2.0); refrigerator | relation=behind and slightly right | primary_dist=1.6 | global=(-5.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 194,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: ornate carved wood, dark leather or vinyl seat, high-back | camera_relation: distance=1.9, bearing=-10.0, laterality=center, verticality=low | global_anchor: x=-6.0, z=-2.0 | surroundings: kitchen island | relation=adjacent, placed against island | primary_dist=0.3 | global=(-6.0,-2.5); pendant lights | relation=above and slightly forward | primary_dist=0.5 | global=(-6.0,-2.0); refrigerator | relation=behind and slightly right | primary_dist=1.6 | global=(-5.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_003",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        195
+      ],
+      "member_observation_ids": [
+        "obs_000195"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: granite surface, rectangular, large island | anchor: x=-6.0, z=-2.5 | nearby: bar stools@(-6.0,-2.0), pendant lights@(-6.0,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: granite surface, rectangular, large island | camera_relation: distance=1.8, bearing=-5.0, laterality=center, verticality=low | global_anchor: x=-6.0, z=-2.5 | surroundings: bar stools | relation=adjacent in front (seating side) | primary_dist=0.3 | global=(-6.0,-2.0); pendant lights | relation=hanging directly above | primary_dist=0.4 | global=(-6.0,-2.5); refrigerator | relation=behind island | primary_dist=1.4 | global=(-5.0,-2.5); kitchen sink | relation=to the right along countertop | primary_dist=2.0 | global=(-5.0,-0.5); dining table | relation=far ahead through corridor | primary_dist=4.2 | global=(-2.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 195,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: granite surface, rectangular, large island | camera_relation: distance=1.8, bearing=-5.0, laterality=center, verticality=low | global_anchor: x=-6.0, z=-2.5 | surroundings: bar stools | relation=adjacent in front (seating side) | primary_dist=0.3 | global=(-6.0,-2.0); pendant lights | relation=hanging directly above | primary_dist=0.4 | global=(-6.0,-2.5); refrigerator | relation=behind island | primary_dist=1.4 | global=(-5.0,-2.5); kitchen sink | relation=to the right along countertop | primary_dist=2.0 | global=(-5.0,-0.5); dining table | relation=far ahead through corridor | primary_dist=4.2 | global=(-2.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_004",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        196
+      ],
+      "member_observation_ids": [
+        "obs_000196"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "ceiling light"
+      ],
+      "member_descriptions": [
+        "object: ceiling light | attrs: recessed, warm white | anchor: x=-5.0, z=-2.5 | nearby: pendant lights@(-6.0,-2.5), kitchen island@(-6.0,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: ceiling light | attributes: recessed, warm white | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-5.0, z=-2.5 | surroundings: pendant lights | relation=below and forward | primary_dist=0.8 | global=(-6.0,-2.5); kitchen island | relation=below | primary_dist=1.9 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "ceiling light": 1
+      },
+      "representative_object_id": 196,
+      "representative_label": "ceiling light",
+      "representative_description": "object: ceiling light | attributes: recessed, warm white | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-5.0, z=-2.5 | surroundings: pendant lights | relation=below and forward | primary_dist=0.8 | global=(-6.0,-2.5); kitchen island | relation=below | primary_dist=1.9 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_005",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        197
+      ],
+      "member_observation_ids": [
+        "obs_000197"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "refrigerator"
+      ],
+      "member_descriptions": [
+        "object: refrigerator | attrs: stainless steel, side-by-side or French door, reflective surface | anchor: x=-5.0, z=-2.5 | nearby: upper cabinets@(-4.5,-2.0), countertop appliances@(-5.0,-1.5)"
+      ],
+      "member_long_descriptions": [
+        "object: refrigerator | attributes: stainless steel, side-by-side or French door, reflective surface | camera_relation: distance=3.1, bearing=2.0, laterality=center, verticality=high | global_anchor: x=-5.0, z=-2.5 | surroundings: upper cabinets | relation=adjacent to right | primary_dist=0.6 | global=(-4.5,-2.0); countertop appliances | relation=to the right along counter | primary_dist=1.2 | global=(-5.0,-1.5); kitchen island | relation=in front | primary_dist=1.4 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "refrigerator": 1
+      },
+      "representative_object_id": 197,
+      "representative_label": "refrigerator",
+      "representative_description": "object: refrigerator | attributes: stainless steel, side-by-side or French door, reflective surface | camera_relation: distance=3.1, bearing=2.0, laterality=center, verticality=high | global_anchor: x=-5.0, z=-2.5 | surroundings: upper cabinets | relation=adjacent to right | primary_dist=0.6 | global=(-4.5,-2.0); countertop appliances | relation=to the right along counter | primary_dist=1.2 | global=(-5.0,-1.5); kitchen island | relation=in front | primary_dist=1.4 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_006",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        198
+      ],
+      "member_observation_ids": [
+        "obs_000198"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white trim, interior passage | anchor: x=-5.0, z=-2.5 | nearby: wall clock@(-5.0,-3.0), kitchen island@(-6.0,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white trim, interior passage | camera_relation: distance=3.0, bearing=5.0, laterality=center, verticality=middle | global_anchor: x=-5.0, z=-2.5 | surroundings: wall clock | relation=left on adjacent wall | primary_dist=1.3 | global=(-5.0,-3.0); kitchen island | relation=in front and slightly right | primary_dist=1.8 | global=(-6.0,-2.5); dining table | relation=beyond through the opening | primary_dist=2.5 | global=(-2.5,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "door": 1
+      },
+      "representative_object_id": 198,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white trim, interior passage | camera_relation: distance=3.0, bearing=5.0, laterality=center, verticality=middle | global_anchor: x=-5.0, z=-2.5 | surroundings: wall clock | relation=left on adjacent wall | primary_dist=1.3 | global=(-5.0,-3.0); kitchen island | relation=in front and slightly right | primary_dist=1.8 | global=(-6.0,-2.5); dining table | relation=beyond through the opening | primary_dist=2.5 | global=(-2.5,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_007",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        199
+      ],
+      "member_observation_ids": [
+        "obs_000199"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: wood table, matching chairs, formal dining set | anchor: x=-2.0, z=-2.5 | nearby: arched window@(-1.5,-2.5), hallway doorway@(-5.0,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: wood table, matching chairs, formal dining set | camera_relation: distance=6.0, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-2.0, z=-2.5 | surroundings: arched window | relation=behind table | primary_dist=1.2 | global=(-1.5,-2.5); hallway doorway | relation=in front | primary_dist=2.5 | global=(-5.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 199,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: wood table, matching chairs, formal dining set | camera_relation: distance=6.0, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-2.0, z=-2.5 | surroundings: arched window | relation=behind table | primary_dist=1.2 | global=(-1.5,-2.5); hallway doorway | relation=in front | primary_dist=2.5 | global=(-5.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 8,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_008",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        200
+      ],
+      "member_observation_ids": [
+        "obs_000200"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "object: cabinet | attrs: dark wood, flat panel doors, multiple units | anchor: x=-5.0, z=-1.5 | nearby: countertop appliances@(-5.5,-1.5), window with blinds@(-5.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: cabinet | attributes: dark wood, flat panel doors, multiple units | camera_relation: distance=3.2, bearing=-20.0, laterality=right, verticality=high | global_anchor: x=-5.0, z=-1.5 | surroundings: countertop appliances | relation=below cabinets on counter | primary_dist=0.6 | global=(-5.5,-1.5); window with blinds | relation=to the right end | primary_dist=0.9 | global=(-5.5,-1.0); pendant lights | relation=forward and left | primary_dist=1.8 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 200,
+      "representative_label": "cabinet",
+      "representative_description": "object: cabinet | attributes: dark wood, flat panel doors, multiple units | camera_relation: distance=3.2, bearing=-20.0, laterality=right, verticality=high | global_anchor: x=-5.0, z=-1.5 | surroundings: countertop appliances | relation=below cabinets on counter | primary_dist=0.6 | global=(-5.5,-1.5); window with blinds | relation=to the right end | primary_dist=0.9 | global=(-5.5,-1.0); pendant lights | relation=forward and left | primary_dist=1.8 | global=(-6.0,-2.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 9,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_009",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        201
+      ],
+      "member_observation_ids": [
+        "obs_000201"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "member_labels": [
+        "window"
+      ],
+      "member_descriptions": [
+        "object: window | attrs: horizontal blinds, fabric valance, arched valance shape on section | anchor: x=-5.5, z=-1.0 | nearby: kitchen sink@(-5.5,-1.0), upper cabinets@(-5.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: window | attributes: horizontal blinds, fabric valance, arched valance shape on section | camera_relation: distance=3.0, bearing=-32.0, laterality=right, verticality=middle | global_anchor: x=-5.5, z=-1.0 | surroundings: kitchen sink | relation=just below | primary_dist=0.6 | global=(-5.5,-1.0); upper cabinets | relation=to left | primary_dist=0.9 | global=(-5.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige"
+      ],
+      "label_histogram": {
+        "window": 1
+      },
+      "representative_object_id": 201,
+      "representative_label": "window",
+      "representative_description": "object: window | attributes: horizontal blinds, fabric valance, arched valance shape on section | camera_relation: distance=3.0, bearing=-32.0, laterality=right, verticality=middle | global_anchor: x=-5.5, z=-1.0 | surroundings: kitchen sink | relation=just below | primary_dist=0.6 | global=(-5.5,-1.0); upper cabinets | relation=to left | primary_dist=0.9 | global=(-5.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 10,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_010",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 2,
+      "member_object_ids": [
+        203,
+        671
+      ],
+      "member_observation_ids": [
+        "obs_000203",
+        "obs_000671"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00058"
+      ],
+      "member_labels": [
+        "sink",
+        "sink"
+      ],
+      "member_descriptions": [
+        "object: sink | attrs: stainless steel, single or double basin (partially visible) | anchor: x=-5.5, z=-1.0 | nearby: countertop appliances@(-5.5,-1.5), window with blinds@(-5.5,-1.0)",
+        "object: sink | attrs: single basin or double not fully visible, metal faucet, cluttered countertop (soap, bottles) | anchor: x=-6.5, z=-1.0 | nearby: arched window@(-6.5,-1.0), coffee maker@(-7.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: sink | attributes: stainless steel, single or double basin (partially visible) | camera_relation: distance=2.9, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-5.5, z=-1.0 | surroundings: countertop appliances | relation=left along counter | primary_dist=0.6 | global=(-5.5,-1.5); window with blinds | relation=directly above/right | primary_dist=0.6 | global=(-5.5,-1.0); upper cabinets | relation=above | primary_dist=0.7 | global=(-5.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+        "object: sink | attributes: single basin or double not fully visible, metal faucet, cluttered countertop (soap, bottles) | camera_relation: distance=3.0, bearing=-2.0, laterality=center, verticality=low | global_anchor: x=-6.5, z=-1.0 | surroundings: arched window | relation=above | primary_dist=0.2 | global=(-6.5,-1.0); coffee maker | relation=left of | primary_dist=0.9 | global=(-7.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "sink": 2
+      },
+      "representative_object_id": 203,
+      "representative_label": "sink",
+      "representative_description": "object: sink | attributes: stainless steel, single or double basin (partially visible) | camera_relation: distance=2.9, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-5.5, z=-1.0 | surroundings: countertop appliances | relation=left along counter | primary_dist=0.6 | global=(-5.5,-1.5); window with blinds | relation=directly above/right | primary_dist=0.6 | global=(-5.5,-1.0); upper cabinets | relation=above | primary_dist=0.7 | global=(-5.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, granite countertops, kitchen island, stainless steel refrigerator, dark wood cabinets, pendant lights over island; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 11,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_011",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        256
+      ],
+      "member_observation_ids": [
+        "obs_000256"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "lamp"
+      ],
+      "member_descriptions": [
+        "object: lamp | attrs: white fabric shade, decorative leafy base, turned on (emitting warm light) | anchor: x=-7.0, z=-1.5 | nearby: side table@(-7.0,-2.0), power outlet@(-6.5,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: lamp | attributes: white fabric shade, decorative leafy base, turned on (emitting warm light) | camera_relation: distance=0.8, bearing=25.0, laterality=left, verticality=middle | global_anchor: x=-7.0, z=-1.5 | surroundings: side table | relation=on top of | primary_dist=0.1 | global=(-7.0,-2.0); power outlet | relation=below | primary_dist=0.4 | global=(-6.5,-2.0); sofa | relation=left | primary_dist=0.6 | global=(-7.0,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "lamp": 1
+      },
+      "representative_object_id": 256,
+      "representative_label": "lamp",
+      "representative_description": "object: lamp | attributes: white fabric shade, decorative leafy base, turned on (emitting warm light) | camera_relation: distance=0.8, bearing=25.0, laterality=left, verticality=middle | global_anchor: x=-7.0, z=-1.5 | surroundings: side table | relation=on top of | primary_dist=0.1 | global=(-7.0,-2.0); power outlet | relation=below | primary_dist=0.4 | global=(-6.5,-2.0); sofa | relation=left | primary_dist=0.6 | global=(-7.0,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 12,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_012",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        257
+      ],
+      "member_observation_ids": [
+        "obs_000257"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "object: couch | attrs: dark brown leather, recliner style, visible armrest | anchor: x=-7.0, z=-2.0 | nearby: side table@(-7.0,-2.0), table lamp@(-7.0,-1.5)"
+      ],
+      "member_long_descriptions": [
+        "object: couch | attributes: dark brown leather, recliner style, visible armrest | camera_relation: distance=1.0, bearing=35.0, laterality=left, verticality=low | global_anchor: x=-7.0, z=-2.0 | surroundings: side table | relation=adjacent-right | primary_dist=0.3 | global=(-7.0,-2.0); table lamp | relation=on adjacent table | primary_dist=0.5 | global=(-7.0,-1.5); staircase railing | relation=above-left | primary_dist=1.5 | global=(-8.0,-2.5); thermostat | relation=on wall ahead | primary_dist=2.0 | global=(-7.0,-3.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 257,
+      "representative_label": "couch",
+      "representative_description": "object: couch | attributes: dark brown leather, recliner style, visible armrest | camera_relation: distance=1.0, bearing=35.0, laterality=left, verticality=low | global_anchor: x=-7.0, z=-2.0 | surroundings: side table | relation=adjacent-right | primary_dist=0.3 | global=(-7.0,-2.0); table lamp | relation=on adjacent table | primary_dist=0.5 | global=(-7.0,-1.5); staircase railing | relation=above-left | primary_dist=1.5 | global=(-8.0,-2.5); thermostat | relation=on wall ahead | primary_dist=2.0 | global=(-7.0,-3.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 13,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_013",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        258
+      ],
+      "member_observation_ids": [
+        "obs_000258"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: dark wood, small end table, magazines and remote visible | anchor: x=-7.0, z=-2.0 | nearby: table lamp@(-7.0,-1.5), sofa@(-7.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: dark wood, small end table, magazines and remote visible | camera_relation: distance=0.9, bearing=25.0, laterality=left, verticality=low | global_anchor: x=-7.0, z=-2.0 | surroundings: table lamp | relation=on top of | primary_dist=0.1 | global=(-7.0,-1.5); sofa | relation=left | primary_dist=0.3 | global=(-7.0,-2.0); power outlet | relation=near wall below | primary_dist=0.4 | global=(-6.5,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 258,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: dark wood, small end table, magazines and remote visible | camera_relation: distance=0.9, bearing=25.0, laterality=left, verticality=low | global_anchor: x=-7.0, z=-2.0 | surroundings: table lamp | relation=on top of | primary_dist=0.1 | global=(-7.0,-1.5); sofa | relation=left | primary_dist=0.3 | global=(-7.0,-2.0); power outlet | relation=near wall below | primary_dist=0.4 | global=(-6.5,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 14,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_014",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        259
+      ],
+      "member_observation_ids": [
+        "obs_000259"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "stairs"
+      ],
+      "member_descriptions": [
+        "object: stairs | attrs: white painted balusters, carpet/step not fully visible | anchor: x=-8.0, z=-2.5 | nearby: black speaker/sensor@(-7.0,-3.0), sofa@(-7.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: stairs | attributes: white painted balusters, carpet/step not fully visible | camera_relation: distance=2.0, bearing=50.0, laterality=left, verticality=high | global_anchor: x=-8.0, z=-2.5 | surroundings: black speaker/sensor | relation=below-right | primary_dist=0.5 | global=(-7.0,-3.0); sofa | relation=below | primary_dist=1.5 | global=(-7.0,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "stairs": 1
+      },
+      "representative_object_id": 259,
+      "representative_label": "stairs",
+      "representative_description": "object: stairs | attributes: white painted balusters, carpet/step not fully visible | camera_relation: distance=2.0, bearing=50.0, laterality=left, verticality=high | global_anchor: x=-8.0, z=-2.5 | surroundings: black speaker/sensor | relation=below-right | primary_dist=0.5 | global=(-7.0,-3.0); sofa | relation=below | primary_dist=1.5 | global=(-7.0,-2.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 15,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_015",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        262
+      ],
+      "member_observation_ids": [
+        "obs_000262"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white painted wood, brass lever handle, standard interior size | anchor: x=-6.5, z=-4.0 | nearby: door frame (white trim)@(-6.5,-4.0), threshold / hardwood floor@(-6.5,-4.0)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white painted wood, brass lever handle, standard interior size | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-4.0 | surroundings: door frame (white trim) | relation=surrounding frame | primary_dist=0.1 | global=(-6.5,-4.0); threshold / hardwood floor | relation=below | primary_dist=0.2 | global=(-6.5,-4.0); left light switch | relation=left on same wall | primary_dist=0.5 | global=(-6.5,-3.5); right light switch | relation=right on same wall | primary_dist=0.7 | global=(-5.5,-4.0); wall clock | relation=right above | primary_dist=1.2 | global=(-5.5,-4.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "door": 1
+      },
+      "representative_object_id": 262,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white painted wood, brass lever handle, standard interior size | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-4.0 | surroundings: door frame (white trim) | relation=surrounding frame | primary_dist=0.1 | global=(-6.5,-4.0); threshold / hardwood floor | relation=below | primary_dist=0.2 | global=(-6.5,-4.0); left light switch | relation=left on same wall | primary_dist=0.5 | global=(-6.5,-3.5); right light switch | relation=right on same wall | primary_dist=0.7 | global=(-5.5,-4.0); wall clock | relation=right above | primary_dist=1.2 | global=(-5.5,-4.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 16,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_016",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        265
+      ],
+      "member_observation_ids": [
+        "obs_000265"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: dark wood, open lattice back design | anchor: x=-6.0, z=-1.5 | nearby: countertop@(-6.0,-1.5), open pantry doorway@(-4.5,-3.0)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: dark wood, open lattice back design | camera_relation: distance=0.7, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-6.0, z=-1.5 | surroundings: countertop | relation=adjacent | primary_dist=0.2 | global=(-6.0,-1.5); open pantry doorway | relation=right-back | primary_dist=1.6 | global=(-4.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 265,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: dark wood, open lattice back design | camera_relation: distance=0.7, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-6.0, z=-1.5 | surroundings: countertop | relation=adjacent | primary_dist=0.2 | global=(-6.0,-1.5); open pantry doorway | relation=right-back | primary_dist=1.6 | global=(-4.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 17,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_017",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        266
+      ],
+      "member_observation_ids": [
+        "obs_000266"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: speckled granite surface, kitchen island/peninsula edge | anchor: x=-6.0, z=-1.5 | nearby: wooden chair@(-6.0,-1.5), open pantry doorway@(-4.5,-3.0)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: speckled granite surface, kitchen island/peninsula edge | camera_relation: distance=0.6, bearing=-35.0, laterality=right, verticality=low | global_anchor: x=-6.0, z=-1.5 | surroundings: wooden chair | relation=adjacent-right | primary_dist=0.2 | global=(-6.0,-1.5); open pantry doorway | relation=right-back | primary_dist=1.0 | global=(-4.5,-3.0); wall clock | relation=upper-right | primary_dist=1.8 | global=(-5.5,-4.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 266,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: speckled granite surface, kitchen island/peninsula edge | camera_relation: distance=0.6, bearing=-35.0, laterality=right, verticality=low | global_anchor: x=-6.0, z=-1.5 | surroundings: wooden chair | relation=adjacent-right | primary_dist=0.2 | global=(-6.0,-1.5); open pantry doorway | relation=right-back | primary_dist=1.0 | global=(-4.5,-3.0); wall clock | relation=upper-right | primary_dist=1.8 | global=(-5.5,-4.0) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 18,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_018",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        267
+      ],
+      "member_observation_ids": [
+        "obs_000267"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "art"
+      ],
+      "member_descriptions": [
+        "object: art | attrs: dark metallic scalloped rim, white face with roman numerals | anchor: x=-5.5, z=-4.0 | nearby: center door@(-6.5,-4.0), right light switch@(-5.5,-4.0)"
+      ],
+      "member_long_descriptions": [
+        "object: art | attributes: dark metallic scalloped rim, white face with roman numerals | camera_relation: distance=3.2, bearing=-20.0, laterality=right, verticality=high | global_anchor: x=-5.5, z=-4.0 | surroundings: center door | relation=left-below | primary_dist=1.2 | global=(-6.5,-4.0); right light switch | relation=below-left | primary_dist=1.2 | global=(-5.5,-4.0); open pantry doorway | relation=right | primary_dist=1.6 | global=(-4.5,-3.0); countertop (granite) | relation=below-right | primary_dist=1.8 | global=(-6.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige"
+      ],
+      "label_histogram": {
+        "art": 1
+      },
+      "representative_object_id": 267,
+      "representative_label": "art",
+      "representative_description": "object: art | attributes: dark metallic scalloped rim, white face with roman numerals | camera_relation: distance=3.2, bearing=-20.0, laterality=right, verticality=high | global_anchor: x=-5.5, z=-4.0 | surroundings: center door | relation=left-below | primary_dist=1.2 | global=(-6.5,-4.0); right light switch | relation=below-left | primary_dist=1.2 | global=(-5.5,-4.0); open pantry doorway | relation=right | primary_dist=1.6 | global=(-4.5,-3.0); countertop (granite) | relation=below-right | primary_dist=1.8 | global=(-6.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=hardwood floor, beige textured painted walls, white trim and door casing, staircase visible upper-left, large decorative wall clock on right wall, open doorway to pantry/kitchen on right; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 19,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_019",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        661
+      ],
+      "member_observation_ids": [
+        "obs_000661"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: dark wood, ornate carved back, upholstered seat (dark) | anchor: x=-6.0, z=-3.5 | nearby: kitchen floor (wood)@(-6.0,-3.5), pet bowls@(-6.5,-3.5)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: dark wood, ornate carved back, upholstered seat (dark) | camera_relation: distance=0.8, bearing=30.0, laterality=left, verticality=low | global_anchor: x=-6.0, z=-3.5 | surroundings: kitchen floor (wood) | relation=under | primary_dist=0.1 | global=(-6.0,-3.5); pet bowls | relation=to front-right of | primary_dist=0.4 | global=(-6.5,-3.5); island | relation=in front of | primary_dist=0.6 | global=(-6.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 661,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: dark wood, ornate carved back, upholstered seat (dark) | camera_relation: distance=0.8, bearing=30.0, laterality=left, verticality=low | global_anchor: x=-6.0, z=-3.5 | surroundings: kitchen floor (wood) | relation=under | primary_dist=0.1 | global=(-6.0,-3.5); pet bowls | relation=to front-right of | primary_dist=0.4 | global=(-6.5,-3.5); island | relation=in front of | primary_dist=0.6 | global=(-6.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 20,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_020",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        663
+      ],
+      "member_observation_ids": [
+        "obs_000663"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: stone countertop, light beige, centerpiece/fruit bowl present | anchor: x=-6.5, z=-3.0 | nearby: fruit bowl@(-6.5,-3.0), pendant lights@(-6.5,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: stone countertop, light beige, centerpiece/fruit bowl present | camera_relation: distance=1.2, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-3.0 | surroundings: fruit bowl | relation=on top of | primary_dist=0.1 | global=(-6.5,-3.0); pendant lights | relation=above | primary_dist=0.5 | global=(-6.5,-2.5); bar chair | relation=adjacent front-left | primary_dist=0.6 | global=(-6.0,-3.0); pet bowls | relation=in front of | primary_dist=1.0 | global=(-6.5,-3.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 663,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: stone countertop, light beige, centerpiece/fruit bowl present | camera_relation: distance=1.2, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-3.0 | surroundings: fruit bowl | relation=on top of | primary_dist=0.1 | global=(-6.5,-3.0); pendant lights | relation=above | primary_dist=0.5 | global=(-6.5,-2.5); bar chair | relation=adjacent front-left | primary_dist=0.6 | global=(-6.0,-3.0); pet bowls | relation=in front of | primary_dist=1.0 | global=(-6.5,-3.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 21,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_021",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        665
+      ],
+      "member_observation_ids": [
+        "obs_000665"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "pet item"
+      ],
+      "member_descriptions": [
+        "object: pet item | attrs: metal/plastic bowls, white tray | anchor: x=-6.5, z=-3.5 | nearby: bar chair@(-6.0,-3.0), island@(-6.5,-3.0)"
+      ],
+      "member_long_descriptions": [
+        "object: pet item | attributes: metal/plastic bowls, white tray | camera_relation: distance=0.4, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-6.5, z=-3.5 | surroundings: bar chair | relation=behind-left | primary_dist=0.4 | global=(-6.0,-3.0); island | relation=in front of | primary_dist=0.6 | global=(-6.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "pet item": 1
+      },
+      "representative_object_id": 665,
+      "representative_label": "pet item",
+      "representative_description": "object: pet item | attributes: metal/plastic bowls, white tray | camera_relation: distance=0.4, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-6.5, z=-3.5 | surroundings: bar chair | relation=behind-left | primary_dist=0.4 | global=(-6.0,-3.0); island | relation=in front of | primary_dist=0.6 | global=(-6.5,-3.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 22,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_022",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        666
+      ],
+      "member_observation_ids": [
+        "obs_000666"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "object: cabinet | attrs: dark stained wood, paneled doors | anchor: x=-6.5, z=-1.0 | nearby: arched window@(-6.5,-1.0), pendant lights@(-6.5,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: cabinet | attributes: dark stained wood, paneled doors | camera_relation: distance=3.2, bearing=2.0, laterality=center, verticality=high | global_anchor: x=-6.5, z=-1.0 | surroundings: arched window | relation=around | primary_dist=0.4 | global=(-6.5,-1.0); pendant lights | relation=in front of | primary_dist=1.8 | global=(-6.5,-2.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 666,
+      "representative_label": "cabinet",
+      "representative_description": "object: cabinet | attributes: dark stained wood, paneled doors | camera_relation: distance=3.2, bearing=2.0, laterality=center, verticality=high | global_anchor: x=-6.5, z=-1.0 | surroundings: arched window | relation=around | primary_dist=0.4 | global=(-6.5,-1.0); pendant lights | relation=in front of | primary_dist=1.8 | global=(-6.5,-2.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 23,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_023",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        667
+      ],
+      "member_observation_ids": [
+        "obs_000667"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "ceiling light"
+      ],
+      "member_descriptions": [
+        "object: ceiling light | attrs: two fixtures, fabric-like shades, soft warm glow | anchor: x=-6.5, z=-2.0 | nearby: island@(-6.5,-2.5), upper cabinets@(-6.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: ceiling light | attributes: two fixtures, fabric-like shades, soft warm glow | camera_relation: distance=2.2, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-6.5, z=-2.0 | surroundings: island | relation=above | primary_dist=0.5 | global=(-6.5,-2.5); upper cabinets | relation=behind | primary_dist=1.8 | global=(-6.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "ceiling light": 1
+      },
+      "representative_object_id": 667,
+      "representative_label": "ceiling light",
+      "representative_description": "object: ceiling light | attributes: two fixtures, fabric-like shades, soft warm glow | camera_relation: distance=2.2, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-6.5, z=-2.0 | surroundings: island | relation=above | primary_dist=0.5 | global=(-6.5,-2.5); upper cabinets | relation=behind | primary_dist=1.8 | global=(-6.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 24,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_024",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        668
+      ],
+      "member_observation_ids": [
+        "obs_000668"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "microwave"
+      ],
+      "member_descriptions": [
+        "object: microwave | attrs: stainless steel, digital display (not legible) | anchor: x=-6.5, z=-1.0 | nearby: stove@(-6.5,-1.0), upper cabinets@(-6.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: microwave | attributes: stainless steel, digital display (not legible) | camera_relation: distance=3.1, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: stove | relation=below | primary_dist=0.1 | global=(-6.5,-1.0); upper cabinets | relation=adjacent | primary_dist=0.2 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "microwave": 1
+      },
+      "representative_object_id": 668,
+      "representative_label": "microwave",
+      "representative_description": "object: microwave | attributes: stainless steel, digital display (not legible) | camera_relation: distance=3.1, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: stove | relation=below | primary_dist=0.1 | global=(-6.5,-1.0); upper cabinets | relation=adjacent | primary_dist=0.2 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 25,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_025",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        669
+      ],
+      "member_observation_ids": [
+        "obs_000669"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "window"
+      ],
+      "member_descriptions": [
+        "object: window | attrs: arched top, horizontal blinds (closed) | anchor: x=-6.5, z=-1.0 | nearby: sink@(-6.5,-1.0), upper cabinets@(-6.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: window | attributes: arched top, horizontal blinds (closed) | camera_relation: distance=3.1, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: sink | relation=above | primary_dist=0.2 | global=(-6.5,-1.0); upper cabinets | relation=flanked by | primary_dist=0.3 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "window": 1
+      },
+      "representative_object_id": 669,
+      "representative_label": "window",
+      "representative_description": "object: window | attributes: arched top, horizontal blinds (closed) | camera_relation: distance=3.1, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: sink | relation=above | primary_dist=0.2 | global=(-6.5,-1.0); upper cabinets | relation=flanked by | primary_dist=0.3 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 26,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_026",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        672
+      ],
+      "member_observation_ids": [
+        "obs_000672"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "stove"
+      ],
+      "member_descriptions": [
+        "object: stove | attrs: stainless steel, gas burners, dish towel on handle | anchor: x=-6.5, z=-1.0 | nearby: microwave@(-6.5,-1.0), oven towel@(-6.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: stove | attributes: stainless steel, gas burners, dish towel on handle | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-6.5, z=-1.0 | surroundings: microwave | relation=above | primary_dist=0.1 | global=(-6.5,-1.0); oven towel | relation=hanging on handle | primary_dist=0.2 | global=(-6.5,-1.0); upper cabinets | relation=flanking/above | primary_dist=0.3 | global=(-6.5,-1.0); kitchen countertop | relation=adjacent to | primary_dist=0.4 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "stove": 1
+      },
+      "representative_object_id": 672,
+      "representative_label": "stove",
+      "representative_description": "object: stove | attributes: stainless steel, gas burners, dish towel on handle | camera_relation: distance=3.0, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-6.5, z=-1.0 | surroundings: microwave | relation=above | primary_dist=0.1 | global=(-6.5,-1.0); oven towel | relation=hanging on handle | primary_dist=0.2 | global=(-6.5,-1.0); upper cabinets | relation=flanking/above | primary_dist=0.3 | global=(-6.5,-1.0); kitchen countertop | relation=adjacent to | primary_dist=0.4 | global=(-6.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 27,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_027",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        673
+      ],
+      "member_observation_ids": [
+        "obs_000673"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "unknown"
+      ],
+      "member_descriptions": [
+        "object: unknown | attrs: light beige carpet, transition from wood floor | anchor: x=-7.5, z=-0.5 | nearby: recliner@(-8.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: unknown | attributes: light beige carpet, transition from wood floor | camera_relation: distance=3.7, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.5, z=-0.5 | surroundings: recliner | relation=on | primary_dist=0.5 | global=(-8.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "unknown": 1
+      },
+      "representative_object_id": 673,
+      "representative_label": "unknown",
+      "representative_description": "object: unknown | attributes: light beige carpet, transition from wood floor | camera_relation: distance=3.7, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.5, z=-0.5 | surroundings: recliner | relation=on | primary_dist=0.5 | global=(-8.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 28,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_028",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        674
+      ],
+      "member_observation_ids": [
+        "obs_000674"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: brown leather, recliner style, single seat | anchor: x=-8.0, z=-1.0 | nearby: side table@(-8.0,-1.0), fireplace mantel@(-9.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: brown leather, recliner style, single seat | camera_relation: distance=3.5, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-8.0, z=-1.0 | surroundings: side table | relation=immediately right of | primary_dist=0.5 | global=(-8.0,-1.0); fireplace mantel | relation=in front-left of | primary_dist=0.8 | global=(-9.5,-1.0); wall-mounted TV | relation=facing | primary_dist=1.0 | global=(-9.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 674,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: brown leather, recliner style, single seat | camera_relation: distance=3.5, bearing=-30.0, laterality=right, verticality=low | global_anchor: x=-8.0, z=-1.0 | surroundings: side table | relation=immediately right of | primary_dist=0.5 | global=(-8.0,-1.0); fireplace mantel | relation=in front-left of | primary_dist=0.8 | global=(-9.5,-1.0); wall-mounted TV | relation=facing | primary_dist=1.0 | global=(-9.5,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 29,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_029",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        675
+      ],
+      "member_observation_ids": [
+        "obs_000675"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: dark wood, small footprint, decorations on top | anchor: x=-8.0, z=-1.0 | nearby: recliner@(-8.0,-1.0), fireplace mantel@(-8.5,-0.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: dark wood, small footprint, decorations on top | camera_relation: distance=3.4, bearing=-25.0, laterality=right, verticality=low | global_anchor: x=-8.0, z=-1.0 | surroundings: recliner | relation=left of | primary_dist=0.5 | global=(-8.0,-1.0); fireplace mantel | relation=in front of | primary_dist=0.6 | global=(-8.5,-0.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 675,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: dark wood, small footprint, decorations on top | camera_relation: distance=3.4, bearing=-25.0, laterality=right, verticality=low | global_anchor: x=-8.0, z=-1.0 | surroundings: recliner | relation=left of | primary_dist=0.5 | global=(-8.0,-1.0); fireplace mantel | relation=in front of | primary_dist=0.6 | global=(-8.5,-0.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 30,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_030",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        676
+      ],
+      "member_observation_ids": [
+        "obs_000676"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "curtain"
+      ],
+      "member_descriptions": [
+        "object: curtain | attrs: light grey/beige, floor-length | anchor: x=-9.5, z=-1.5 | nearby: window@(-9.5,-1.5), fireplace mantel@(-9.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: curtain | attributes: light grey/beige, floor-length | camera_relation: distance=4.0, bearing=-50.0, laterality=right, verticality=high | global_anchor: x=-9.5, z=-1.5 | surroundings: window | relation=covering | primary_dist=0.1 | global=(-9.5,-1.5); fireplace mantel | relation=adjacent to | primary_dist=0.5 | global=(-9.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "curtain": 1
+      },
+      "representative_object_id": 676,
+      "representative_label": "curtain",
+      "representative_description": "object: curtain | attributes: light grey/beige, floor-length | camera_relation: distance=4.0, bearing=-50.0, laterality=right, verticality=high | global_anchor: x=-9.5, z=-1.5 | surroundings: window | relation=covering | primary_dist=0.1 | global=(-9.5,-1.5); fireplace mantel | relation=adjacent to | primary_dist=0.5 | global=(-9.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 31,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_031",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        677
+      ],
+      "member_observation_ids": [
+        "obs_000677"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "tv"
+      ],
+      "member_descriptions": [
+        "object: tv | attrs: flat-screen, glossy black, wall-mounted | anchor: x=-9.0, z=-1.0 | nearby: fireplace mantel@(-9.0,-1.0), right window@(-10.0,-1.5)"
+      ],
+      "member_long_descriptions": [
+        "object: tv | attributes: flat-screen, glossy black, wall-mounted | camera_relation: distance=4.1, bearing=-40.0, laterality=right, verticality=high | global_anchor: x=-9.0, z=-1.0 | surroundings: fireplace mantel | relation=below | primary_dist=0.3 | global=(-9.0,-1.0); right window | relation=right of | primary_dist=0.5 | global=(-10.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "tv": 1
+      },
+      "representative_object_id": 677,
+      "representative_label": "tv",
+      "representative_description": "object: tv | attributes: flat-screen, glossy black, wall-mounted | camera_relation: distance=4.1, bearing=-40.0, laterality=right, verticality=high | global_anchor: x=-9.0, z=-1.0 | surroundings: fireplace mantel | relation=below | primary_dist=0.3 | global=(-9.0,-1.0); right window | relation=right of | primary_dist=0.5 | global=(-10.0,-1.5) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 32,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_032",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        679
+      ],
+      "member_observation_ids": [
+        "obs_000679"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "member_labels": [
+        "plant"
+      ],
+      "member_descriptions": [
+        "object: plant | attrs: green foliage, decorative pot | anchor: x=-9.0, z=-1.0 | nearby: mantel decorations@(-9.0,-1.0), wall-mounted TV@(-9.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: plant | attributes: green foliage, decorative pot | camera_relation: distance=4.0, bearing=-40.0, laterality=right, verticality=middle | global_anchor: x=-9.0, z=-1.0 | surroundings: mantel decorations | relation=near | primary_dist=0.2 | global=(-9.0,-1.0); wall-mounted TV | relation=below-left of | primary_dist=0.3 | global=(-9.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige"
+      ],
+      "label_histogram": {
+        "plant": 1
+      },
+      "representative_object_id": 679,
+      "representative_label": "plant",
+      "representative_description": "object: plant | attributes: green foliage, decorative pot | camera_relation: distance=4.0, bearing=-40.0, laterality=right, verticality=middle | global_anchor: x=-9.0, z=-1.0 | surroundings: mantel decorations | relation=near | primary_dist=0.2 | global=(-9.0,-1.0); wall-mounted TV | relation=below-left of | primary_dist=0.3 | global=(-9.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=open-plan kitchen and living area, vaulted ceiling over living area, fireplace with mantel and wall-mounted TV, kitchen island with pendant lights, hardwood kitchen floor transitioning to carpet in living area, arched window with blinds above kitchen sink; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 33,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_033",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        747
+      ],
+      "member_observation_ids": [
+        "obs_000747"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: dark carved wood, upholstered seat unknown | anchor: x=-4.5, z=-2.0 | nearby: granite countertop@(-4.5,-2.5)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: dark carved wood, upholstered seat unknown | camera_relation: distance=1.0, bearing=60.0, laterality=left, verticality=low | global_anchor: x=-4.5, z=-2.0 | surroundings: granite countertop | relation=next to | primary_dist=0.2 | global=(-4.5,-2.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 747,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: dark carved wood, upholstered seat unknown | camera_relation: distance=1.0, bearing=60.0, laterality=left, verticality=low | global_anchor: x=-4.5, z=-2.0 | surroundings: granite countertop | relation=next to | primary_dist=0.2 | global=(-4.5,-2.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 34,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_034",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        748
+      ],
+      "member_observation_ids": [
+        "obs_000748"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: granite surface, kitchen/dining counter | anchor: x=-4.5, z=-2.5 | nearby: dining chair@(-4.5,-2.0), left armchair@(-5.5,-1.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: granite surface, kitchen/dining counter | camera_relation: distance=0.6, bearing=65.0, laterality=left, verticality=low | global_anchor: x=-4.5, z=-2.5 | surroundings: dining chair | relation=adjacent | primary_dist=0.6 | global=(-4.5,-2.0); left armchair | relation=in front | primary_dist=1.0 | global=(-5.5,-1.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 748,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: granite surface, kitchen/dining counter | camera_relation: distance=0.6, bearing=65.0, laterality=left, verticality=low | global_anchor: x=-4.5, z=-2.5 | surroundings: dining chair | relation=adjacent | primary_dist=0.6 | global=(-4.5,-2.0); left armchair | relation=in front | primary_dist=1.0 | global=(-5.5,-1.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 35,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_035",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        749
+      ],
+      "member_observation_ids": [
+        "obs_000749"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "window"
+      ],
+      "member_descriptions": [
+        "object: window | attrs: vertical blinds, floor-to-ceiling height | anchor: x=-6.0, z=-0.5 | nearby: fireplace mantel@(-6.5,-1.0), left armchair@(-5.5,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: window | attributes: vertical blinds, floor-to-ceiling height | camera_relation: distance=3.2, bearing=55.0, laterality=left, verticality=high | global_anchor: x=-6.0, z=-0.5 | surroundings: fireplace mantel | relation=right | primary_dist=0.6 | global=(-6.5,-1.0); left armchair | relation=front | primary_dist=1.0 | global=(-5.5,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "window": 1
+      },
+      "representative_object_id": 749,
+      "representative_label": "window",
+      "representative_description": "object: window | attributes: vertical blinds, floor-to-ceiling height | camera_relation: distance=3.2, bearing=55.0, laterality=left, verticality=high | global_anchor: x=-6.0, z=-0.5 | surroundings: fireplace mantel | relation=right | primary_dist=0.6 | global=(-6.5,-1.0); left armchair | relation=front | primary_dist=1.0 | global=(-5.5,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 36,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_036",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        750
+      ],
+      "member_observation_ids": [
+        "obs_000750"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "mirror"
+      ],
+      "member_descriptions": [
+        "object: mirror | attrs: white mantel, decorative items present | anchor: x=-6.5, z=-1.0 | nearby: wall-mounted television@(-6.5,-1.5), left window@(-6.0,-0.5)"
+      ],
+      "member_long_descriptions": [
+        "object: mirror | attributes: white mantel, decorative items present | camera_relation: distance=3.0, bearing=35.0, laterality=left, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: wall-mounted television | relation=above | primary_dist=0.3 | global=(-6.5,-1.5); left window | relation=left | primary_dist=0.6 | global=(-6.0,-0.5); left armchair | relation=front | primary_dist=1.2 | global=(-6.0,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "mirror": 1
+      },
+      "representative_object_id": 750,
+      "representative_label": "mirror",
+      "representative_description": "object: mirror | attributes: white mantel, decorative items present | camera_relation: distance=3.0, bearing=35.0, laterality=left, verticality=middle | global_anchor: x=-6.5, z=-1.0 | surroundings: wall-mounted television | relation=above | primary_dist=0.3 | global=(-6.5,-1.5); left window | relation=left | primary_dist=0.6 | global=(-6.0,-0.5); left armchair | relation=front | primary_dist=1.2 | global=(-6.0,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 37,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_037",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        751
+      ],
+      "member_observation_ids": [
+        "obs_000751"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "tv"
+      ],
+      "member_descriptions": [
+        "object: tv | attrs: large flat-screen, black frame | anchor: x=-6.5, z=-1.5 | nearby: fireplace mantel@(-6.5,-1.5), left window@(-6.0,-0.5)"
+      ],
+      "member_long_descriptions": [
+        "object: tv | attributes: large flat-screen, black frame | camera_relation: distance=3.0, bearing=30.0, laterality=left, verticality=middle | global_anchor: x=-6.5, z=-1.5 | surroundings: fireplace mantel | relation=below | primary_dist=0.3 | global=(-6.5,-1.5); left window | relation=left | primary_dist=0.8 | global=(-6.0,-0.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "tv": 1
+      },
+      "representative_object_id": 751,
+      "representative_label": "tv",
+      "representative_description": "object: tv | attributes: large flat-screen, black frame | camera_relation: distance=3.0, bearing=30.0, laterality=left, verticality=middle | global_anchor: x=-6.5, z=-1.5 | surroundings: fireplace mantel | relation=below | primary_dist=0.3 | global=(-6.5,-1.5); left window | relation=left | primary_dist=0.8 | global=(-6.0,-0.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 38,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_038",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        752
+      ],
+      "member_observation_ids": [
+        "obs_000752"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: chair | attrs: dark brown leather, single recliner | anchor: x=-5.5, z=-1.5 | nearby: dining countertop (foreground)@(-4.5,-2.5), fireplace mantel@(-6.0,-1.5)"
+      ],
+      "member_long_descriptions": [
+        "object: chair | attributes: dark brown leather, single recliner | camera_relation: distance=2.0, bearing=50.0, laterality=left, verticality=low | global_anchor: x=-5.5, z=-1.5 | surroundings: dining countertop (foreground) | relation=behind-left | primary_dist=1.0 | global=(-4.5,-2.5); fireplace mantel | relation=front-right | primary_dist=1.2 | global=(-6.0,-1.5); television (wall-mounted) | relation=front-right | primary_dist=1.5 | global=(-7.0,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 752,
+      "representative_label": "chair",
+      "representative_description": "object: chair | attributes: dark brown leather, single recliner | camera_relation: distance=2.0, bearing=50.0, laterality=left, verticality=low | global_anchor: x=-5.5, z=-1.5 | surroundings: dining countertop (foreground) | relation=behind-left | primary_dist=1.0 | global=(-4.5,-2.5); fireplace mantel | relation=front-right | primary_dist=1.2 | global=(-6.0,-1.5); television (wall-mounted) | relation=front-right | primary_dist=1.5 | global=(-7.0,-1.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 39,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_039",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        753
+      ],
+      "member_observation_ids": [
+        "obs_000753"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "ceiling light"
+      ],
+      "member_descriptions": [
+        "object: ceiling light | attrs: ceiling fan, dark blades, central light fixture | anchor: x=-8.5, z=-3.0 | nearby: right sofa@(-8.0,-5.0), center recliner couch@(-9.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: ceiling light | attributes: ceiling fan, dark blades, central light fixture | camera_relation: distance=4.5, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-8.5, z=-3.0 | surroundings: right sofa | relation=below-right | primary_dist=2.0 | global=(-8.0,-5.0); center recliner couch | relation=below-front | primary_dist=2.5 | global=(-9.0,-2.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "ceiling light": 1
+      },
+      "representative_object_id": 753,
+      "representative_label": "ceiling light",
+      "representative_description": "object: ceiling light | attributes: ceiling fan, dark blades, central light fixture | camera_relation: distance=4.5, bearing=0.0, laterality=center, verticality=high | global_anchor: x=-8.5, z=-3.0 | surroundings: right sofa | relation=below-right | primary_dist=2.0 | global=(-8.0,-5.0); center recliner couch | relation=below-front | primary_dist=2.5 | global=(-9.0,-2.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 40,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_040",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        754
+      ],
+      "member_observation_ids": [
+        "obs_000754"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "object: picture frame | attrs: square, light-colored frame | anchor: x=-10.0, z=-2.5 | nearby: sliding glass door@(-10.0,-3.0)"
+      ],
+      "member_long_descriptions": [
+        "object: picture frame | attributes: square, light-colored frame | camera_relation: distance=5.8, bearing=2.0, laterality=center, verticality=middle | global_anchor: x=-10.0, z=-2.5 | surroundings: sliding glass door | relation=left | primary_dist=0.8 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      },
+      "representative_object_id": 754,
+      "representative_label": "picture frame",
+      "representative_description": "object: picture frame | attributes: square, light-colored frame | camera_relation: distance=5.8, bearing=2.0, laterality=center, verticality=middle | global_anchor: x=-10.0, z=-2.5 | surroundings: sliding glass door | relation=left | primary_dist=0.8 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 41,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_041",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        755
+      ],
+      "member_observation_ids": [
+        "obs_000755"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "window"
+      ],
+      "member_descriptions": [
+        "object: window | attrs: sliding glass, vertical blinds partially open | anchor: x=-10.0, z=-3.0 | nearby: small picture frame@(-10.0,-2.5), center recliner couch@(-8.0,-2.0)"
+      ],
+      "member_long_descriptions": [
+        "object: window | attributes: sliding glass, vertical blinds partially open | camera_relation: distance=6.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-10.0, z=-3.0 | surroundings: small picture frame | relation=right | primary_dist=0.8 | global=(-10.0,-2.5); center recliner couch | relation=front-left | primary_dist=2.0 | global=(-8.0,-2.0); right sofa | relation=front-right | primary_dist=3.0 | global=(-7.0,-4.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "window": 1
+      },
+      "representative_object_id": 755,
+      "representative_label": "window",
+      "representative_description": "object: window | attributes: sliding glass, vertical blinds partially open | camera_relation: distance=6.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-10.0, z=-3.0 | surroundings: small picture frame | relation=right | primary_dist=0.8 | global=(-10.0,-2.5); center recliner couch | relation=front-left | primary_dist=2.0 | global=(-8.0,-2.0); right sofa | relation=front-right | primary_dist=3.0 | global=(-7.0,-4.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 42,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_042",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        756
+      ],
+      "member_observation_ids": [
+        "obs_000756"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "object: couch | attrs: dark brown leather, two-seat recliner | anchor: x=-8.0, z=-2.0 | nearby: fireplace mantel@(-6.5,-1.0), right sofa@(-8.0,-3.5)"
+      ],
+      "member_long_descriptions": [
+        "object: couch | attributes: dark brown leather, two-seat recliner | camera_relation: distance=4.0, bearing=12.0, laterality=center, verticality=low | global_anchor: x=-8.0, z=-2.0 | surroundings: fireplace mantel | relation=left-front | primary_dist=1.5 | global=(-6.5,-1.0); right sofa | relation=across room to right | primary_dist=2.0 | global=(-8.0,-3.5); sliding glass door | relation=in front-right | primary_dist=2.0 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 756,
+      "representative_label": "couch",
+      "representative_description": "object: couch | attributes: dark brown leather, two-seat recliner | camera_relation: distance=4.0, bearing=12.0, laterality=center, verticality=low | global_anchor: x=-8.0, z=-2.0 | surroundings: fireplace mantel | relation=left-front | primary_dist=1.5 | global=(-6.5,-1.0); right sofa | relation=across room to right | primary_dist=2.0 | global=(-8.0,-3.5); sliding glass door | relation=in front-right | primary_dist=2.0 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 43,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_043",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        758
+      ],
+      "member_observation_ids": [
+        "obs_000758"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "lamp"
+      ],
+      "member_descriptions": [
+        "object: lamp | attrs: white fabric shade, brass/metal base | anchor: x=-7.0, z=-4.0 | nearby: end table@(-7.0,-4.0), right sofa@(-7.0,-4.5)"
+      ],
+      "member_long_descriptions": [
+        "object: lamp | attributes: white fabric shade, brass/metal base | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=middle | global_anchor: x=-7.0, z=-4.0 | surroundings: end table | relation=on top of | primary_dist=0.0 | global=(-7.0,-4.0); right sofa | relation=beside | primary_dist=0.4 | global=(-7.0,-4.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "lamp": 1
+      },
+      "representative_object_id": 758,
+      "representative_label": "lamp",
+      "representative_description": "object: lamp | attributes: white fabric shade, brass/metal base | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=middle | global_anchor: x=-7.0, z=-4.0 | surroundings: end table | relation=on top of | primary_dist=0.0 | global=(-7.0,-4.0); right sofa | relation=beside | primary_dist=0.4 | global=(-7.0,-4.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 44,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_044",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        759
+      ],
+      "member_observation_ids": [
+        "obs_000759"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "stairs"
+      ],
+      "member_descriptions": [
+        "object: stairs | attrs: wood railing, white balusters | anchor: x=-6.5, z=-3.5 | nearby: right sofa@(-7.5,-4.0), wall clock@(-4.5,-3.5)"
+      ],
+      "member_long_descriptions": [
+        "object: stairs | attributes: wood railing, white balusters | camera_relation: distance=2.5, bearing=-15.0, laterality=right, verticality=middle | global_anchor: x=-6.5, z=-3.5 | surroundings: right sofa | relation=in front | primary_dist=0.9 | global=(-7.5,-4.0); wall clock | relation=front-left | primary_dist=1.0 | global=(-4.5,-3.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "stairs": 1
+      },
+      "representative_object_id": 759,
+      "representative_label": "stairs",
+      "representative_description": "object: stairs | attributes: wood railing, white balusters | camera_relation: distance=2.5, bearing=-15.0, laterality=right, verticality=middle | global_anchor: x=-6.5, z=-3.5 | surroundings: right sofa | relation=in front | primary_dist=0.9 | global=(-7.5,-4.0); wall clock | relation=front-left | primary_dist=1.0 | global=(-4.5,-3.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 45,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_045",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        760
+      ],
+      "member_observation_ids": [
+        "obs_000760"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "object: couch | attrs: dark brown leather, three-seat, reclining style | anchor: x=-7.0, z=-4.5 | nearby: end table with lamp@(-7.0,-4.0), staircase / railing@(-8.0,-4.0)"
+      ],
+      "member_long_descriptions": [
+        "object: couch | attributes: dark brown leather, three-seat, reclining style | camera_relation: distance=3.2, bearing=-25.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.5 | surroundings: end table with lamp | relation=immediately beside (right-side) | primary_dist=0.4 | global=(-7.0,-4.0); staircase / railing | relation=behind-right | primary_dist=0.9 | global=(-8.0,-4.0); center recliner couch | relation=across room toward center-left | primary_dist=2.0 | global=(-8.0,-2.0); sliding glass door | relation=in front of | primary_dist=3.0 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 760,
+      "representative_label": "couch",
+      "representative_description": "object: couch | attributes: dark brown leather, three-seat, reclining style | camera_relation: distance=3.2, bearing=-25.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.5 | surroundings: end table with lamp | relation=immediately beside (right-side) | primary_dist=0.4 | global=(-7.0,-4.0); staircase / railing | relation=behind-right | primary_dist=0.9 | global=(-8.0,-4.0); center recliner couch | relation=across room toward center-left | primary_dist=2.0 | global=(-8.0,-2.0); sliding glass door | relation=in front of | primary_dist=3.0 | global=(-10.0,-3.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 46,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_046",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        761
+      ],
+      "member_observation_ids": [
+        "obs_000761"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "plant"
+      ],
+      "member_descriptions": [
+        "object: plant | attrs: green foliage, potted | anchor: x=-7.0, z=-4.0 | nearby: end table@(-7.0,-4.0), right sofa@(-7.0,-4.5)"
+      ],
+      "member_long_descriptions": [
+        "object: plant | attributes: green foliage, potted | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.0 | surroundings: end table | relation=on top of | primary_dist=0.1 | global=(-7.0,-4.0); right sofa | relation=adjacent | primary_dist=0.4 | global=(-7.0,-4.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "plant": 1
+      },
+      "representative_object_id": 761,
+      "representative_label": "plant",
+      "representative_description": "object: plant | attributes: green foliage, potted | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.0 | surroundings: end table | relation=on top of | primary_dist=0.1 | global=(-7.0,-4.0); right sofa | relation=adjacent | primary_dist=0.4 | global=(-7.0,-4.5) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 47,
+      "candidate_instance_id": "table_fallback_non_other:center_table_existing_views_non_other_49:cluster_047",
+      "group_id": "center_table_existing_views_non_other_49",
+      "group_type": "table_fallback_non_other",
+      "num_members": 1,
+      "member_object_ids": [
+        762
+      ],
+      "member_observation_ids": [
+        "obs_000762"
+      ],
+      "member_view_ids": [
+        "view_00065"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "object: table | attrs: dark wood, small rectangular, lamp and plant on top | anchor: x=-7.0, z=-4.0 | nearby: table lamp@(-7.0,-4.0), right sofa@(-7.0,-4.5)"
+      ],
+      "member_long_descriptions": [
+        "object: table | attributes: dark wood, small rectangular, lamp and plant on top | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.0 | surroundings: table lamp | relation=on top of | primary_dist=0.1 | global=(-7.0,-4.0); right sofa | relation=adjacent | primary_dist=0.4 | global=(-7.0,-4.5); staircase / railing | relation=behind-right | primary_dist=0.8 | global=(-8.0,-4.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige"
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 762,
+      "representative_label": "table",
+      "representative_description": "object: table | attributes: dark wood, small rectangular, lamp and plant on top | camera_relation: distance=3.1, bearing=-20.0, laterality=right, verticality=low | global_anchor: x=-7.0, z=-4.0 | surroundings: table lamp | relation=on top of | primary_dist=0.1 | global=(-7.0,-4.0); right sofa | relation=adjacent | primary_dist=0.4 | global=(-7.0,-4.5); staircase / railing | relation=behind-right | primary_dist=0.8 | global=(-8.0,-4.0) | scene_context: floor_pattern=carpet; scene_attributes=vaulted ceiling, sliding glass door to exterior at rear center, fireplace with mantel on left wall, wall-mounted television above fireplace, carpeted main floor with hardwood at foreground entry, beige painted walls; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

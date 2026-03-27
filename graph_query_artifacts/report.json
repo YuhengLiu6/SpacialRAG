@@ -1,0 +1,400 @@
+{
+  "generated_at": "2026-03-15T23:37:43.088163Z",
+  "anchor_place_id": "place_00000",
+  "object_label": "couch",
+  "counts": {
+    "places": 29,
+    "views": 164,
+    "objects": 2157,
+    "object_classes": 36
+  },
+  "summary": {
+    "total_checks": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "checks": [
+    {
+      "name": "graph_non_empty",
+      "status": "passed",
+      "details": {
+        "places": 29,
+        "views": 164,
+        "objects": 2157,
+        "object_classes": 36
+      }
+    },
+    {
+      "name": "same_node_views",
+      "status": "passed",
+      "details": {
+        "place_id": "place_00000",
+        "num_views": 4,
+        "orientations": [
+          0,
+          90,
+          180,
+          270
+        ],
+        "views": [
+          {
+            "view_id": "view_00000",
+            "entry_id": 0,
+            "orientation_deg": 0,
+            "file_name": "images/pose_00000_o000_000000.jpg"
+          },
+          {
+            "view_id": "view_00001",
+            "entry_id": 1,
+            "orientation_deg": 90,
+            "file_name": "images/pose_00000_o090_000001.jpg"
+          },
+          {
+            "view_id": "view_00002",
+            "entry_id": 2,
+            "orientation_deg": 180,
+            "file_name": "images/pose_00000_o180_000002.jpg"
+          },
+          {
+            "view_id": "view_00003",
+            "entry_id": 3,
+            "orientation_deg": 270,
+            "file_name": "images/pose_00000_o270_000003.jpg"
+          }
+        ]
+      }
+    },
+    {
+      "name": "same_node_objects",
+      "status": "passed",
+      "details": {
+        "place_id": "place_00000",
+        "num_objects": 45,
+        "sample_rows": [
+          {
+            "obs_id": "obs_000000",
+            "label": "wall feature",
+            "description": "Beige painted textured wall running along left side of image",
+            "view_id": "view_00000",
+            "object_orientation_deg": 330.0,
+            "distance_from_camera_m": 0.4,
+            "projected_x": -11.747001457214356,
+            "projected_z": -3.319290524978131
+          },
+          {
+            "obs_id": "obs_000001",
+            "label": "wall feature",
+            "description": "White rectangular light switch plate on left wall",
+            "view_id": "view_00000",
+            "object_orientation_deg": 330.0,
+            "distance_from_camera_m": 0.8,
+            "projected_x": -11.547001457214355,
+            "projected_z": -3.665700686491906
+          },
+          {
+            "obs_id": "obs_000002",
+            "label": "rug",
+            "description": "Carpeted landing/floor in beige tone",
+            "view_id": "view_00000",
+            "object_orientation_deg": 0.0,
+            "distance_from_camera_m": 1.5,
+            "projected_x": -11.947001457214355,
+            "projected_z": -4.4728803634643555
+          },
+          {
+            "obs_id": "obs_000003",
+            "label": "wall feature",
+            "description": "White baseboard moulding along floor",
+            "view_id": "view_00000",
+            "object_orientation_deg": 0.0,
+            "distance_from_camera_m": 1.2,
+            "projected_x": -11.947001457214355,
+            "projected_z": -4.172880363464356
+          },
+          {
+            "obs_id": "obs_000004",
+            "label": "ceiling light",
+            "description": "Small recessed ceiling light in sloped ceiling",
+            "view_id": "view_00000",
+            "object_orientation_deg": 0.0,
+            "distance_from_camera_m": 2.8,
+            "projected_x": -11.947001457214355,
+            "projected_z": -5.772880363464355
+          },
+          {
+            "obs_id": "obs_000005",
+            "label": "picture frame",
+            "description": "Square white-framed coastal scene higher on wall",
+            "view_id": "view_00000",
+            "object_orientation_deg": 0.0,
+            "distance_from_camera_m": 3.2,
+            "projected_x": -11.947001457214355,
+            "projected_z": -6.172880363464356
+          },
+          {
+            "obs_id": "obs_000006",
+            "label": "picture frame",
+            "description": "Square black-framed nautical print (sailboat)",
+            "view_id": "view_00000",
+            "object_orientation_deg": 0.0,
+            "distance_from_camera_m": 3.0,
+            "projected_x": -11.947001457214355,
+            "projected_z": -5.9728803634643555
+          },
+          {
+            "obs_id": "obs_000007",
+            "label": "other",
+            "description": "Wooden newel post and handrail with turned white spindles",
+            "view_id": "view_00000",
+            "object_orientation_deg": 30.0,
+            "distance_from_camera_m": 1.0,
+            "projected_x": -12.447001457214355,
+            "projected_z": -3.8389057672487943
+          }
+        ]
+      }
+    },
+    {
+      "name": "global_object_lookup",
+      "status": "passed",
+      "details": {
+        "object_label": "couch",
+        "num_hits": 45,
+        "sample_place_ids": [
+          "place_00000",
+          "place_00000",
+          "place_00001",
+          "place_00001",
+          "place_00001"
+        ],
+        "sample_hits": [
+          {
+            "place_id": "place_00000",
+            "x": -11.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.9728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00002",
+            "orientation_deg": 180,
+            "file_name": "images/pose_00000_o180_000002.jpg",
+            "obs_id": "obs_000021",
+            "label": "couch",
+            "description": "large dark brown/black leather reclining sofa (three-seat) angled slightly toward camera"
+          },
+          {
+            "place_id": "place_00000",
+            "x": -11.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.9728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00003",
+            "orientation_deg": 270,
+            "file_name": "images/pose_00000_o270_000003.jpg",
+            "obs_id": "obs_000030",
+            "label": "couch",
+            "description": "long dark leather sofa along left-center wall"
+          },
+          {
+            "place_id": "place_00001",
+            "x": -10.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00004",
+            "orientation_deg": 0,
+            "file_name": "images/pose_00001_o000_000004.jpg",
+            "obs_id": "obs_000055",
+            "label": "couch",
+            "description": "dark brown leather sofa (partial view)"
+          },
+          {
+            "place_id": "place_00001",
+            "x": -10.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00008",
+            "orientation_deg": 0,
+            "file_name": "images/pose_00002_o000_000008.jpg",
+            "obs_id": "obs_000100",
+            "label": "couch",
+            "description": "dark brown leather sofa (partial view)"
+          },
+          {
+            "place_id": "place_00001",
+            "x": -10.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00010",
+            "orientation_deg": 180,
+            "file_name": "images/pose_00002_o180_000010.jpg",
+            "obs_id": "obs_000120",
+            "label": "couch",
+            "description": "dark brown leather three-seater sofa (reclining)"
+          },
+          {
+            "place_id": "place_00001",
+            "x": -10.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00007",
+            "orientation_deg": 270,
+            "file_name": "images/pose_00001_o270_000007.jpg",
+            "obs_id": "obs_000073",
+            "label": "couch",
+            "description": "long dark brown/black leather sectional sofa along left wall"
+          },
+          {
+            "place_id": "place_00001",
+            "x": -10.947001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00011",
+            "orientation_deg": 270,
+            "file_name": "images/pose_00002_o270_000011.jpg",
+            "obs_id": "obs_000131",
+            "label": "couch",
+            "description": "long dark brown/black leather sectional sofa along left wall"
+          },
+          {
+            "place_id": "place_00002",
+            "x": -9.447001457214355,
+            "y": -0.23662206530570984,
+            "z": -2.4728803634643555,
+            "room_function": "unknown",
+            "view_type": "unknown",
+            "view_id": "view_00012",
+            "orientation_deg": 0,
+            "file_name": "images/pose_00003_o000_000012.jpg",
+            "obs_id": "obs_000153",
+            "label": "couch",
+            "description": "three-seat dark brown leather reclining couch, visible front and back cushions"
+          }
+        ]
+      }
+    },
+    {
+      "name": "north_neighbors",
+      "status": "passed",
+      "details": {
+        "place_id": "place_00000",
+        "direction": "north",
+        "num_neighbors": 1,
+        "sample_place_ids": [
+          "place_00008"
+        ]
+      }
+    },
+    {
+      "name": "east_neighbors",
+      "status": "passed",
+      "details": {
+        "place_id": "place_00000",
+        "direction": "east",
+        "num_neighbors": 3,
+        "sample_place_ids": [
+          "place_00001",
+          "place_00002",
+          "place_00007"
+        ]
+      }
+    },
+    {
+      "name": "directional_object_lookup",
+      "status": "passed",
+      "details": {
+        "place_id": "place_00000",
+        "direction": "north",
+        "object_label": "door",
+        "neighbor_place_id": "place_00008",
+        "num_hits": 2,
+        "sample_hits": [
+          {
+            "place_id": "place_00008",
+            "obs_id": "obs_000551",
+            "label": "door",
+            "description": "sliding glass patio door with white frame",
+            "dx": 1.0,
+            "dz": 2.0,
+            "distance_m": 2.23606797749979,
+            "view_id": "view_00036",
+            "object_orientation_deg": 330.0,
+            "distance_from_camera_m": 0.5
+          },
+          {
+            "place_id": "place_00008",
+            "obs_id": "obs_000577",
+            "label": "door",
+            "description": "white framed glass patio door with grid pattern",
+            "dx": 1.0,
+            "dz": 2.0,
+            "distance_m": 2.23606797749979,
+            "view_id": "view_00037",
+            "object_orientation_deg": 90.0,
+            "distance_from_camera_m": 3.0
+          }
+        ]
+      }
+    }
+  ],
+  "artifacts": {
+    "root_dir": "graph_query_artifacts",
+    "report_json": "graph_query_artifacts/report.json",
+    "views_dir": "graph_query_artifacts/views",
+    "copied_images": [
+      {
+        "source": "spatial_db_split_k8s/images/pose_00000_o000_000000.jpg",
+        "copied_to": "views/images/pose_00000_o000_000000.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00000_o090_000001.jpg",
+        "copied_to": "views/images/pose_00000_o090_000001.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00000_o180_000002.jpg",
+        "copied_to": "views/images/pose_00000_o180_000002.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00000_o270_000003.jpg",
+        "copied_to": "views/images/pose_00000_o270_000003.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00001_o000_000004.jpg",
+        "copied_to": "views/images/pose_00001_o000_000004.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00002_o000_000008.jpg",
+        "copied_to": "views/images/pose_00002_o000_000008.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00002_o180_000010.jpg",
+        "copied_to": "views/images/pose_00002_o180_000010.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00001_o270_000007.jpg",
+        "copied_to": "views/images/pose_00001_o270_000007.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00002_o270_000011.jpg",
+        "copied_to": "views/images/pose_00002_o270_000011.jpg"
+      },
+      {
+        "source": "spatial_db_split_k8s/images/pose_00003_o000_000012.jpg",
+        "copied_to": "views/images/pose_00003_o000_000012.jpg"
+      }
+    ],
+    "missing_images": []
+  }
+}

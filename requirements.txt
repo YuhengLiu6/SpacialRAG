@@ -3,12 +3,17 @@ torchvision
 torchaudio
 git+https://github.com/openai/CLIP.git
 ultralytics
+git+https://github.com/NVIDIA-AI-IOT/nanosam.git
+git+https://github.com/apple/ml-depth-pro.git
 faiss-gpu
 numpy
 opencv-python-headless
 matplotlib
+scikit-learn
 rank_bm25
 openai
+pydantic
+neo4j
 habitat-sim
 magnum
 numpy-quaternion
