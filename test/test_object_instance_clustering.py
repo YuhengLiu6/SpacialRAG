@@ -5,11 +5,19 @@ import numpy as np
 import pytest
 
 from spatial_rag.object_instance_clustering import (
+    _attach_object_embeddings,
+    _compute_heatmap_display_values,
+    _resolve_object_text,
+    _serialize_surrounding_context_for_embedding,
     apply_constraints,
+    build_similarity_matrix_from_descriptions,
     build_manual_anchor_camera_specs,
     compute_text_similarity,
+    deduplicate_multi_view_embeddings,
     estimate_cluster_count_eigengap,
+    load_object_observations,
     plot_similarity_heatmap,
+    run_refined_graph_visualization_pipeline,
     run_object_instance_clustering,
     run_spectral_clustering,
     summarize_clusters,
@@ -144,6 +152,32 @@ def _make_place_db(tmp_path):
     return db_dir
 
 
+class _KeywordEmbedder:
+    def __init__(self):
+        self.calls = []
+        self.vocab = [
+            "chair",
+            "window",
+            "cabinet",
+            "lamp",
+            "table",
+            "left",
+            "right",
+            "above",
+            "below",
+            "none",
+        ]
+
+    def embed_text(self, text):
+        text_value = str(text or "")
+        self.calls.append(text_value)
+        lowered = text_value.lower()
+        features = [float(lowered.count(token)) for token in self.vocab]
+        features.append(float(len(lowered.split())))
+        features.append(float(sum(ord(ch) for ch in lowered) % 997))
+        return np.asarray(features, dtype=np.float32)
+
+
 def test_build_manual_anchor_camera_specs_returns_four_surrounding_views():
     specs = build_manual_anchor_camera_specs(
         {"anchor_id": "anchor_a", "center_x": 2.0, "center_z": 3.0},
@@ -276,6 +310,43 @@ def test_compute_text_similarity_is_symmetric_with_unit_diagonal():
     assert np.allclose(np.diag(matrix), np.ones(3))
 
 
+def test_serialize_surrounding_context_for_embedding_uses_compact_fields_and_rounds_distance():
+    serialized = _serialize_surrounding_context_for_embedding(
+        [
+            {
+                "label": "picture frame",
+                "relation_to_primary": "slightly right, above",
+                "distance_from_primary_m": 1.24,
+                "estimated_global_x": 10.0,
+            },
+            {
+                "label": "cabinet",
+                "relation_to_primary": "left",
+                "distance_from_primary_m": 0.81,
+                "attributes": ["wooden"],
+            },
+            {
+                "label": "",
+                "relation_to_primary": "below",
+                "distance_from_primary_m": 0.55,
+            },
+        ]
+    )
+
+    assert serialized == "picture frame [slightly right, above, 1.2m]; cabinet [left, 0.8m]"
+
+
+def test_resolve_object_text_long_neighbors_appends_neighbors_none_when_empty():
+    row = {
+        "text_input_for_clip_long": "blue upholstered chair by the window",
+        "surrounding_context": [],
+    }
+
+    resolved = _resolve_object_text(row, text_mode="long_neighbors")
+
+    assert resolved == "blue upholstered chair by the window | neighbors: none"
+
+
 def test_apply_constraints_supports_soft_penalty_hard_block_and_none():
     rows = [
         {"view_id": "view_0"},
@@ -306,6 +377,36 @@ def test_apply_constraints_supports_soft_penalty_hard_block_and_none():
     assert np.isclose(hard[1, 0], 0.0)
     assert np.isclose(none[0, 1], 0.8)
     assert np.allclose(np.diag(soft), np.ones(3))
+
+
+def test_apply_constraints_thresholds_on_original_similarity_before_penalty():
+    rows = [
+        {"view_id": "view_0"},
+        {"view_id": "view_0"},
+        {"view_id": "view_1"},
+    ]
+    similarity = np.asarray(
+        [
+            [1.0, 0.80, 0.55],
+            [0.80, 1.0, 0.72],
+            [0.55, 0.72, 1.0],
+        ],
+        dtype=np.float32,
+    )
+
+    affinity = apply_constraints(
+        similarity,
+        rows,
+        same_view_policy="soft_penalty",
+        same_view_penalty=0.25,
+        min_similarity=0.60,
+    )
+
+    assert np.isclose(affinity[0, 1], 0.20)
+    assert np.isclose(affinity[1, 0], 0.20)
+    assert np.isclose(affinity[0, 2], 0.0)
+    assert np.isclose(affinity[2, 0], 0.0)
+    assert np.isclose(affinity[1, 2], 0.72)
 
 
 def test_estimate_cluster_count_eigengap_finds_two_blocks():
@@ -358,6 +459,70 @@ def test_plot_similarity_heatmap_supports_axis_labels(tmp_path):
     assert image.shape[1] >= 520
 
 
+def test_deduplicate_multi_view_embeddings_reorders_similarity_into_blocks():
+    embeddings = np.asarray(
+        [
+            [1.0, 0.0, 0.0],
+            [0.99, 0.01, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.01, 0.99, 0.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.02, 0.98],
+        ],
+        dtype=np.float32,
+    )
+    view_ids = ["view_0", "view_1", "view_0", "view_2", "view_1", "view_2"]
+
+    result = deduplicate_multi_view_embeddings(
+        embeddings,
+        view_ids,
+        object_ids=[10, 11, 20, 21, 30, 31],
+        cluster_count_mode="fixed",
+        n_clusters=3,
+        same_view_penalty=0.25,
+        similarity_threshold=0.60,
+        random_state=0,
+    )
+
+    labels = result["cluster_labels"].tolist()
+    assert labels == [0, 0, 1, 1, 2, 2]
+    assert result["boundary_after_indices"] == [1, 3]
+    reordered = result["reordered_similarity_matrix"]
+    assert reordered.shape == (6, 6)
+    assert np.min(np.diag(reordered)) >= 0.999
+    assert float(np.mean(reordered[:2, :2])) > 0.99
+    assert float(np.mean(reordered[2:4, 2:4])) > 0.99
+    assert float(np.mean(reordered[4:, 4:])) > 0.99
+    assert float(np.max(reordered[:2, 2:])) < 0.05
+
+
+def test_run_refined_graph_visualization_pipeline_reorders_blocks_with_dbscan():
+    rows = [
+        {"object_global_id": 10, "embedding": np.asarray([1.0, 0.0, 0.0], dtype=np.float32)},
+        {"object_global_id": 11, "embedding": np.asarray([0.99, 0.01, 0.0], dtype=np.float32)},
+        {"object_global_id": 20, "embedding": np.asarray([0.0, 1.0, 0.0], dtype=np.float32)},
+        {"object_global_id": 21, "embedding": np.asarray([0.01, 0.99, 0.0], dtype=np.float32)},
+        {"object_global_id": 30, "embedding": np.asarray([0.0, 0.0, 1.0], dtype=np.float32)},
+        {"object_global_id": 31, "embedding": np.asarray([0.0, 0.02, 0.98], dtype=np.float32)},
+    ]
+
+    result = run_refined_graph_visualization_pipeline(
+        rows,
+        object_ids=[10, 11, 20, 21, 30, 31],
+        knn_k=2,
+        spectral_dim=3,
+        dbscan_eps=0.1,
+        dbscan_min_samples=2,
+    )
+
+    assert result["labels"].tolist() == [0, 0, 1, 1, 2, 2]
+    assert result["boundary_after_indices"] == [1, 3]
+    assert result["noise_count"] == 0
+    assert result["num_clusters_excluding_noise"] == 3
+    assert np.allclose(np.diag(result["visual_similarity_matrix"]), np.zeros(6))
+    assert result["knn_affinity_matrix"].shape == (6, 6)
+
+
 def test_plot_similarity_heatmap_supports_log_display_transform(tmp_path):
     matrix = np.asarray(
         [
@@ -388,6 +553,170 @@ def test_plot_similarity_heatmap_supports_log_display_transform(tmp_path):
     assert image is not None
     assert image.shape[0] >= 520
     assert image.shape[1] >= 520
+
+
+def test_compute_heatmap_display_values_supports_offdiag_extreme_with_dark_diagonal():
+    matrix = np.asarray(
+        [
+            [1.0, 0.92, 0.10, 0.08],
+            [0.92, 1.0, 0.12, 0.09],
+            [0.10, 0.12, 1.0, 0.87],
+            [0.08, 0.09, 0.87, 1.0],
+        ],
+        dtype=np.float32,
+    )
+
+    display = _compute_heatmap_display_values(
+        matrix,
+        display_transform="offdiag_extreme",
+        suppress_diagonal_display=True,
+    )
+
+    assert display.shape == matrix.shape
+    assert np.allclose(np.diag(display), np.zeros(4))
+    assert float(display[0, 1]) > 0.95
+    assert float(display[2, 3]) > 0.95
+    assert float(display[0, 2]) < 0.1
+    assert float(display[1, 3]) < 0.1
+
+
+def test_compute_heatmap_display_values_supports_budgeted_diagonal_display():
+    matrix = np.asarray(
+        [
+            [1.0, 0.92, 0.12, 0.10],
+            [0.92, 1.0, 0.14, 0.12],
+            [0.12, 0.14, 1.0, 0.88],
+            [0.10, 0.12, 0.88, 1.0],
+        ],
+        dtype=np.float32,
+    )
+
+    display = _compute_heatmap_display_values(
+        matrix,
+        display_transform="offdiag_extreme",
+        suppress_diagonal_display=False,
+        diagonal_brightness_budget_ratio=0.18,
+        diagonal_display_cap=0.82,
+    )
+
+    diag = np.diag(display)
+    assert np.all(diag > 0.0)
+    assert np.all(diag < 1.0)
+    assert np.all(diag <= 0.82 + 1e-6)
+
+
+def test_compute_heatmap_display_values_linear_preserves_similarity_proportions():
+    matrix = np.asarray(
+        [
+            [1.0, 0.80, 0.35],
+            [0.80, 1.0, 0.20],
+            [0.35, 0.20, 1.0],
+        ],
+        dtype=np.float32,
+    )
+
+    display = _compute_heatmap_display_values(
+        matrix,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="linear",
+        suppress_diagonal_display=False,
+    )
+
+    assert display.shape == matrix.shape
+    assert np.allclose(np.diag(display), np.ones(3))
+    assert np.isclose(float(display[0, 1]), 0.80)
+    assert np.isclose(float(display[0, 2]), 0.35)
+    assert np.isclose(float(display[1, 2]), 0.20)
+
+
+def test_load_object_observations_short_and_long_keep_using_precomputed_embeddings(tmp_path):
+    db_dir = _make_place_db(tmp_path)
+    embedder = _KeywordEmbedder()
+
+    observations_short = load_object_observations(
+        db_dir=str(db_dir),
+        text_mode="short",
+        embedder=embedder,
+    )
+    observations_long = load_object_observations(
+        db_dir=str(db_dir),
+        text_mode="long",
+        embedder=embedder,
+    )
+
+    assert embedder.calls == []
+    assert np.allclose(observations_short[0]["embedding"], np.asarray([1.0, 0.0], dtype=np.float32))
+    assert np.allclose(observations_long[0]["embedding"], np.asarray([1.0, 0.0], dtype=np.float32))
+
+
+def test_attach_object_embeddings_long_neighbors_bypasses_precomputed_embeddings(tmp_path):
+    db_dir = _make_place_db(tmp_path)
+    rows = [
+        {
+            "object_global_id": 10,
+            "text_input_for_clip_long": "blue upholstered chair by the window",
+            "surrounding_context": [
+                {
+                    "label": "cabinet",
+                    "relation_to_primary": "left",
+                    "distance_from_primary_m": 0.84,
+                }
+            ],
+        }
+    ]
+    embedder = _KeywordEmbedder()
+
+    attached = _attach_object_embeddings(
+        rows,
+        db_dir=str(db_dir),
+        text_mode="long_neighbors",
+        embedder=embedder,
+    )
+
+    assert len(embedder.calls) == 1
+    assert "neighbors: cabinet [left, 0.8m]" in attached[0]["embedding_text"]
+    assert attached[0]["embedding"] is not None
+
+
+def test_long_neighbors_changes_similarity_when_surroundings_differ():
+    rows = [
+        {
+            "object_global_id": 10,
+            "view_id": "view_0",
+            "entry_id": 0,
+            "text_input_for_clip_long": "blue upholstered chair by the window",
+            "surrounding_context": [
+                {
+                    "label": "cabinet",
+                    "relation_to_primary": "left",
+                    "distance_from_primary_m": 0.8,
+                }
+            ],
+        },
+        {
+            "object_global_id": 11,
+            "view_id": "view_1",
+            "entry_id": 1,
+            "text_input_for_clip_long": "blue upholstered chair by the window",
+            "surrounding_context": [
+                {
+                    "label": "lamp",
+                    "relation_to_primary": "right",
+                    "distance_from_primary_m": 0.8,
+                }
+            ],
+        },
+    ]
+    embedder = _KeywordEmbedder()
+
+    long_rows = _attach_object_embeddings(rows, db_dir=None, text_mode="long", embedder=embedder)
+    long_neighbors_rows = _attach_object_embeddings(rows, db_dir=None, text_mode="long_neighbors", embedder=embedder)
+    similarity_long = build_similarity_matrix_from_descriptions(long_rows)
+    similarity_long_neighbors = build_similarity_matrix_from_descriptions(long_neighbors_rows)
+
+    assert np.isclose(float(similarity_long[0, 1]), 1.0)
+    assert float(similarity_long_neighbors[0, 1]) < float(similarity_long[0, 1])
 
 
 def test_summarize_clusters_marks_same_view_collisions():
@@ -451,6 +780,21 @@ def test_run_object_instance_clustering_place_mode_writes_expected_artifacts(tmp
     assert (place_dir / "cluster_summary.md").exists()
     assert (place_dir / "similarity_heatmap.png").exists()
     assert (place_dir / "affinity_heatmap.png").exists()
+    assert (place_dir / "clustered_similarity_matrix.npy").exists()
+    assert (place_dir / "clustered_similarity_matrix.csv").exists()
+    assert (place_dir / "clustered_similarity_order.json").exists()
+    assert (place_dir / "clustered_similarity_heatmap.png").exists()
+    assert (place_dir / "clustered_similarity_heatmap_offdiag_only.png").exists()
+    assert (place_dir / "refined_graph_cluster_labels.json").exists()
+    assert (place_dir / "refined_graph_knn_affinity_matrix.npy").exists()
+    assert (place_dir / "refined_graph_laplacian.npy").exists()
+    assert (place_dir / "refined_graph_spectral_embedding.npy").exists()
+    assert (place_dir / "refined_graph_reordered_similarity_matrix.npy").exists()
+    assert (place_dir / "refined_graph_reordered_visual_similarity_matrix.npy").exists()
+    assert (place_dir / "refined_graph_similarity_diag1_source_matrix.npy").exists()
+    assert (place_dir / "refined_graph_clustered_similarity_heatmap.png").exists()
+    assert (place_dir / "refined_graph_clustered_similarity_heatmap_offdiag_only.png").exists()
+    assert (place_dir / "refined_graph_clustered_similarity_heatmap_diag1.png").exists()
     assert (place_dir / "view_annotations" / "manifest.json").exists()
     assert (place_dir / "view_annotations" / "annotated_views_grid.jpg").exists()
     assert (place_dir / "view_annotations" / "view_00000_annotated.jpg").exists()
@@ -460,6 +804,91 @@ def test_run_object_instance_clustering_place_mode_writes_expected_artifacts(tmp
     assert cluster_summary["n_clusters"] == 2
     cluster_sizes = sorted(cluster["num_members"] for cluster in cluster_summary["clusters"])
     assert cluster_sizes == [1, 2]
+
+
+def test_run_object_instance_clustering_place_mode_supports_entry_id_filter(tmp_path):
+    db_dir = _make_place_db(tmp_path)
+    output_dir = tmp_path / "place_out_subset"
+
+    report = run_object_instance_clustering(
+        output_dir=str(output_dir),
+        group_mode="place",
+        db_dir=str(db_dir),
+        entry_ids=[0, 1],
+        text_mode="long",
+        cluster_count_mode="fixed",
+        n_clusters=2,
+        same_view_policy="soft_penalty",
+    )
+
+    assert report["selected_entry_ids"] == [0, 1]
+    assert (output_dir / "summary.json").exists()
+
+    place_dir = output_dir / "place_00000"
+    cluster_summary = json.loads((place_dir / "cluster_summary.json").read_text(encoding="utf-8"))
+    assert cluster_summary["n_objects"] == 3
+
+    summary = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["selected_entry_ids"] == [0, 1]
+
+
+def test_run_object_instance_clustering_long_neighbors_runs_without_precomputed_embeddings(tmp_path):
+    db_dir = _make_place_db(tmp_path)
+    (db_dir / "object_text_emb_long.npy").unlink()
+    output_dir = tmp_path / "place_out_long_neighbors"
+    embedder = _KeywordEmbedder()
+
+    report = run_object_instance_clustering(
+        output_dir=str(output_dir),
+        group_mode="place",
+        db_dir=str(db_dir),
+        text_mode="long_neighbors",
+        cluster_count_mode="fixed",
+        n_clusters=2,
+        same_view_policy="soft_penalty",
+        embedder=embedder,
+    )
+
+    assert report["text_mode"] == "long_neighbors"
+    assert len(embedder.calls) == 4
+    assert (output_dir / "place_00000" / "cluster_summary.json").exists()
+
+
+def test_run_object_instance_clustering_selected_views_mode_combines_entries(tmp_path):
+    db_dir = _make_place_db(tmp_path)
+    output_dir = tmp_path / "selected_views_out"
+
+    report = run_object_instance_clustering(
+        output_dir=str(output_dir),
+        group_mode="selected_views",
+        db_dir=str(db_dir),
+        entry_ids=[0, 1],
+        text_mode="long",
+        cluster_count_mode="fixed",
+        n_clusters=2,
+        same_view_policy="soft_penalty",
+    )
+
+    assert report["group_mode"] == "selected_views"
+    assert report["selected_entry_ids"] == [0, 1]
+    assert report["num_groups"] == 1
+
+    group_dir = output_dir / "selected_views"
+    assert (group_dir / "cluster_summary.json").exists()
+    cluster_summary = json.loads((group_dir / "cluster_summary.json").read_text(encoding="utf-8"))
+    assert cluster_summary["group_type"] == "selected_views"
+    assert cluster_summary["n_objects"] == 3
+
+
+def test_run_object_instance_clustering_rejects_entry_ids_for_manual_anchor_mode(tmp_path):
+    with pytest.raises(ValueError, match="entry_ids is only supported when group_mode='place' or 'selected_views'"):
+        run_object_instance_clustering(
+            output_dir=str(tmp_path / "anchor_out"),
+            group_mode="manual_anchor_center",
+            entry_ids=[0, 1],
+            anchors_jsonl=str(tmp_path / "anchors.jsonl"),
+            scene_path="scene.glb",
+        )
 
 
 def test_run_object_instance_clustering_manual_anchor_mode_writes_generated_views(monkeypatch, tmp_path):

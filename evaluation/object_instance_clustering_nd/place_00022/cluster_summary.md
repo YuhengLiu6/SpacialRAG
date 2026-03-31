@@ -1,0 +1,50 @@
+# Cluster Summary: place_00022
+
+- group_type: place
+- n_objects: 37
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00022:cluster_000
+- num_members: 37
+- representative_label: table lamp
+- representative_description: Beige fabric shade table lamp emitting warm light with visible vertical stitched seams and a dark turned wood (or bronze) stepped base; lamp is mostly visible in the crop though the lower base is slightly cut off, image appears slightly soft/low-resolution, estimated ~0.8 m from camera.
+- same_view_collision: True
+- offending_view_ids: view_00116, view_00117, view_00119, view_00124, view_00125, view_00127
+- member: object_id=849 view_id=view_00116 label=bed description=dark wooden headboard bed with striped bedding
+- member: object_id=850 view_id=view_00116 label=nightstand description=dark mahogany three-drawer nightstand
+- member: object_id=851 view_id=view_00116 label=nightstand description=dark wooden nightstand edge crop
+- member: object_id=852 view_id=view_00116 label=table lamp description=cream tapered lampshade, turned wooden base
+- member: object_id=853 view_id=view_00116 label=table lamp description=beige tapered fabric table lamp (partial)
+- member: object_id=854 view_id=view_00116 label=pillow description=rectangular beige-blue striped pillow
+- member: object_id=855 view_id=view_00116 label=pillow description=beige striped rectangular pillow edge-crop
+- member: object_id=856 view_id=view_00117 label=door description=object: door | attrs: white painted, raised panel, metal round knob, open toward camera | anchor: x=0.5, z=-5.0 | nearby: door knob@(0.5,-5.0), door frame@(0.5,-5.0)
+- member: object_id=857 view_id=view_00117 label=other description=object: other | attrs: round, white | anchor: x=-0.5, z=-6.0 | nearby: light switch@(-0.5,-6.0), right doorway@(0.5,-6.0)
+- member: object_id=858 view_id=view_00117 label=wall switch description=object: wall switch | attrs: white plastic, three switches | anchor: x=-0.5, z=-6.0 | nearby: thermostat@(-0.5,-6.0), outlet (lower)@(-1.0,-6.0)
+- member: object_id=859 view_id=view_00117 label=door description=object: door | attrs: white painted, raised-panel, double-handle set (appears to have two levers at mid-height), closed | anchor: x=-1.0, z=-5.5 | nearby: hardwood floor@(-1.5,-5.5), right doorway (adjacent room)@(0.5,-6.0)
+- member: object_id=860 view_id=view_00117 label=other description=object: other | attrs: white duplex outlet, near floor | anchor: x=-1.0, z=-6.0 | nearby: hardwood floor@(-1.0,-6.0), light switch@(-0.5,-6.0)
+- member: object_id=861 view_id=view_00117 label=door description=object: door | attrs: white painted, raised-panel, partially visible on right image edge | anchor: x=0.5, z=-6.0 | nearby: door frame / trim@(0.5,-6.0), right wall@(0.5,-6.0)
+- member: object_id=862 view_id=view_00118 label=tv description=dark glossy TV bottom edge crop
+- member: object_id=863 view_id=view_00119 label=bed description=light-striped bed corner cropped
+- member: object_id=864 view_id=view_00119 label=dresser description=dark wooden six-drawer dresser, partial
+- member: object_id=865 view_id=view_00119 label=basket description=blue-gray fabric basket with handle
+- member: object_id=866 view_id=view_00119 label=bed description=light striped duvet bed corner
+- member: object_id=888 view_id=view_00124 label=bed description=striped beige bed with headboard
+- member: object_id=889 view_id=view_00124 label=nightstand description=dark mahogany three-drawer nightstand
+- member: object_id=890 view_id=view_00124 label=nightstand description=dark brown wooden nightstand, edge-cropped
+- member: object_id=891 view_id=view_00124 label=table lamp description=beige tapered shade table lamp
+- member: object_id=892 view_id=view_00124 label=table lamp description=beige fabric shade table lamp
+- member: object_id=893 view_id=view_00124 label=pillow description=off-white striped rectangular pillow
+- member: object_id=894 view_id=view_00124 label=pillow description=beige-gray striped rectangular pillow
+- member: object_id=895 view_id=view_00125 label=door description=object: door | attrs: white painted, two-panel molded style, brushed-metal round knob, visible hinge side with door thickness | anchor: x=0.5, z=-5.0 | nearby: wall (left wall)@(1.0,-5.0), right open doorway@(0.0,-6.0)
+- member: object_id=896 view_id=view_00125 label=other description=object: other | attrs: round, white, small | anchor: x=-0.5, z=-6.0 | nearby: wall switch panel@(-0.5,-6.0), right open doorway@(0.0,-6.0)
+- member: object_id=897 view_id=view_00125 label=wall switch description=object: wall switch | attrs: white plastic plate, three toggles/rockers | anchor: x=-0.5, z=-6.0 | nearby: thermostat (round)@(-0.5,-6.0), right open doorway@(0.0,-6.0)
+- member: object_id=898 view_id=view_00125 label=door description=object: door | attrs: white painted, two-panel molded style, two matching lever/knob handles (appears as double handles) | anchor: x=-1.0, z=-5.5 | nearby: hardwood floor@(-1.0,-5.5), right open doorway@(-0.5,-6.0)
+- member: object_id=899 view_id=view_00125 label=door description=object: door | attrs: white painted door visible in opening, white trim, bright light/source in adjacent room | anchor: x=0.5, z=-6.0 | nearby: wall switch panel@(-0.5,-6.0), central closed door@(-1.0,-5.5)
+- member: object_id=900 view_id=view_00125 label=ceiling light description=object: ceiling light | attrs: pendant style, white/metal, visible cable | anchor: x=-0.5, z=-7.0 | nearby: right open doorway@(0.0,-6.0), central closed door@(-1.0,-5.5)
+- member: object_id=901 view_id=view_00126 label=tv description=black flat-screen TV bottom-cropped
+- member: object_id=902 view_id=view_00127 label=bed description=striped bed corner edge crop
+- member: object_id=903 view_id=view_00127 label=dresser description=dark wooden six-drawer dresser
+- member: object_id=904 view_id=view_00127 label=basket description=dark gray fabric storage basket (partial)
+- member: object_id=905 view_id=view_00127 label=window description=white blind-covered rectangular window
+- member: object_id=906 view_id=view_00127 label=bed description=striped white and gray bed corner

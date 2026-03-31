@@ -1,0 +1,182 @@
+{
+  "group_id": "place_00017",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 739,
+      "observation_id": "obs_000739",
+      "view_id": "view_00092",
+      "entry_id": 92,
+      "label": "art",
+      "description": "object: art | attrs: fabric, red white blue, vertical orientation, hung from a single nail or hook | anchor: x=-2.0, z=-3.0 | nearby: wall switch@(-1.5,-3.0), door@(-1.0,-3.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 740,
+      "observation_id": "obs_000740",
+      "view_id": "view_00092",
+      "entry_id": 92,
+      "label": "wall switch",
+      "description": "object: wall switch | attrs: white plastic, two switches | anchor: x=-1.5, z=-3.0 | nearby: art@(-2.0,-3.0), door@(-1.0,-3.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 741,
+      "observation_id": "obs_000741",
+      "view_id": "view_00092",
+      "entry_id": 92,
+      "label": "ceiling light",
+      "description": "object: ceiling light | attrs: flush mount, white/cream diffuser | anchor: x=-1.0, z=-2.0 | nearby: art@(-2.0,-3.0), door@(-1.0,-3.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 742,
+      "observation_id": "obs_000742",
+      "view_id": "view_00092",
+      "entry_id": 92,
+      "label": "door",
+      "description": "object: door | attrs: white painted wood, two panels, round metal knobs | anchor: x=-1.0, z=-3.5 | nearby: wall switch@(-1.5,-3.0), art@(-2.0,-3.0)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 743,
+      "observation_id": "obs_000743",
+      "view_id": "view_00092",
+      "entry_id": 92,
+      "label": "ceiling light",
+      "description": "object: ceiling light | attrs: flush mount, white diffuser | anchor: x=-1.0, z=-4.0 | nearby: door@(-1.0,-3.5), ceiling light (near)@(-1.0,-2.0)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 744,
+      "observation_id": "obs_000744",
+      "view_id": "view_00093",
+      "entry_id": 93,
+      "label": "picture frame",
+      "description": "dark wooden gilt-edged picture frame"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 745,
+      "observation_id": "obs_000745",
+      "view_id": "view_00094",
+      "entry_id": 94,
+      "label": "curtain",
+      "description": "object: curtain | attrs: beige fabric, arched shape, padded/box valance style, covers upper window trim | anchor: x=-0.5, z=1.5 | nearby: blinds@(-0.5,1.5), other@(-1.5,0.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 746,
+      "observation_id": "obs_000746",
+      "view_id": "view_00094",
+      "entry_id": 94,
+      "label": "blinds",
+      "description": "object: blinds | attrs: white horizontal slatted blinds, arched beige fabric valance, white window frame, attached to interior wall | anchor: x=-0.5, z=1.5 | nearby: curtain@(-0.5,1.5), door@(-1.5,0.0)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 747,
+      "observation_id": "obs_000747",
+      "view_id": "view_00094",
+      "entry_id": 94,
+      "label": "door",
+      "description": "object: door | attrs: white painted wood, raised panel design, white door casing and trim | anchor: x=-1.5, z=0.0 | nearby: other@(-1.5,0.5), blinds@(-0.5,1.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 748,
+      "observation_id": "obs_000748",
+      "view_id": "view_00094",
+      "entry_id": 94,
+      "label": "other",
+      "description": "object: other | attrs: white plastic housing, small rectangular display, three round buttons on lower edge | anchor: x=-1.5, z=0.5 | nearby: door@(-1.5,0.0), blinds@(-0.5,1.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 749,
+      "observation_id": "obs_000749",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "other",
+      "description": "object: other | attrs: light beige/off-white paint, smooth texture, no visible decorations | anchor: x=-0.5, z=-1.0 | nearby: door@(0.0,-0.5), door frame / trim@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 750,
+      "observation_id": "obs_000750",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "window",
+      "description": "object: window | attrs: rectangular transom, three panes, appears blacked-out or covered | anchor: x=0.0, z=-0.5 | nearby: door frame / trim@(0.0,-0.5), door@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 751,
+      "observation_id": "obs_000751",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "door",
+      "description": "object: door | attrs: white paint, four-panel design, peephole present, hinges visible on right | anchor: x=0.0, z=-0.5 | nearby: door frame / trim@(0.0,-0.5), right-side hinge@(0.0,0.0)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 752,
+      "observation_id": "obs_000752",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "other",
+      "description": "object: other | attrs: white painted trim, narrow molding | anchor: x=0.0, z=-0.5 | nearby: door@(0.0,-0.5), transom window@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 753,
+      "observation_id": "obs_000753",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "other",
+      "description": "object: other | attrs: metal hinge, three visible knuckles | anchor: x=0.0, z=0.0 | nearby: door@(0.0,-0.5), door knob / lockset (missing/partially removed)@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 754,
+      "observation_id": "obs_000754",
+      "view_id": "view_00095",
+      "entry_id": 95,
+      "label": "other",
+      "description": "object: other | attrs: metal, exposed mechanism, lower-right on door | anchor: x=0.0, z=-0.5 | nearby: door@(0.0,-0.5), right-side hinge@(0.0,0.0)"
+    }
+  ]
+}

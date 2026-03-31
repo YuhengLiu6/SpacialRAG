@@ -13,12 +13,14 @@ from spatial_rag.spatial_db_builder import (
     _compute_object_orientation,
     _fallback_relative_bearing_from_laterality,
     _format_object_text_long,
-    _response_has_length_finish_reason,
+    _load_resume_state,
     _make_object_record,
     _project_global_xz,
+    _response_has_length_finish_reason,
+    _run_optional_polar_surrounding_postprocess,
     _should_reuse_existing_entry,
-    _load_resume_state,
     _write_floor_plan_projection,
+    build_spatial_database_angle_split,
 )
 
 
@@ -402,3 +404,42 @@ def test_write_floor_plan_projection_persists_expected_fields(tmp_path):
     assert saved == str(out)
     assert out.exists()
     assert out.read_text(encoding="utf-8").strip().startswith("{")
+
+
+def test_run_optional_polar_surrounding_postprocess_is_noop_when_disabled(tmp_path):
+    summary = _run_optional_polar_surrounding_postprocess(tmp_path, enabled=False)
+
+    assert summary == {"enabled": False, "ran": False, "ok": False}
+
+
+def test_run_optional_polar_surrounding_postprocess_calls_builder_when_enabled(tmp_path, monkeypatch):
+    calls = []
+
+    def _fake_build(db_dir: str):
+        calls.append(db_dir)
+        return {"relation_output_path": str(tmp_path / "object_polar_relations.jsonl"), "num_pair_relations": 3}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._get_polar_surroundings_builder", lambda: _fake_build)
+
+    summary = _run_optional_polar_surrounding_postprocess(tmp_path, enabled=True)
+
+    assert calls == [str(tmp_path)]
+    assert summary["enabled"] is True
+    assert summary["ran"] is True
+    assert summary["ok"] is True
+    assert summary["num_pair_relations"] == 3
+
+
+def test_build_spatial_database_angle_split_forwards_polar_postprocess_flag(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database_angle_split(run_polar_surrounding_postprocess=True)
+
+    assert report == {"ok": True}
+    assert captured["run_polar_surrounding_postprocess"] is True

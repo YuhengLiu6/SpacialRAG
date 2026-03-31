@@ -1,0 +1,156 @@
+{
+  "views": [
+    {
+      "view_id": "view_00096",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00024_o000_000096.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00018/view_annotations/view_00096_annotated.jpg",
+      "source_file_name": "images/pose_00024_o000_000096.jpg",
+      "num_objects": 2,
+      "objects": [
+        {
+          "object_global_id": 755,
+          "label": "dresser",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 756,
+          "label": "wall switch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00097",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00024_o090_000097.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00018/view_annotations/view_00097_annotated.jpg",
+      "source_file_name": "images/pose_00024_o090_000097.jpg",
+      "num_objects": 4,
+      "objects": [
+        {
+          "object_global_id": 757,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 758,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 759,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 760,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00098",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00024_o180_000098.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00018/view_annotations/view_00098_annotated.jpg",
+      "source_file_name": "images/pose_00024_o180_000098.jpg",
+      "num_objects": 2,
+      "objects": [
+        {
+          "object_global_id": 761,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 762,
+          "label": "door",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00099",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00024_o270_000099.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00018/view_annotations/view_00099_annotated.jpg",
+      "source_file_name": "images/pose_00024_o270_000099.jpg",
+      "num_objects": 8,
+      "objects": [
+        {
+          "object_global_id": 763,
+          "label": "dining table",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 764,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 765,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 766,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 767,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 768,
+          "label": "window",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 769,
+          "label": "bench",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 770,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "group_id": "place_00014",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 689,
+      "observation_id": "obs_000689",
+      "view_id": "view_00080",
+      "entry_id": 80,
+      "label": "picture frame",
+      "description": "dark-wood picture frame, edge-cropped"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 690,
+      "observation_id": "obs_000690",
+      "view_id": "view_00080",
+      "entry_id": 80,
+      "label": "picture frame",
+      "description": "dark brown ornate frame corner"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 691,
+      "observation_id": "obs_000691",
+      "view_id": "view_00081",
+      "entry_id": 81,
+      "label": "picture frame",
+      "description": "dark wooden picture frame edge-crop"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 692,
+      "observation_id": "obs_000692",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "blinds",
+      "description": "object: blinds | attrs: horizontal slats, white plastic or painted wood | anchor: x=-1.5, z=0.0 | nearby: window frame@(-1.5,0.0), thermostat@(-1.5,0.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 693,
+      "observation_id": "obs_000693",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "window",
+      "description": "object: window | attrs: arched top, white frame, venetian blinds, visible blind cords | anchor: x=-1.5, z=0.0 | nearby: window sill@(-1.5,0.0), thermostat@(-1.5,0.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 694,
+      "observation_id": "obs_000694",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "door",
+      "description": "object: door | attrs: white painted wood, two-panel molded design, painted casing | anchor: x=-2.0, z=0.0 | nearby: door handle@(-2.0,0.0), wall (right side)@(-2.5,0.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 695,
+      "observation_id": "obs_000695",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "chair",
+      "description": "object: chair | attrs: none | anchor: x=na, z=na | nearby: none"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 696,
+      "observation_id": "obs_000696",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "clock",
+      "description": "object: clock | attrs: none | anchor: x=na, z=na | nearby: none"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 697,
+      "observation_id": "obs_000697",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "mirror",
+      "description": "object: mirror | attrs: none | anchor: x=na, z=na | nearby: none"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 698,
+      "observation_id": "obs_000698",
+      "view_id": "view_00082",
+      "entry_id": 82,
+      "label": "outlet",
+      "description": "object: outlet | attrs: none | anchor: x=na, z=na | nearby: none"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 699,
+      "observation_id": "obs_000699",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "other",
+      "description": "object: other | attrs: textured finish, pale paint (light gray / blue-gray) | anchor: x=-1.5, z=-1.5 | nearby: trim (door frame)@(-0.5,-1.0), door@(0.0,-1.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 700,
+      "observation_id": "obs_000700",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "window",
+      "description": "object: window | attrs: rectangular, above door, appears covered or tinted | anchor: x=0.0, z=-1.0 | nearby: ceiling/upper trim@(0.0,-1.0), door@(0.0,-1.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 701,
+      "observation_id": "obs_000701",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "door",
+      "description": "object: door | attrs: white painted, six-panel, peephole, wood core | anchor: x=0.0, z=-1.0 | nearby: doorknob/lockset@(0.0,-1.0), transom window@(0.0,-1.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 702,
+      "observation_id": "obs_000702",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "other",
+      "description": "object: other | attrs: metal, lever handle, deadbolt | anchor: x=0.0, z=-1.0 | nearby: door@(0.0,-1.0), transom window@(0.0,-1.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 703,
+      "observation_id": "obs_000703",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "blinds",
+      "description": "object: blinds | attrs: white, horizontal slats, covers full window height | anchor: x=0.0, z=0.0 | nearby: baseboard/trim@(0.0,0.0), wall (right)@(0.0,0.0)"
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 704,
+      "observation_id": "obs_000704",
+      "view_id": "view_00083",
+      "entry_id": 83,
+      "label": "other",
+      "description": "object: other | attrs: white painted, wood, rounded top edge | anchor: x=-0.5, z=-0.5 | nearby: right-side window (blinds)@(0.0,0.0), door@(0.0,-1.0)"
+    }
+  ]
+}

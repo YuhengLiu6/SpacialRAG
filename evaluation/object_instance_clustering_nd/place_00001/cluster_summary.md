@@ -1,0 +1,69 @@
+# Cluster Summary: place_00001
+
+- group_type: place
+- n_objects: 56
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00001:cluster_000
+- num_members: 56
+- representative_label: cabinet
+- representative_description: Close-up of a lower dark-brown stained wooden cabinet door with a recessed rectangular center panel and raised molding; glossy varnish with visible scuffs and small chips at the edges, right side of the door is cropped by the image; appears to be a lower cabinet near the floor, approximately 0.5 m from the camera.
+- same_view_collision: True
+- offending_view_ids: view_00004, view_00005, view_00006, view_00007, view_00008, view_00009, view_00010, view_00011
+- member: object_id=19 view_id=view_00004 label=picture frame description=black square wall picture frame
+- member: object_id=20 view_id=view_00004 label=picture frame description=white rectangular picture frame edge-crop
+- member: object_id=21 view_id=view_00005 label=blinds description=object: blinds | attrs: none | anchor: x=na, z=na | nearby: none
+- member: object_id=22 view_id=view_00005 label=curtain description=object: curtain | attrs: pale blue, fabric, full-length | anchor: x=-11.5, z=-2.0 | nearby: window@(-12.0,-2.0)
+- member: object_id=23 view_id=view_00005 label=window description=object: window | attrs: grid panes, white frame, clear glass, outdoor view visible | anchor: x=-12.0, z=-2.0 | nearby: curtain@(-11.5,-2.0), wall control (thermostat/keypad)@(-12.5,-2.5)
+- member: object_id=24 view_id=view_00005 label=other description=object: other | attrs: rectangular, white, likely thermostat or keypad | anchor: x=-12.5, z=-2.5 | nearby: window@(-12.0,-2.0), right wall switch@(-13.0,-3.5)
+- member: object_id=25 view_id=view_00005 label=art description=object: art | attrs: wooden, coastal theme, text reads 'Mermaids LIVE among us in VIRGINIA BEACH' (approx) | anchor: x=-13.0, z=-3.0 | nearby: right wall switch@(-13.0,-3.5), wall control (thermostat/keypad)@(-12.5,-2.5)
+- member: object_id=26 view_id=view_00005 label=wall switch description=object: wall switch | attrs: white, single rocker switch, standard size | anchor: x=-13.0, z=-3.5 | nearby: decorative sign@(-13.0,-3.0), wall control (thermostat/keypad)@(-12.5,-2.5)
+- member: object_id=27 view_id=view_00006 label=couch description=dark brown leather couch, partial
+- member: object_id=28 view_id=view_00006 label=side table description=dark brown wooden side table
+- member: object_id=29 view_id=view_00006 label=rug description=light beige woven rug edge crop
+- member: object_id=30 view_id=view_00006 label=fireplace description=black metal fireplace insert
+- member: object_id=31 view_id=view_00006 label=rug description=beige low-pile rug edge crop
+- member: object_id=32 view_id=view_00006 label=window description=dark reflective window, edge-cropped
+- member: object_id=33 view_id=view_00006 label=rug description=dark navy rectangular rug, edge-cropped
+- member: object_id=34 view_id=view_00006 label=side table description=dark brown varnished side table edge
+- member: object_id=35 view_id=view_00007 label=couch description=black leather three-seat couch edge crop
+- member: object_id=36 view_id=view_00007 label=couch description=dark brown leather recliner, front
+- member: object_id=37 view_id=view_00007 label=table lamp description=white scalloped shade table lamp
+- member: object_id=38 view_id=view_00007 label=chair description=dark wooden chair partial crop
+- member: object_id=39 view_id=view_00007 label=cabinet description=dark brown upper cabinet panel
+- member: object_id=40 view_id=view_00007 label=chair description=dark reddish-brown carved wooden chair
+- member: object_id=41 view_id=view_00007 label=dining table description=dark wooden dining table edge
+- member: object_id=42 view_id=view_00007 label=microwave description=stainless steel microwave front, black door
+- member: object_id=43 view_id=view_00007 label=oven description=stainless-steel oven front, towel
+- member: object_id=44 view_id=view_00007 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=45 view_id=view_00007 label=cabinet description=dark brown cabinet door edge-cropped
+- member: object_id=46 view_id=view_00007 label=chair description=dark wooden chair, edge-cropped
+- member: object_id=47 view_id=view_00008 label=picture frame description=black-framed square wall picture
+- member: object_id=48 view_id=view_00008 label=picture frame description=white-framed beach picture, partial
+- member: object_id=49 view_id=view_00009 label=curtain description=object: curtain | attrs: blue-gray, fabric, hanging | anchor: x=-11.5, z=-2.0 | nearby: door@(-11.5,-2.0), light switch (left)@(-12.5,-2.5)
+- member: object_id=50 view_id=view_00009 label=door description=object: door | attrs: white frame, multi-pane glass, exterior view visible through glass, attached to door frame | anchor: x=-11.5, z=-2.0 | nearby: curtain@(-11.5,-2.0), light switch (left)@(-12.5,-2.5)
+- member: object_id=51 view_id=view_00009 label=wall switch description=object: wall switch | attrs: white rocker, rectangular plate | anchor: x=-12.5, z=-2.5 | nearby: art / wall sign@(-13.0,-3.0), door@(-11.5,-2.0)
+- member: object_id=52 view_id=view_00009 label=art description=object: art | attrs: wooden plank style, white background, blue lettering, weathered look | anchor: x=-12.5, z=-3.5 | nearby: light switch (left)@(-12.5,-2.5), light switch (right)@(-12.5,-3.5)
+- member: object_id=53 view_id=view_00009 label=wall switch description=object: wall switch | attrs: white rocker, rectangular plate | anchor: x=-12.5, z=-3.5 | nearby: art / wall sign@(-13.0,-3.0), light switch (left)@(-12.5,-2.5)
+- member: object_id=54 view_id=view_00010 label=couch description=dark brown leather loveseat, cropped
+- member: object_id=55 view_id=view_00010 label=side table description=dark wooden side table, front-facing
+- member: object_id=56 view_id=view_00010 label=rug description=light beige low-pile rug edge-cropped
+- member: object_id=57 view_id=view_00010 label=fireplace description=black metal fireplace insert
+- member: object_id=58 view_id=view_00010 label=rug description=beige low-pile rug edge crop
+- member: object_id=59 view_id=view_00010 label=window description=dark reflective glass window edge-cropped
+- member: object_id=60 view_id=view_00010 label=rug description=dark rectangular floor rug, edge-cropped
+- member: object_id=61 view_id=view_00010 label=side table description=dark brown glossy side table edge
+- member: object_id=62 view_id=view_00011 label=couch description=dark glossy leather couch, partial
+- member: object_id=63 view_id=view_00011 label=couch description=dark brown leather recliner front crop
+- member: object_id=64 view_id=view_00011 label=table lamp description=white pleated shade table lamp (partial)
+- member: object_id=65 view_id=view_00011 label=cabinet description=dark wood cabinet upper doors cropped
+- member: object_id=66 view_id=view_00011 label=chair description=ornate dark-red wooden chair edge-cropped
+- member: object_id=67 view_id=view_00011 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=68 view_id=view_00011 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=69 view_id=view_00011 label=oven description=stainless-steel oven front with towel
+- member: object_id=70 view_id=view_00011 label=chair description=dark carved wooden chair edge
+- member: object_id=71 view_id=view_00011 label=chair description=dark wooden chair edge crop
+- member: object_id=72 view_id=view_00011 label=cabinet description=dark wooden cabinet lower panel (partial)
+- member: object_id=73 view_id=view_00011 label=microwave description=stainless steel microwave front crop
+- member: object_id=74 view_id=view_00011 label=cabinet description=dark wooden cabinet lower section

@@ -1,0 +1,551 @@
+{
+  "group_id": "place_00024",
+  "group_type": "place",
+  "n_objects": 54,
+  "n_clusters": 7,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00024:cluster_000",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 16,
+      "member_object_ids": [
+        929,
+        930,
+        936,
+        938,
+        947,
+        948,
+        953,
+        1055,
+        1056,
+        1062,
+        1063,
+        1064,
+        1072,
+        1074,
+        1075,
+        1079
+      ],
+      "member_observation_ids": [
+        "obs_000929",
+        "obs_000930",
+        "obs_000936",
+        "obs_000938",
+        "obs_000947",
+        "obs_000948",
+        "obs_000953",
+        "obs_001055",
+        "obs_001056",
+        "obs_001062",
+        "obs_001063",
+        "obs_001064",
+        "obs_001072",
+        "obs_001074",
+        "obs_001075",
+        "obs_001079"
+      ],
+      "member_view_ids": [
+        "view_00132",
+        "view_00132",
+        "view_00133",
+        "view_00134",
+        "view_00135",
+        "view_00135",
+        "view_00135",
+        "view_00156",
+        "view_00156",
+        "view_00157",
+        "view_00157",
+        "view_00158",
+        "view_00159",
+        "view_00159",
+        "view_00159",
+        "view_00159"
+      ],
+      "member_labels": [
+        "nightstand",
+        "bed",
+        "cabinet",
+        "dresser",
+        "nightstand",
+        "dresser",
+        "dresser",
+        "nightstand",
+        "bed",
+        "shelf",
+        "cabinet",
+        "dresser",
+        "bed",
+        "nightstand",
+        "dresser",
+        "dresser"
+      ],
+      "member_descriptions": [
+        "dark red wooden nightstand top",
+        "dark wooden headboard edge crop",
+        "dark wooden cabinet corner crop",
+        "object: dresser | attrs: dark wood, multiple drawers, metal drawer pulls | anchor: x=0.0, z=-6.0 | nearby: tv@(0.0,-6.0), wall (grey)@(0.0,-6.0)",
+        "dark reddish-brown wooden nightstand corner",
+        "dark wooden dresser edge crop",
+        "dark wooden dresser, right edge crop",
+        "dark reddish wooden nightstand top",
+        "dark wooden headboard edge crop",
+        "dark wooden paneled shelf corner",
+        "dark wooden cabinet edge crop",
+        "object: dresser | attrs: dark wood, three+ drawers, metal hardware | anchor: x=0.0, z=-6.0 | nearby: tv@(0.0,-6.0), right-side center wall@(0.0,-4.5)",
+        "striped beige king bed foreground",
+        "dark wooden nightstand corner crop",
+        "dark wooden dresser, partial view",
+        "dark wooden multi-drawer dresser edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial top view of a dark reddish-brown wooden nightstand with a glossy finish and beveled front corner; visible surface wear and small chips at the front edge, a rectangular top with decorative coasters/objects on it, edge-cropped in the image and seen at approximately 0.6 m from the camera.",
+        "Partial/edge-cropped view of a dark stained wooden paneled headboard with a polished finish, shown beside a striped pillow and bedding at lower right; left side of the headboard is cut off by the image edge \u2014 appears approximately 0.8 m from the camera.",
+        "Partial close-up of a dark brown stained wooden cabinet door with recessed vertical panels and visible wood grain at the right edge of the image, topped by a white countertop corner; the object is edge-cropped and shows minor wear at the countertop edge, estimated ~0.6 m from the camera.",
+        "object: dresser | attributes: dark wood, multiple drawers, metal drawer pulls | camera_relation: distance=1.1, bearing=-35.0, laterality=left, verticality=low | global_anchor: x=0.0, z=-6.0 | surroundings: tv | relation=on top of | primary_dist=0.1 | global=(0.0,-6.0); wall (grey) | relation=against | primary_dist=0.2 | global=(0.0,-6.0); electrical outlet with plug | relation=lower right along same wall | primary_dist=0.9 | global=(0.0,-5.0); interior door | relation=to the right | primary_dist=1.8 | global=(-0.5,-5.0) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "Partial edge crop showing the top corner of a dark reddish-brown wooden nightstand with glossy finish and visible wood grain; beveled rectangular top and exposed side face visible in dim lighting, approximately 0.6 m from the camera.",
+        "Partial, edge-cropped dark stained wooden dresser with carved molding and multiple raised-panel drawers, small dark knobs and a polished finish; front is partially occluded by the bed in the foreground and the top surface is visible with small items \u2014 roughly 1.5 meters from the camera.",
+        "Dark brown stained wooden dresser with paneled drawer fronts and horizontal metal pull handles, two small top drawers above larger full-width drawers, ornate molded trim; object is partially cropped at the right edge of the image and appears roughly 1.0 m from the camera.",
+        "Partial close-up of a dark reddish-brown varnished wooden nightstand top with a rectangular beveled edge, visible wear and scuffs on the front corner, glossy finish with light reflections, and a couple of small decorative coasters on the surface; estimated distance to camera \u22480.6 m.",
+        "Partial close-up (\u22481.2 m) of a dark brown, glossy paneled wooden headboard with recessed rectangular panels and the adjacent bed corner with light striped pillow and sheets; the headboard is cut off at the crop edge.",
+        "Close-up of a dark stained wooden paneled shelf or cabinet side with a white countertop edge visible along the top; the wood shows a semi-gloss finish and inset vertical rectangular panels, the object is partially cropped at the right edge and appears about 0.5\u20130.8 m from the camera.",
+        "Partial, edge-cropped view of a dark-stained wooden cabinet corner showing vertical recessed panel doors and the light-colored countertop edge at the top; top edge shows minor wear and the image is a close-range capture (approximately 0.8 m from camera).",
+        "object: dresser | attributes: dark wood, three+ drawers, metal hardware | camera_relation: distance=1.1, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=0.0, z=-6.0 | surroundings: tv | relation=on top of | primary_dist=0.1 | global=(0.0,-6.0); right-side center wall | relation=in front of | primary_dist=1.2 | global=(0.0,-4.5); outlet | relation=lower-front | primary_dist=1.5 | global=(0.0,-4.5); door | relation=to the right | primary_dist=2.3 | global=(-0.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "King-size bed with a beige-and-gray striped duvet and two matching pillow shams against a dark stained wooden headboard; bed fills the foreground and the left headboard is partially edge-cropped \u2014 camera approximately 1.5 m from the near edge of the bed.",
+        "Partial, edge-cropped view of a dark brown wooden nightstand showing the near top corner and side with a glossy finish, visible horizontal wood grain, a beveled front edge and minor surface scuffs; only the corner/top is visible and the object appears roughly 0.8 m from the camera.",
+        "Dark stained wooden dresser with multiple horizontal drawers and decorative carved trim; metal drawer pulls visible across the front, top surface with small objects partially visible; lower front is partially occluded by a bed in the foreground and the right edge of the dresser is cropped by the image border, appears close to the camera (approximately 1.5 m).",
+        "Partial/edge crop of a dark brown wooden dresser (approx. 1.2 m from camera) showing multiple paneled drawer fronts with small metal knobs and bar handles, slightly glossy finish and visible molding around drawer edges; top and left side are cut off by the image border."
+      ],
+      "label_histogram": {
+        "bed": 3,
+        "cabinet": 2,
+        "dresser": 6,
+        "nightstand": 4,
+        "shelf": 1
+      },
+      "representative_object_id": 1074,
+      "representative_label": "nightstand",
+      "representative_description": "Partial, edge-cropped view of a dark brown wooden nightstand showing the near top corner and side with a glossy finish, visible horizontal wood grain, a beveled front edge and minor surface scuffs; only the corner/top is visible and the object appears roughly 0.8 m from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00132",
+        "view_00135",
+        "view_00156",
+        "view_00157",
+        "view_00159"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00024:cluster_001",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 4,
+      "member_object_ids": [
+        931,
+        946,
+        1057,
+        1073
+      ],
+      "member_observation_ids": [
+        "obs_000931",
+        "obs_000946",
+        "obs_001057",
+        "obs_001073"
+      ],
+      "member_view_ids": [
+        "view_00132",
+        "view_00135",
+        "view_00156",
+        "view_00159"
+      ],
+      "member_labels": [
+        "table lamp",
+        "table lamp",
+        "table lamp",
+        "table lamp"
+      ],
+      "member_descriptions": [
+        "beige fabric-shade table lamp",
+        "Beige fabric shade table lamp cropped",
+        "beige fabric-shade table lamp",
+        "cream fabric-shade table lamp, partial"
+      ],
+      "member_long_descriptions": [
+        "Beige fabric lampshade with dark vertical trim over an ornate dark turned base (metal or wood finish), lamp is lit and sits on a tabletop; right side of the shade is slightly edge-cropped in the image, approximately 0.8 m from the camera.",
+        "Partial view of a beige, slightly pleated fabric lampshade emitting warm yellow light atop a turned dark wooden base with a small brass finial and visible pull chain; the lamp is edge-cropped and slightly blurred, approximately 1.0 m from the camera.",
+        "Beige pleated fabric bell-shaped shade with dark vertical trim sits above a carved dark-brown turned base on a square stepped plinth; lamp is illuminated, mostly visible but the right side of the shade is slightly edge-cropped, approximately 0.7 m from the camera.",
+        "Partial/edge-cropped view of an illuminated cream/off-white fabric lampshade with visible vertical seams and a scalloped lower edge, mounted on a turned dark wood (or dark-finished) base; small decorative pull or finial hangs beneath the shade; lamp appears warm-lit and is photographed at close range (approximately 0.8 m from camera)."
+      ],
+      "label_histogram": {
+        "table lamp": 4
+      },
+      "representative_object_id": 1073,
+      "representative_label": "table lamp",
+      "representative_description": "Partial/edge-cropped view of an illuminated cream/off-white fabric lampshade with visible vertical seams and a scalloped lower edge, mounted on a turned dark wood (or dark-finished) base; small decorative pull or finial hangs beneath the shade; lamp appears warm-lit and is photographed at close range (approximately 0.8 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00024:cluster_002",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 14,
+      "member_object_ids": [
+        932,
+        933,
+        934,
+        935,
+        945,
+        949,
+        951,
+        1058,
+        1059,
+        1060,
+        1061,
+        1076,
+        1077,
+        1080
+      ],
+      "member_observation_ids": [
+        "obs_000932",
+        "obs_000933",
+        "obs_000934",
+        "obs_000935",
+        "obs_000945",
+        "obs_000949",
+        "obs_000951",
+        "obs_001058",
+        "obs_001059",
+        "obs_001060",
+        "obs_001061",
+        "obs_001076",
+        "obs_001077",
+        "obs_001080"
+      ],
+      "member_view_ids": [
+        "view_00132",
+        "view_00132",
+        "view_00133",
+        "view_00133",
+        "view_00135",
+        "view_00135",
+        "view_00135",
+        "view_00156",
+        "view_00156",
+        "view_00157",
+        "view_00157",
+        "view_00159",
+        "view_00159",
+        "view_00159"
+      ],
+      "member_labels": [
+        "pillow",
+        "pillow",
+        "rug",
+        "rug",
+        "bed",
+        "pillow",
+        "pillow",
+        "pillow",
+        "pillow",
+        "rug",
+        "rug",
+        "pillow",
+        "pillow",
+        "basket"
+      ],
+      "member_descriptions": [
+        "striped beige pillow edge crop",
+        "off-white pillow corner edge-crop",
+        "light blue patterned rug edge crop",
+        "tan wrinkled rug partial crop",
+        "striped beige duvet king bed",
+        "beige striped lumbar pillow, edge-crop",
+        "beige-gray striped rectangular pillow (partial)",
+        "beige striped rectangular pillow edge-crop",
+        "rumpled white pillow, edge-cropped",
+        "bluish-gray woven rug, edge-cropped",
+        "rumpled tan plush rug edge-crop",
+        "cream and gray striped lumbar pillow",
+        "beige striped fabric pillow edge-cropped",
+        "gray woven basket, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Close-up partial view of a rectangular pillow with beige-and-gray horizontal stripes showing the side edge and seam; woven fabric texture with slight compression and light wear, cropped at the image borders \u2014 estimated ~0.5 m from the camera.",
+        "Close-up (\u22480.5 m) view of the top corner of an off-white pillow with a fabric pillowcase, visible seam/piping and surface creases; soft stuffed rectangular form, partially edge-cropped by the image border.",
+        "Partial view of a low-pile rectangular light-blue and gray rug with a mottled, pixelated geometric pattern; the rug is edge-cropped in the frame, shows slight wear and darker spots, and appears to lie on a wooden floor about 0.8 m from the camera.",
+        "Partial edge-cropped tan/beige fabric rug with tight wrinkles and visible creases, appearing bunched or draped rather than lying flat; close to the camera (approx. 0.3 m).",
+        "Large king-size bed with beige-and-gray horizontal striped duvet and two matching pillows; dark stained wooden headboard is visible but partially cropped at the left edge; mattress and bedding fill the foreground and appear neatly made and close to the camera (\u22481.5 m).",
+        "Beige/cream rectangular lumbar pillow with horizontal gray and muted blue stripes and a soft, slightly wrinkled fabric texture; the cushion is partially edge-cropped in the image and appears close to the camera (approximately 0.6 m away).",
+        "Partial/edge-cropped view of a rectangular beige-gray pillow with muted horizontal stripes in a woven fabric; appears soft and slightly flattened, cut off at the crop edges, approximately 0.6 m from the camera.",
+        "Partial beige/cream rectangular pillow with horizontal tan and brown stripes, woven fabric texture and a visible seam along one edge; the object is cut off by the image border and appears close to the camera (\u22480.6 m).",
+        "Close-up of a rumpled white/cream cotton pillow with wrinkled pillowcase and soft, plush fill; the pillow is partially cut off at the image edge with a beige striped blanket or sheet visible alongside; image appears low-resolution/pixelated; estimated distance ~0.4 m from camera.",
+        "Rectangular bluish-gray woven rug with a mottled patchwork/checkered pattern and low pile; appears faded and slightly worn, and is partially cut off at the image edges (edge-cropped) \u2014 roughly 1.0 meter from the camera.",
+        "Partial, edge-cropped tan/beige plush rug with visible wrinkles and a slight sheen, showing a faint mottled pattern and soft fabric texture; appears rumpled and partially folded, estimated distance to camera ~0.8 m.",
+        "Rectangular cream-and-gray striped lumbar pillow with woven fabric texture and light creasing, horizontally positioned and partially edge-cropped in the frame; appears to be a medium-sized throw pillow approximately 0.6 m from the camera.",
+        "Partial, edge-cropped rectangular beige fabric pillow with brown horizontal stripes, visible piping/seam and a soft, slightly wrinkled textile texture; appears close to the camera (approximately 0.5 m away).",
+        "Partial, vertically oriented gray woven basket with a textured herringbone/diamond weave and a visible top loop or handle; appears fabric-like (soft woven material), leaning against a light surface with its bottom near a wooden floor \u2014 top and right edges are cropped in the image; estimated distance ~0.8 m from camera."
+      ],
+      "label_histogram": {
+        "basket": 1,
+        "bed": 1,
+        "pillow": 8,
+        "rug": 4
+      },
+      "representative_object_id": 951,
+      "representative_label": "pillow",
+      "representative_description": "Partial/edge-cropped view of a rectangular beige-gray pillow with muted horizontal stripes in a woven fabric; appears soft and slightly flattened, cut off at the crop edges, approximately 0.6 m from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00132",
+        "view_00133",
+        "view_00135",
+        "view_00156",
+        "view_00157",
+        "view_00159"
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00024:cluster_003",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 12,
+      "member_object_ids": [
+        937,
+        939,
+        940,
+        941,
+        942,
+        943,
+        1065,
+        1066,
+        1067,
+        1068,
+        1069,
+        1070
+      ],
+      "member_observation_ids": [
+        "obs_000937",
+        "obs_000939",
+        "obs_000940",
+        "obs_000941",
+        "obs_000942",
+        "obs_000943",
+        "obs_001065",
+        "obs_001066",
+        "obs_001067",
+        "obs_001068",
+        "obs_001069",
+        "obs_001070"
+      ],
+      "member_view_ids": [
+        "view_00134",
+        "view_00134",
+        "view_00134",
+        "view_00134",
+        "view_00134",
+        "view_00134",
+        "view_00158",
+        "view_00158",
+        "view_00158",
+        "view_00158",
+        "view_00158",
+        "view_00158"
+      ],
+      "member_labels": [
+        "tv",
+        "door",
+        "other",
+        "outlet",
+        "other",
+        "wall switch",
+        "tv",
+        "door",
+        "other",
+        "outlet",
+        "other",
+        "wall switch"
+      ],
+      "member_descriptions": [
+        "object: tv | attrs: black, flat-screen, reflective surface | anchor: x=0.0, z=-6.0 | nearby: dresser@(0.0,-6.0), wall (grey)@(0.0,-5.5)",
+        "object: door | attrs: white, paneled, partially open | anchor: x=-0.5, z=-5.0 | nearby: door handle@(-0.5,-5.0), light switch@(-1.0,-5.5)",
+        "object: other | attrs: metal, lever, dark finish | anchor: x=-0.5, z=-5.0 | nearby: door@(-0.5,-5.0), light switch@(-1.0,-5.5)",
+        "object: outlet | attrs: white, two-socket outlet, black power cable inserted | anchor: x=0.0, z=-5.0 | nearby: dresser@(0.0,-6.0), tv@(0.0,-6.0)",
+        "object: other | attrs: metal, curved hook | anchor: x=-1.0, z=-6.0 | nearby: light switch@(-1.0,-6.5), door@(-0.5,-5.5)",
+        "object: wall switch | attrs: white, two switches, plastic plate | anchor: x=-1.0, z=-6.5 | nearby: wall hook@(-1.0,-6.0), door@(-0.5,-5.5)",
+        "object: tv | attrs: flat-screen, black glossy screen, powered off / dark | anchor: x=0.0, z=-6.0 | nearby: dresser@(0.0,-6.0), wall (center)@(0.0,-4.5)",
+        "object: door | attrs: white painted, panel style, metal lever handle, slightly ajar | anchor: x=-0.5, z=-5.0 | nearby: right-wall hook@(-1.0,-6.0), light switch@(-1.0,-6.0)",
+        "object: other | attrs: black, flexible cord, lies along baseboard | anchor: x=0.0, z=-5.0 | nearby: outlet@(-0.5,-5.0), dresser@(0.0,-6.0)",
+        "object: outlet | attrs: white, plugged, duplex outlet | anchor: x=-0.5, z=-5.0 | nearby: wall (center)@(-0.5,-5.0), cable@(0.0,-5.0)",
+        "object: other | attrs: metal, small, single hook | anchor: x=-1.0, z=-6.0 | nearby: light switch@(-1.0,-6.0), door@(-0.5,-5.0)",
+        "object: wall switch | attrs: white plate, two switches | anchor: x=-1.0, z=-6.0 | nearby: right-wall hook@(-1.0,-6.0), door@(-0.5,-5.0)"
+      ],
+      "member_long_descriptions": [
+        "object: tv | attributes: black, flat-screen, reflective surface | camera_relation: distance=1.2, bearing=-30.0, laterality=left, verticality=middle | global_anchor: x=0.0, z=-6.0 | surroundings: dresser | relation=supporting surface | primary_dist=0.1 | global=(0.0,-6.0); wall (grey) | relation=immediately behind | primary_dist=0.4 | global=(0.0,-5.5); electrical outlet with plug | relation=down and right | primary_dist=1.0 | global=(0.0,-5.0); interior door | relation=to the right and further back | primary_dist=1.8 | global=(-0.5,-5.0); light switch | relation=to the right on nearby wall | primary_dist=2.0 | global=(-1.5,-5.5) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: door | attributes: white, paneled, partially open | camera_relation: distance=2.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-5.0 | surroundings: door handle | relation=attached to | primary_dist=0.1 | global=(-0.5,-5.0); light switch | relation=right and nearer | primary_dist=0.6 | global=(-1.0,-5.5); dresser | relation=left and forward | primary_dist=1.8 | global=(0.5,-5.5); electrical outlet with plug | relation=below and left | primary_dist=2.0 | global=(0.0,-5.0) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: other | attributes: metal, lever, dark finish | camera_relation: distance=2.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-5.0 | surroundings: door | relation=attached to | primary_dist=0.1 | global=(-0.5,-5.0); light switch | relation=right and nearer | primary_dist=0.6 | global=(-1.0,-5.5); dresser | relation=left and forward | primary_dist=1.8 | global=(0.5,-5.5) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: outlet | attributes: white, two-socket outlet, black power cable inserted | camera_relation: distance=2.0, bearing=-10.0, laterality=center, verticality=low | global_anchor: x=0.0, z=-5.0 | surroundings: dresser | relation=left and slightly forward | primary_dist=0.9 | global=(0.0,-6.0); tv | relation=up and left | primary_dist=1.0 | global=(0.0,-6.0); door | relation=to the right and above | primary_dist=2.0 | global=(-0.5,-5.0) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: other | attributes: metal, curved hook | camera_relation: distance=0.9, bearing=35.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-6.0 | surroundings: light switch | relation=below and left | primary_dist=0.3 | global=(-1.0,-6.5); door | relation=left and behind | primary_dist=0.6 | global=(-0.5,-5.5) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: wall switch | attributes: white, two switches, plastic plate | camera_relation: distance=0.8, bearing=30.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-6.5 | surroundings: wall hook | relation=slightly above | primary_dist=0.3 | global=(-1.0,-6.0); door | relation=behind and left | primary_dist=0.6 | global=(-0.5,-5.5); dresser | relation=left and further back | primary_dist=1.6 | global=(0.5,-5.5) | scene_context: floor_pattern=carpet; scene_attributes=grey painted walls, white baseboard molding, textured right-side wall, flat-screen TV on dresser reflecting a lamp and doorway, interior white paneled door partially open, power outlet with black cable near baseboard; wall_color=grey",
+        "object: tv | attributes: flat-screen, black glossy screen, powered off / dark | camera_relation: distance=1.2, bearing=-30.0, laterality=left, verticality=middle | global_anchor: x=0.0, z=-6.0 | surroundings: dresser | relation=supports (under) | primary_dist=0.1 | global=(0.0,-6.0); wall (center) | relation=in front of | primary_dist=1.4 | global=(0.0,-4.5); lamp (reflection) | relation=visible in screen reflection | primary_dist=1.5 | global=(na,na); outlet | relation=floor-level, lower-front | primary_dist=1.7 | global=(-0.5,-4.0); door | relation=to the right-front | primary_dist=2.2 | global=(-0.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "object: door | attributes: white painted, panel style, metal lever handle, slightly ajar | camera_relation: distance=2.2, bearing=5.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-5.0 | surroundings: right-wall hook | relation=slightly above-right | primary_dist=0.9 | global=(-1.0,-6.0); light switch | relation=to the right on same wall | primary_dist=1.0 | global=(-1.0,-6.0); outlet | relation=floor-front | primary_dist=2.0 | global=(-0.5,-5.0); dresser | relation=left-back | primary_dist=2.3 | global=(1.0,-5.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "object: other | attributes: black, flexible cord, lies along baseboard | camera_relation: distance=2.0, bearing=-20.0, laterality=center, verticality=low | global_anchor: x=0.0, z=-5.0 | surroundings: outlet | relation=originates from | primary_dist=0.1 | global=(-0.5,-5.0); dresser | relation=runs toward | primary_dist=0.8 | global=(0.0,-6.0); tv | relation=ends near | primary_dist=0.9 | global=(0.0,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "object: outlet | attributes: white, plugged, duplex outlet | camera_relation: distance=2.1, bearing=0.0, laterality=center, verticality=low | global_anchor: x=-0.5, z=-5.0 | surroundings: wall (center) | relation=mounted on | primary_dist=0.1 | global=(-0.5,-5.0); cable | relation=plugged into | primary_dist=0.1 | global=(0.0,-5.0); dresser | relation=left-front | primary_dist=1.0 | global=(0.0,-6.0); tv | relation=left-front | primary_dist=1.2 | global=(0.0,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "object: other | attributes: metal, small, single hook | camera_relation: distance=0.9, bearing=30.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-6.0 | surroundings: light switch | relation=below-left | primary_dist=0.3 | global=(-1.0,-6.0); door | relation=left-back | primary_dist=0.9 | global=(-0.5,-5.0); dresser | relation=left-front | primary_dist=1.7 | global=(0.0,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+        "object: wall switch | attributes: white plate, two switches | camera_relation: distance=1.0, bearing=25.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-6.0 | surroundings: right-wall hook | relation=above-right | primary_dist=0.3 | global=(-1.0,-6.0); door | relation=to the left-back | primary_dist=1.0 | global=(-0.5,-5.0); dresser | relation=left-front | primary_dist=1.8 | global=(0.0,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray"
+      ],
+      "label_histogram": {
+        "door": 2,
+        "other": 4,
+        "outlet": 2,
+        "tv": 2,
+        "wall switch": 2
+      },
+      "representative_object_id": 1070,
+      "representative_label": "wall switch",
+      "representative_description": "object: wall switch | attributes: white plate, two switches | camera_relation: distance=1.0, bearing=25.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-6.0 | surroundings: right-wall hook | relation=above-right | primary_dist=0.3 | global=(-1.0,-6.0); door | relation=to the left-back | primary_dist=1.0 | global=(-0.5,-5.0); dresser | relation=left-front | primary_dist=1.8 | global=(0.0,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white baseboard trim, textured right-side wall surface, small wall blemish/hole left of door, flat-screen TV reflects lamp from adjacent room; wall_color=gray",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00134",
+        "view_00158"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00024:cluster_004",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        944,
+        1071
+      ],
+      "member_observation_ids": [
+        "obs_000944",
+        "obs_001071"
+      ],
+      "member_view_ids": [
+        "view_00135",
+        "view_00159"
+      ],
+      "member_labels": [
+        "fan",
+        "fan"
+      ],
+      "member_descriptions": [
+        "dark wood-blade ceiling fan with light",
+        "dark wooden five-blade ceiling fan"
+      ],
+      "member_long_descriptions": [
+        "Downward-view ceiling fan with five dark wood-finish blades and a central frosted glass dome light in a metal housing, mounted to a pale ceiling; blades are slightly edge-cropped in the image \u2014 the fan appears to be about 3.0 meters from the camera.",
+        "Ceiling-mounted five-blade fan with dark wood blades and a central frosted glass light globe that is illuminated; metallic central hub and collar visible; several blades are partially edge-cropped in the image; appears approximately 2.5 m from the camera."
+      ],
+      "label_histogram": {
+        "fan": 2
+      },
+      "representative_object_id": 944,
+      "representative_label": "fan",
+      "representative_description": "Downward-view ceiling fan with five dark wood-finish blades and a central frosted glass dome light in a metal housing, mounted to a pale ceiling; blades are slightly edge-cropped in the image \u2014 the fan appears to be about 3.0 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00024:cluster_005",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 4,
+      "member_object_ids": [
+        950,
+        952,
+        954,
+        1078
+      ],
+      "member_observation_ids": [
+        "obs_000950",
+        "obs_000952",
+        "obs_000954",
+        "obs_001078"
+      ],
+      "member_view_ids": [
+        "view_00135",
+        "view_00135",
+        "view_00135",
+        "view_00159"
+      ],
+      "member_labels": [
+        "bin",
+        "basket",
+        "basket",
+        "basket"
+      ],
+      "member_descriptions": [
+        "dark blue fabric storage bin",
+        "blue fabric rectangular basket edge crop",
+        "tall gray woven basket (edge-crop)",
+        "blue quilted fabric storage basket"
+      ],
+      "member_long_descriptions": [
+        "Square, collapsible dark-blue fabric storage bin with beige trim and a front loop handle; woven-texture panels, open top, upright and appearing empty on the floor, visible at approximately 0.8 meters from the camera.",
+        "Blue fabric rectangular storage basket with a quilted/diamond texture and a beige fabric loop handle on the front; soft-sided box shape, slightly edge-cropped in the image, appearing about 0.7 m from the camera.",
+        "Tall cylindrical gray woven basket with a chevron/herringbone textile pattern and a dark interior opening; the object is partially edge-cropped in the frame, appears fabric or painted wicker in texture, standing on a wood floor, approximately 0.8 meters from the camera.",
+        "Upright blue fabric storage basket with a diamond/quilted texture and a beige fabric handle loop on the front; rectangular open-top, soft-sided bin that is edge-cropped on the left of the image and appears to sit on the floor, approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "basket": 3,
+        "bin": 1
+      },
+      "representative_object_id": 1078,
+      "representative_label": "basket",
+      "representative_description": "Upright blue fabric storage basket with a diamond/quilted texture and a beige fabric handle loop on the front; rectangular open-top, soft-sided bin that is edge-cropped on the left of the image and appears to sit on the floor, approximately 0.8 m from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00135"
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00024:cluster_006",
+      "group_id": "place_00024",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        955,
+        1081
+      ],
+      "member_observation_ids": [
+        "obs_000955",
+        "obs_001081"
+      ],
+      "member_view_ids": [
+        "view_00135",
+        "view_00159"
+      ],
+      "member_labels": [
+        "window",
+        "window"
+      ],
+      "member_descriptions": [
+        "white slatted blinds framed by curtains",
+        "white horizontal blind-covered window"
+      ],
+      "member_long_descriptions": [
+        "Full-height interior rectangular window with closed white horizontal slatted blinds (likely vinyl/plastic), framed by dark blue/black curtains left and right and partially occluded at the lower-left by a wooden nightstand; light softly filters through the slats; approximate distance from camera ~2.5 m.",
+        "Full-height interior window with closed white horizontal blinds (vinyl or painted slats) flanked by dark fabric curtains; wooden sill visible and lower-left corner is slightly occluded by a small wooden cabinet; scene appears photographed from roughly 2.5 meters away."
+      ],
+      "label_histogram": {
+        "window": 2
+      },
+      "representative_object_id": 955,
+      "representative_label": "window",
+      "representative_description": "Full-height interior rectangular window with closed white horizontal slatted blinds (likely vinyl/plastic), framed by dark blue/black curtains left and right and partially occluded at the lower-left by a wooden nightstand; light softly filters through the slats; approximate distance from camera ~2.5 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

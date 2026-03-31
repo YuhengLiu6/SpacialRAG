@@ -1,0 +1,77 @@
+{
+  "views": [
+    {
+      "view_id": "view_00065",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o090_000065.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_4views/place_00011/view_annotations/view_00065_annotated.jpg",
+      "source_file_name": "images/pose_00016_o090_000065.jpg",
+      "num_objects": 9,
+      "objects": [
+        {
+          "object_global_id": 587,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 588,
+          "label": "couch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 589,
+          "label": "clock",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 590,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 591,
+          "label": "table lamp",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 592,
+          "label": "couch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 593,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 594,
+          "label": "fireplace",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 595,
+          "label": "fireplace",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

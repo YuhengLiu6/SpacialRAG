@@ -9,12 +9,13 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import cv2
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import connected_components, laplacian
+from scipy.sparse.csgraph import connected_components
 
 from spatial_rag.config import (
     OBJECT_CACHE_DIR,
     OBJECT_MAX_PER_FRAME,
     OBJECT_PARSE_RETRIES,
+    OBJECT_SURROUNDING_MAX,
     OBJECT_TEXT_MODE,
     OBJECT_USE_CACHE,
     SCENE_PATH,
@@ -43,6 +44,15 @@ DEFAULT_GROUP_MODE = "place"
 DEFAULT_SAME_VIEW_POLICY = "soft_penalty"
 DEFAULT_SAME_VIEW_PENALTY = 0.25
 DEFAULT_CLUSTER_COUNT_MODE = "eigengap"
+DEFAULT_MULTI_VIEW_SIMILARITY_THRESHOLD = 0.60
+CLUSTERED_SIMILARITY_HEATMAP_TITLE = "Clustered Similarity Matrix (Multi-view Object Deduplication)"
+CLUSTERED_SIMILARITY_OFFDIAG_HEATMAP_TITLE = "Clustered Similarity Matrix (No Self-Similarity)"
+REFINED_GRAPH_HEATMAP_TITLE = "Refined Graph-Based Clustered Similarity Matrix"
+REFINED_GRAPH_OFFDIAG_HEATMAP_TITLE = "Refined Graph-Based Clustered Similarity Matrix (No Self-Similarity)"
+REFINED_GRAPH_DIAG1_HEATMAP_TITLE = "Refined Graph-Based Clustered Similarity Matrix (Diag=1)"
+DEFAULT_REFINED_GRAPH_KNN_K = 6
+DEFAULT_REFINED_GRAPH_SPECTRAL_DIM = 6
+DEFAULT_REFINED_GRAPH_DBSCAN_MIN_SAMPLES = 2
 DEFAULT_MANUAL_ANCHOR_RADIUS_M = 1.5
 DEFAULT_MAX_SNAP_DISTANCE_M = 0.75
 DEFAULT_MIN_POSE_SEPARATION_M = 0.1
@@ -113,14 +123,14 @@ def _to_serializable(value: Any) -> Any:
 
 def _normalize_text_mode(text_mode: str) -> str:
     mode = str(text_mode or DEFAULT_TEXT_MODE).strip().lower()
-    if mode not in {"short", "long"}:
+    if mode not in {"short", "long", "long_neighbors"}:
         raise ValueError(f"Unsupported text_mode: {text_mode}")
     return mode
 
 
 def _normalize_group_mode(group_mode: str) -> str:
     mode = str(group_mode or DEFAULT_GROUP_MODE).strip().lower()
-    if mode not in {"place", "manual_anchor_center"}:
+    if mode not in {"place", "selected_views", "manual_anchor_center"}:
         raise ValueError(f"Unsupported group_mode: {group_mode}")
     return mode
 
@@ -139,9 +149,64 @@ def _normalize_cluster_count_mode(mode: str) -> str:
     return normalized
 
 
+def _parse_entry_ids_arg(value: Optional[str]) -> Optional[List[int]]:
+    if value is None:
+        return None
+    tokens = [part.strip() for part in str(value).split(",")]
+    out: List[int] = []
+    for token in tokens:
+        if not token:
+            continue
+        out.append(int(token))
+    return out or None
+
+
 def _has_usable_text(text: str) -> bool:
     normalized = _safe_text(text).lower()
     return bool(normalized) and normalized not in {"unknown", "none", "null", "n/a", "na"}
+
+
+def _sanitize_neighbor_text_fragment(value: Any) -> str:
+    text = _safe_text(value)
+    if not text:
+        return ""
+    return text.replace("|", "/").replace(";", ",").replace("[", "(").replace("]", ")")
+
+
+def _serialize_surrounding_context_for_embedding(
+    surrounding_context: Any,
+    *,
+    limit: int = OBJECT_SURROUNDING_MAX,
+) -> str:
+    serialized: List[str] = []
+    for item in list(surrounding_context or [])[: int(limit)]:
+        if isinstance(item, Mapping):
+            label_value = item.get("label")
+            relation_value = item.get("relation_to_primary")
+            distance_value = item.get("distance_from_primary_m")
+        else:
+            label_value = getattr(item, "label", None)
+            relation_value = getattr(item, "relation_to_primary", None)
+            distance_value = getattr(item, "distance_from_primary_m", None)
+
+        label = _sanitize_neighbor_text_fragment(label_value)
+        if not _has_usable_text(label):
+            continue
+
+        detail_parts: List[str] = []
+        relation = _sanitize_neighbor_text_fragment(relation_value)
+        if _has_usable_text(relation):
+            detail_parts.append(relation)
+        distance = _safe_float(distance_value)
+        if distance is not None:
+            detail_parts.append(f"{round(float(distance), 1):.1f}m")
+
+        entry = label
+        if detail_parts:
+            entry = f"{entry} [{', '.join(detail_parts)}]"
+        serialized.append(entry)
+
+    return "; ".join(serialized) if serialized else "none"
 
 
 def _l2_normalize_rows(arr: np.ndarray) -> np.ndarray:
@@ -166,6 +231,16 @@ def _slugify_group_id(group_id: str) -> str:
     return "group"
 
 
+def _filter_observations_by_entry_ids(
+    observations: Sequence[Mapping[str, Any]],
+    entry_ids: Optional[Sequence[int]],
+) -> List[Mapping[str, Any]]:
+    if not entry_ids:
+        return list(observations)
+    allowed = {int(entry_id) for entry_id in entry_ids}
+    return [row for row in observations if _safe_int(row.get("entry_id"), -1) in allowed]
+
+
 def _observation_sort_key(row: Mapping[str, Any]) -> Tuple[int, str, int]:
     return (
         _safe_int(row.get("object_global_id"), 10**9),
@@ -180,7 +255,7 @@ def _view_sort_key(row: Mapping[str, Any]) -> Tuple[int, str]:
 
 def _resolve_object_text(row: Mapping[str, Any], text_mode: str = DEFAULT_TEXT_MODE) -> str:
     mode = _normalize_text_mode(text_mode)
-    if mode == "long":
+    if mode in {"long", "long_neighbors"}:
         candidates = (
             row.get("text_input_for_clip_long"),
             row.get("object_text_long"),
@@ -197,6 +272,9 @@ def _resolve_object_text(row: Mapping[str, Any], text_mode: str = DEFAULT_TEXT_M
     for value in candidates:
         text = _safe_text(value)
         if _has_usable_text(text):
+            if mode == "long_neighbors":
+                neighbor_text = _serialize_surrounding_context_for_embedding(row.get("surrounding_context"))
+                return f"{text} | neighbors: {neighbor_text}"
             return text
     return ""
 
@@ -205,7 +283,10 @@ def _load_precomputed_object_embeddings(
     db_dir: str,
     text_mode: str = DEFAULT_TEXT_MODE,
 ) -> Dict[int, np.ndarray]:
-    loaded = load_object_db(db_dir, text_mode=text_mode)
+    mode = _normalize_text_mode(text_mode)
+    if mode == "long_neighbors":
+        return {}
+    loaded = load_object_db(db_dir, text_mode=mode)
     if loaded is None:
         return {}
     meta_rows, emb, _entry_to_indices = loaded
@@ -336,6 +417,10 @@ def group_objects_by_scope(
     group_mode: str = DEFAULT_GROUP_MODE,
 ) -> Dict[str, List[Dict[str, Any]]]:
     mode = _normalize_group_mode(group_mode)
+    if mode == "selected_views":
+        grouped = {"selected_views": [dict(row) for row in observations]}
+        grouped["selected_views"].sort(key=_observation_sort_key)
+        return grouped
     key_field = "place_id" if mode == "place" else "anchor_id"
     grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for row in observations:
@@ -388,6 +473,18 @@ def _same_view_mask(rows: Sequence[Mapping[str, Any]]) -> np.ndarray:
     return mask
 
 
+def _same_view_mask_from_view_ids(view_ids: Sequence[Any]) -> np.ndarray:
+    size = len(view_ids)
+    mask = np.zeros((size, size), dtype=bool)
+    normalized = [_safe_text(view_id) for view_id in view_ids]
+    for i in range(size):
+        for j in range(i + 1, size):
+            if normalized[i] and normalized[i] == normalized[j]:
+                mask[i, j] = True
+                mask[j, i] = True
+    return mask
+
+
 def _apply_top_k_filter(affinity: np.ndarray, top_k: Optional[int]) -> np.ndarray:
     if top_k is None:
         return affinity
@@ -410,6 +507,32 @@ def _apply_top_k_filter(affinity: np.ndarray, top_k: Optional[int]) -> np.ndarra
     return kept.astype(np.float32)
 
 
+def build_multiview_affinity_matrix(
+    similarity_matrix: np.ndarray,
+    view_ids: Sequence[Any],
+    *,
+    same_view_penalty: float = DEFAULT_SAME_VIEW_PENALTY,
+    similarity_threshold: Optional[float] = DEFAULT_MULTI_VIEW_SIMILARITY_THRESHOLD,
+) -> np.ndarray:
+    if similarity_matrix.ndim != 2 or similarity_matrix.shape[0] != similarity_matrix.shape[1]:
+        raise ValueError(f"Expected square similarity matrix, got shape {similarity_matrix.shape}")
+    if similarity_matrix.shape[0] != len(view_ids):
+        raise ValueError(
+            f"view_ids length mismatch: len(view_ids)={len(view_ids)} similarity_shape={tuple(similarity_matrix.shape)}"
+        )
+    base_similarity = np.asarray(similarity_matrix, dtype=np.float32)
+    affinity = np.clip(base_similarity, 0.0, 1.0).astype(np.float32)
+    same_view = _same_view_mask_from_view_ids(view_ids)
+    affinity[same_view] = affinity[same_view] * float(same_view_penalty)
+    if similarity_threshold is not None:
+        threshold = float(similarity_threshold)
+        off_diag = ~np.eye(affinity.shape[0], dtype=bool)
+        affinity[np.logical_and(off_diag, base_similarity < threshold)] = 0.0
+    affinity = np.maximum(affinity, affinity.T)
+    np.fill_diagonal(affinity, 1.0)
+    return affinity.astype(np.float32)
+
+
 def apply_constraints(
     similarity_matrix: np.ndarray,
     rows: Sequence[Mapping[str, Any]],
@@ -426,7 +549,8 @@ def apply_constraints(
         raise ValueError(
             f"Row/matrix mismatch: rows={len(rows)} similarity_shape={tuple(similarity_matrix.shape)}"
         )
-    adjusted = np.asarray(similarity_matrix, dtype=np.float32).copy()
+    base_similarity = np.asarray(similarity_matrix, dtype=np.float32)
+    adjusted = base_similarity.copy()
     same_view = _same_view_mask(rows)
     if policy == "hard_block":
         adjusted[same_view] = 0.0
@@ -436,7 +560,7 @@ def apply_constraints(
     if min_similarity is not None:
         threshold = float(min_similarity)
         off_diag = ~np.eye(affinity.shape[0], dtype=bool)
-        affinity[np.logical_and(off_diag, affinity < threshold)] = 0.0
+        affinity[np.logical_and(off_diag, base_similarity < threshold)] = 0.0
     affinity = _apply_top_k_filter(affinity, top_k=top_k)
     affinity = np.maximum(affinity, affinity.T)
     np.fill_diagonal(affinity, 1.0)
@@ -460,6 +584,23 @@ def _connected_component_count(affinity: np.ndarray) -> int:
     return int(n_components)
 
 
+def build_normalized_laplacian(affinity_matrix: np.ndarray) -> np.ndarray:
+    if affinity_matrix.ndim != 2 or affinity_matrix.shape[0] != affinity_matrix.shape[1]:
+        raise ValueError(f"Expected square affinity matrix, got shape {affinity_matrix.shape}")
+    values = np.asarray(affinity_matrix, dtype=np.float64)
+    size = values.shape[0]
+    if size == 0:
+        return np.zeros((0, 0), dtype=np.float32)
+    degrees = np.sum(values, axis=1)
+    inv_sqrt = np.zeros_like(degrees)
+    valid = degrees > 1e-12
+    inv_sqrt[valid] = 1.0 / np.sqrt(degrees[valid])
+    normalized_affinity = (values * inv_sqrt[:, None]) * inv_sqrt[None, :]
+    lap = np.eye(size, dtype=np.float64) - normalized_affinity
+    lap = 0.5 * (lap + lap.T)
+    return lap.astype(np.float32)
+
+
 def estimate_cluster_count_eigengap(
     affinity_matrix: np.ndarray,
     *,
@@ -480,7 +621,7 @@ def estimate_cluster_count_eigengap(
     if component_lb >= upper:
         return int(component_lb)
 
-    lap = laplacian(np.asarray(affinity_matrix, dtype=np.float64), normed=True)
+    lap = build_normalized_laplacian(affinity_matrix)
     eigvals = np.linalg.eigvalsh(lap)
     best_k = int(component_lb)
     best_gap = -np.inf
@@ -518,7 +659,7 @@ def _choose_cluster_count(
 
 
 def _spectral_embedding(affinity_matrix: np.ndarray, n_clusters: int) -> np.ndarray:
-    lap = laplacian(np.asarray(affinity_matrix, dtype=np.float64), normed=True)
+    lap = build_normalized_laplacian(affinity_matrix)
     _eigvals, eigvecs = np.linalg.eigh(lap)
     embedding = np.asarray(eigvecs[:, :n_clusters], dtype=np.float32)
     row_norms = np.linalg.norm(embedding, axis=1, keepdims=True)
@@ -595,6 +736,311 @@ def _relabel_clusters(labels: np.ndarray, object_ids: Sequence[int]) -> np.ndarr
     return np.asarray([remap[int(label)] for label in labels], dtype=np.int32)
 
 
+def _cluster_boundary_after_indices(labels: Sequence[int], order: Sequence[int]) -> List[int]:
+    ordered_labels = [int(labels[int(index)]) for index in order]
+    boundaries: List[int] = []
+    for index in range(len(ordered_labels) - 1):
+        if ordered_labels[index] != ordered_labels[index + 1]:
+            boundaries.append(index)
+    return boundaries
+
+
+def reorder_similarity_matrix_by_cluster(
+    similarity_matrix: np.ndarray,
+    labels: Sequence[int],
+    *,
+    object_ids: Optional[Sequence[int]] = None,
+    noise_last: bool = False,
+) -> Dict[str, Any]:
+    if similarity_matrix.ndim != 2 or similarity_matrix.shape[0] != similarity_matrix.shape[1]:
+        raise ValueError(f"Expected square similarity matrix, got shape {similarity_matrix.shape}")
+    size = similarity_matrix.shape[0]
+    if len(labels) != size:
+        raise ValueError(f"labels length mismatch: len(labels)={len(labels)} size={size}")
+    ids = list(object_ids) if object_ids is not None else list(range(size))
+    if len(ids) != size:
+        raise ValueError(f"object_ids length mismatch: len(ids)={len(ids)} size={size}")
+    members_by_cluster: Dict[int, List[int]] = defaultdict(list)
+    for index, label in enumerate(labels):
+        members_by_cluster[int(label)].append(index)
+    ordered_clusters = sorted(
+        members_by_cluster.items(),
+        key=lambda item: (
+            1 if noise_last and int(item[0]) == -1 else 0,
+            -len(item[1]),
+            min(int(ids[idx]) for idx in item[1]),
+            int(item[0]),
+        ),
+    )
+    order: List[int] = []
+    for _cluster_id, member_indices in ordered_clusters:
+        order.extend(sorted(member_indices, key=lambda idx: (int(ids[idx]), idx)))
+    reordered = (
+        np.asarray(similarity_matrix, dtype=np.float32)[np.ix_(np.asarray(order, dtype=np.int64), np.asarray(order, dtype=np.int64))]
+        if size
+        else np.zeros((0, 0), dtype=np.float32)
+    )
+    return {
+        "order": order,
+        "reordered_matrix": reordered.astype(np.float32),
+        "boundary_after_indices": _cluster_boundary_after_indices(labels, order),
+        "ordered_cluster_labels": [int(labels[index]) for index in order],
+        "ordered_object_ids": [int(ids[index]) for index in order],
+    }
+
+
+def deduplicate_multi_view_embeddings(
+    embeddings: np.ndarray,
+    view_ids: Sequence[Any],
+    *,
+    object_ids: Optional[Sequence[int]] = None,
+    cluster_count_mode: str = DEFAULT_CLUSTER_COUNT_MODE,
+    n_clusters: Optional[int] = None,
+    same_view_penalty: float = DEFAULT_SAME_VIEW_PENALTY,
+    similarity_threshold: Optional[float] = DEFAULT_MULTI_VIEW_SIMILARITY_THRESHOLD,
+    random_state: int = 0,
+) -> Dict[str, Any]:
+    normalized_embeddings = _l2_normalize_rows(np.asarray(embeddings, dtype=np.float32))
+    similarity_matrix = compute_text_similarity(normalized_embeddings)
+    affinity_matrix = build_multiview_affinity_matrix(
+        similarity_matrix,
+        view_ids,
+        same_view_penalty=same_view_penalty,
+        similarity_threshold=similarity_threshold,
+    )
+    spectral_result = run_spectral_clustering(
+        affinity_matrix,
+        object_ids=object_ids,
+        cluster_count_mode=cluster_count_mode,
+        n_clusters=n_clusters,
+        random_state=random_state,
+    )
+    reordered = reorder_similarity_matrix_by_cluster(
+        similarity_matrix,
+        spectral_result["labels"].tolist(),
+        object_ids=object_ids,
+    )
+    return {
+        "normalized_embeddings": normalized_embeddings,
+        "similarity_matrix": similarity_matrix,
+        "affinity_matrix": affinity_matrix,
+        "cluster_labels": np.asarray(spectral_result["labels"], dtype=np.int32),
+        "reordered_similarity_matrix": reordered["reordered_matrix"],
+        "order": reordered["order"],
+        "boundary_after_indices": reordered["boundary_after_indices"],
+        "ordered_cluster_labels": reordered["ordered_cluster_labels"],
+        "ordered_object_ids": reordered["ordered_object_ids"],
+        "laplacian": spectral_result.get("laplacian"),
+        "eigenvalues": spectral_result.get("eigenvalues"),
+        "spectral_embedding": spectral_result.get("spectral_embedding"),
+        "n_clusters": int(spectral_result["n_clusters"]),
+        "cluster_count_mode": spectral_result["cluster_count_mode"],
+        "backend": spectral_result["backend"],
+        "fallback_reason": spectral_result["fallback_reason"],
+    }
+
+
+def build_knn_affinity_matrix(
+    similarity_matrix: np.ndarray,
+    *,
+    k: int = DEFAULT_REFINED_GRAPH_KNN_K,
+) -> np.ndarray:
+    if similarity_matrix.ndim != 2 or similarity_matrix.shape[0] != similarity_matrix.shape[1]:
+        raise ValueError(f"Expected square similarity matrix, got shape {similarity_matrix.shape}")
+    size = similarity_matrix.shape[0]
+    if size == 0:
+        return np.zeros((0, 0), dtype=np.float32)
+    if size == 1:
+        return np.eye(1, dtype=np.float32)
+    keep = max(1, min(int(k), size - 1))
+    base = np.asarray(similarity_matrix, dtype=np.float32)
+    knn = np.zeros_like(base, dtype=np.float32)
+    for row_index in range(size):
+        row = base[row_index].copy()
+        row[row_index] = -np.inf
+        order = np.argsort(-row)
+        for col_index in order[:keep]:
+            if not np.isfinite(row[col_index]):
+                continue
+            knn[row_index, col_index] = base[row_index, col_index]
+    knn = 0.5 * (knn + knn.T)
+    knn = np.clip(knn, 0.0, 1.0)
+    np.fill_diagonal(knn, 0.0)
+    return knn.astype(np.float32)
+
+
+def _pairwise_euclidean_distances(data: np.ndarray) -> np.ndarray:
+    values = np.asarray(data, dtype=np.float32)
+    if values.ndim != 2:
+        raise ValueError(f"Expected 2D data, got shape {values.shape}")
+    if values.shape[0] == 0:
+        return np.zeros((0, 0), dtype=np.float32)
+    diff = values[:, None, :] - values[None, :, :]
+    return np.sqrt(np.maximum(np.sum(diff * diff, axis=2), 0.0)).astype(np.float32)
+
+
+def _estimate_dbscan_eps(spectral_embedding: np.ndarray, min_samples: int) -> float:
+    values = np.asarray(spectral_embedding, dtype=np.float32)
+    size = values.shape[0]
+    if size <= 1:
+        return 0.0
+    min_pts = max(1, min(int(min_samples), size - 1))
+    distances = _pairwise_euclidean_distances(values)
+    np.fill_diagonal(distances, np.inf)
+    sorted_distances = np.sort(distances, axis=1)
+    kth = sorted_distances[:, min_pts - 1]
+    finite = kth[np.isfinite(kth)]
+    if finite.size == 0:
+        return 0.0
+    return float(np.clip(np.median(finite), 1e-6, np.max(finite)))
+
+
+def _run_dbscan(data: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
+    values = np.asarray(data, dtype=np.float32)
+    num_rows = values.shape[0]
+    if num_rows == 0:
+        return np.zeros((0,), dtype=np.int32)
+    if num_rows == 1:
+        return np.zeros((1,), dtype=np.int32)
+
+    radius = max(float(eps), 0.0)
+    min_pts = max(1, int(min_samples))
+    distances = _pairwise_euclidean_distances(values)
+    neighborhoods = [np.where(distances[row_index] <= radius)[0].tolist() for row_index in range(num_rows)]
+    is_core = [len(neighbors) >= min_pts for neighbors in neighborhoods]
+    labels = np.full((num_rows,), -1, dtype=np.int32)
+    visited = np.zeros((num_rows,), dtype=bool)
+    cluster_id = 0
+
+    for start_index in range(num_rows):
+        if visited[start_index]:
+            continue
+        visited[start_index] = True
+        if not is_core[start_index]:
+            continue
+        labels[start_index] = cluster_id
+        queue = list(neighborhoods[start_index])
+        head = 0
+        while head < len(queue):
+            neighbor_index = int(queue[head])
+            head += 1
+            if not visited[neighbor_index]:
+                visited[neighbor_index] = True
+                if is_core[neighbor_index]:
+                    for expanded in neighborhoods[neighbor_index]:
+                        if expanded not in queue:
+                            queue.append(int(expanded))
+            if labels[neighbor_index] == -1:
+                labels[neighbor_index] = cluster_id
+        cluster_id += 1
+    return labels.astype(np.int32)
+
+
+def run_refined_graph_visualization_pipeline(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    similarity_matrix: Optional[np.ndarray] = None,
+    object_ids: Optional[Sequence[int]] = None,
+    knn_k: int = DEFAULT_REFINED_GRAPH_KNN_K,
+    spectral_dim: Optional[int] = None,
+    dbscan_eps: Optional[float] = None,
+    dbscan_min_samples: int = DEFAULT_REFINED_GRAPH_DBSCAN_MIN_SAMPLES,
+) -> Dict[str, Any]:
+    prepared_rows = [dict(row) for row in rows]
+    if not prepared_rows:
+        return {
+            "similarity_matrix": np.zeros((0, 0), dtype=np.float32),
+            "visual_similarity_matrix": np.zeros((0, 0), dtype=np.float32),
+            "knn_affinity_matrix": np.zeros((0, 0), dtype=np.float32),
+            "laplacian": np.zeros((0, 0), dtype=np.float32),
+            "spectral_embedding": np.zeros((0, 0), dtype=np.float32),
+            "labels": np.zeros((0,), dtype=np.int32),
+            "order": [],
+            "boundary_after_indices": [],
+            "ordered_cluster_labels": [],
+            "ordered_object_ids": [],
+            "reordered_similarity_matrix": np.zeros((0, 0), dtype=np.float32),
+            "reordered_visual_similarity_matrix": np.zeros((0, 0), dtype=np.float32),
+            "knn_k": 0,
+            "spectral_dim": 0,
+            "dbscan_eps": 0.0,
+            "dbscan_min_samples": int(dbscan_min_samples),
+            "noise_count": 0,
+            "num_clusters_excluding_noise": 0,
+        }
+
+    embeddings = np.vstack([np.asarray(row["embedding"], dtype=np.float32).reshape(-1) for row in prepared_rows])
+    normalized_embeddings = _l2_normalize_rows(embeddings)
+    similarity = (
+        compute_text_similarity(normalized_embeddings)
+        if similarity_matrix is None
+        else np.asarray(similarity_matrix, dtype=np.float32)
+    )
+    visual_similarity = similarity.copy()
+    np.fill_diagonal(visual_similarity, 0.0)
+
+    size = similarity.shape[0]
+    ids = list(object_ids) if object_ids is not None else [
+        _safe_int(row.get("object_global_id"), index) for index, row in enumerate(prepared_rows)
+    ]
+    if len(ids) != size:
+        raise ValueError(f"object_ids length mismatch: len(ids)={len(ids)} size={size}")
+
+    resolved_k = max(1, min(int(knn_k), max(1, size - 1)))
+    knn_affinity = build_knn_affinity_matrix(similarity, k=resolved_k)
+    laplacian_matrix = build_normalized_laplacian(knn_affinity)
+
+    resolved_dim = max(1, min(int(spectral_dim or DEFAULT_REFINED_GRAPH_SPECTRAL_DIM), size))
+    eigvals, eigvecs = np.linalg.eigh(np.asarray(laplacian_matrix, dtype=np.float64))
+    raw_embedding = np.asarray(eigvecs[:, :resolved_dim], dtype=np.float32)
+    row_norms = np.linalg.norm(raw_embedding, axis=1, keepdims=True)
+    row_norms = np.maximum(row_norms, 1e-12)
+    spectral_embedding = raw_embedding / row_norms
+
+    resolved_min_samples = max(1, min(int(dbscan_min_samples), size))
+    resolved_eps = float(dbscan_eps) if dbscan_eps is not None else _estimate_dbscan_eps(
+        spectral_embedding,
+        min_samples=resolved_min_samples,
+    )
+    labels = _run_dbscan(
+        spectral_embedding,
+        eps=resolved_eps,
+        min_samples=resolved_min_samples,
+    )
+
+    reordered = reorder_similarity_matrix_by_cluster(
+        similarity,
+        labels.tolist(),
+        object_ids=ids,
+        noise_last=True,
+    )
+    reordered_vis = visual_similarity[
+        np.ix_(np.asarray(reordered["order"], dtype=np.int64), np.asarray(reordered["order"], dtype=np.int64))
+    ]
+    non_noise = sorted({int(label) for label in labels.tolist() if int(label) != -1})
+    return {
+        "similarity_matrix": similarity.astype(np.float32),
+        "visual_similarity_matrix": visual_similarity.astype(np.float32),
+        "knn_affinity_matrix": knn_affinity.astype(np.float32),
+        "laplacian": laplacian_matrix.astype(np.float32),
+        "eigenvalues": np.asarray(eigvals, dtype=np.float32),
+        "spectral_embedding": spectral_embedding.astype(np.float32),
+        "labels": labels.astype(np.int32),
+        "order": reordered["order"],
+        "boundary_after_indices": reordered["boundary_after_indices"],
+        "ordered_cluster_labels": reordered["ordered_cluster_labels"],
+        "ordered_object_ids": reordered["ordered_object_ids"],
+        "reordered_similarity_matrix": reordered["reordered_matrix"].astype(np.float32),
+        "reordered_visual_similarity_matrix": reordered_vis.astype(np.float32),
+        "knn_k": int(resolved_k),
+        "spectral_dim": int(resolved_dim),
+        "dbscan_eps": float(resolved_eps),
+        "dbscan_min_samples": int(resolved_min_samples),
+        "noise_count": int(np.count_nonzero(labels == -1)),
+        "num_clusters_excluding_noise": int(len(non_noise)),
+    }
+
+
 def run_spectral_clustering(
     affinity_matrix: np.ndarray,
     *,
@@ -659,30 +1105,24 @@ def run_spectral_clustering(
             "fallback_reason": "cluster_count_equals_group_size",
         }
 
-    backend = "scipy_fallback"
-    labels: Optional[np.ndarray] = None
-    try:
-        from sklearn.cluster import SpectralClustering
-
-        estimator = SpectralClustering(
-            n_clusters=int(chosen_k),
-            affinity="precomputed",
-            assign_labels="kmeans",
-            random_state=int(random_state),
-        )
-        labels = np.asarray(estimator.fit_predict(affinity_matrix), dtype=np.int32)
-        backend = "sklearn"
-    except Exception:
-        embedding = _spectral_embedding(affinity_matrix, n_clusters=int(chosen_k))
-        labels = _run_kmeans(embedding, k=int(chosen_k), random_state=int(random_state))
+    laplacian_matrix = build_normalized_laplacian(affinity_matrix)
+    eigvals, eigvecs = np.linalg.eigh(np.asarray(laplacian_matrix, dtype=np.float64))
+    raw_embedding = np.asarray(eigvecs[:, : int(chosen_k)], dtype=np.float32)
+    row_norms = np.linalg.norm(raw_embedding, axis=1, keepdims=True)
+    row_norms = np.maximum(row_norms, 1e-12)
+    embedding = raw_embedding / row_norms
+    labels = _run_kmeans(embedding, k=int(chosen_k), random_state=int(random_state))
 
     labels = _relabel_clusters(np.asarray(labels, dtype=np.int32), ids)
     return {
         "labels": labels,
         "n_clusters": int(len(set(labels.tolist()))),
         "cluster_count_mode": _normalize_cluster_count_mode(cluster_count_mode),
-        "backend": backend,
+        "backend": "explicit_numpy",
         "fallback_reason": None,
+        "laplacian": laplacian_matrix,
+        "eigenvalues": np.asarray(eigvals, dtype=np.float32),
+        "spectral_embedding": embedding.astype(np.float32),
     }
 
 
@@ -1076,18 +1516,103 @@ def save_view_annotation_results(
     }
 
 
+def _compute_heatmap_display_values(
+    matrix: np.ndarray,
+    *,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    display_transform: str = "linear",
+    display_log_gain: float = 24.0,
+    suppress_diagonal_display: bool = False,
+    diagonal_brightness_budget_ratio: Optional[float] = None,
+    diagonal_display_cap: float = 0.82,
+) -> np.ndarray:
+    values = np.asarray(matrix, dtype=np.float32)
+    if values.ndim != 2 or values.shape[0] != values.shape[1]:
+        raise ValueError(f"Expected square heatmap matrix, got shape {values.shape}")
+    if values.size == 0:
+        return values.astype(np.float32)
+
+    transform = str(display_transform or "linear").strip().lower()
+    if transform in {"linear", "log"}:
+        lower = float(np.min(values) if vmin is None else vmin)
+        upper = float(np.max(values) if vmax is None else vmax)
+        if upper - lower < 1e-12:
+            normalized = np.zeros_like(values, dtype=np.float32)
+        else:
+            normalized = np.clip((values - lower) / (upper - lower), 0.0, 1.0)
+        if transform == "linear":
+            display_values = normalized
+        else:
+            gain = max(float(display_log_gain), 1e-6)
+            denom = float(np.log1p(gain))
+            if denom <= 1e-12:
+                display_values = normalized
+            else:
+                # Apply a log stretch to the distance from the top end so high-similarity
+                # blocks separate more clearly without changing the underlying values.
+                tail_distance = np.clip(1.0 - normalized, 0.0, 1.0)
+                display_values = np.clip(1.0 - np.log1p(gain * tail_distance) / denom, 0.0, 1.0)
+    elif transform == "offdiag_extreme":
+        size = values.shape[0]
+        offdiag_mask = ~np.eye(size, dtype=bool)
+        offdiag = values[offdiag_mask]
+        if offdiag.size == 0:
+            display_values = np.zeros_like(values, dtype=np.float32)
+        else:
+            low = float(np.percentile(offdiag, 14.0))
+            high = float(np.percentile(offdiag, 88.0))
+            if high - low < 1e-12:
+                normalized = np.clip(values, 0.0, 1.0)
+            else:
+                normalized = np.clip((values - low) / (high - low), 0.0, 1.0)
+            boosted = np.power(normalized, 1.4)
+            levels = np.asarray([0.0, 0.06, 0.16, 0.32, 0.52, 0.74, 1.0], dtype=np.float32)
+            bins = np.asarray([0.03, 0.10, 0.24, 0.42, 0.64, 0.87], dtype=np.float32)
+            level_indices = np.digitize(boosted, bins, right=False)
+            display_values = levels[level_indices]
+            display_values[boosted < 0.10] = 0.0
+    else:
+        raise ValueError(f"Unsupported heatmap display_transform={display_transform!r}")
+
+    display_values = np.asarray(display_values, dtype=np.float32)
+    if display_values.size > 0:
+        if suppress_diagonal_display:
+            np.fill_diagonal(display_values, 0.0)
+        elif diagonal_brightness_budget_ratio is not None:
+            size = display_values.shape[0]
+            offdiag_mask = ~np.eye(size, dtype=bool)
+            offdiag = display_values[offdiag_mask]
+            if offdiag.size > 0:
+                budget_ratio = max(0.0, float(diagonal_brightness_budget_ratio))
+                budget_based_level = budget_ratio * float(np.mean(offdiag)) * float(max(1, size - 1))
+                quantile_based_level = float(np.percentile(offdiag, 90.0))
+                diag_level = min(
+                    max(float(diagonal_display_cap), 0.0),
+                    max(budget_based_level, quantile_based_level),
+                )
+                np.fill_diagonal(display_values, diag_level)
+            else:
+                np.fill_diagonal(display_values, min(max(float(diagonal_display_cap), 0.0), 1.0))
+    return np.clip(display_values, 0.0, 1.0).astype(np.float32)
+
+
 def plot_similarity_heatmap(
     matrix: np.ndarray,
     output_path: Path,
     *,
     title: str,
     order: Optional[Sequence[int]] = None,
+    boundary_after_indices: Optional[Sequence[int]] = None,
     axis_labels: Optional[Sequence[str]] = None,
     annotate_values: Optional[bool] = None,
     vmin: Optional[float] = None,
     vmax: Optional[float] = None,
     display_transform: str = "linear",
     display_log_gain: float = 24.0,
+    suppress_diagonal_display: bool = False,
+    diagonal_brightness_budget_ratio: Optional[float] = None,
+    diagonal_display_cap: float = 0.82,
 ) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     ordered = np.asarray(matrix, dtype=np.float32)
@@ -1142,28 +1667,16 @@ def plot_similarity_heatmap(
             raise RuntimeError(f"Failed to save heatmap: {output_path}")
         return
 
-    lower = float(np.min(ordered) if vmin is None else vmin)
-    upper = float(np.max(ordered) if vmax is None else vmax)
-    if upper - lower < 1e-12:
-        normalized = np.zeros_like(ordered, dtype=np.float32)
-    else:
-        normalized = np.clip((ordered - lower) / (upper - lower), 0.0, 1.0)
-
-    transform = str(display_transform or "linear").strip().lower()
-    if transform == "linear":
-        display_values = normalized
-    elif transform == "log":
-        gain = max(float(display_log_gain), 1e-6)
-        denom = float(np.log1p(gain))
-        if denom <= 1e-12:
-            display_values = normalized
-        else:
-            # Apply a log stretch to the distance from the top end so high-similarity
-            # blocks separate more clearly without changing the underlying values.
-            tail_distance = np.clip(1.0 - normalized, 0.0, 1.0)
-            display_values = np.clip(1.0 - np.log1p(gain * tail_distance) / denom, 0.0, 1.0)
-    else:
-        raise ValueError(f"Unsupported heatmap display_transform={display_transform!r}")
+    display_values = _compute_heatmap_display_values(
+        ordered,
+        vmin=vmin,
+        vmax=vmax,
+        display_transform=display_transform,
+        display_log_gain=display_log_gain,
+        suppress_diagonal_display=suppress_diagonal_display,
+        diagonal_brightness_budget_ratio=diagonal_brightness_budget_ratio,
+        diagonal_display_cap=diagonal_display_cap,
+    )
 
     heat_u8 = np.asarray(display_values * 255.0, dtype=np.uint8)
     heatmap = cv2.applyColorMap(heat_u8, cv2.COLORMAP_VIRIDIS)
@@ -1175,6 +1688,22 @@ def plot_similarity_heatmap(
     heatmap = cv2.resize(heatmap, (x1 - x0, y1 - y0), interpolation=cv2.INTER_NEAREST)
     canvas[y0:y1, x0:x1] = heatmap
     cv2.rectangle(canvas, (x0, y0), (x1, y1), (40, 40, 40), 1)
+
+    if count > 0 and boundary_after_indices:
+        cell_h = float(y1 - y0) / float(count)
+        cell_w = float(x1 - x0) / float(count)
+        boundary_color = (250, 250, 250)
+        shadow_color = (35, 35, 35)
+        valid_boundaries = sorted(
+            {int(idx) for idx in boundary_after_indices if 0 <= int(idx) < count - 1}
+        )
+        for boundary_index in valid_boundaries:
+            x_boundary = int(round(x0 + (boundary_index + 1) * cell_w))
+            y_boundary = int(round(y0 + (boundary_index + 1) * cell_h))
+            cv2.line(canvas, (x_boundary, y0), (x_boundary, y1), shadow_color, 3, cv2.LINE_AA)
+            cv2.line(canvas, (x_boundary, y0), (x_boundary, y1), boundary_color, 1, cv2.LINE_AA)
+            cv2.line(canvas, (x0, y_boundary), (x1, y_boundary), shadow_color, 3, cv2.LINE_AA)
+            cv2.line(canvas, (x0, y_boundary), (x1, y_boundary), boundary_color, 1, cv2.LINE_AA)
 
     if display_labels:
         cell_h = float(y1 - y0) / float(len(display_labels))
@@ -1388,6 +1917,114 @@ def _cluster_summary_markdown(cluster_summary: Mapping[str, Any]) -> str:
     return "\n".join(lines).strip() + "\n"
 
 
+def save_refined_graph_visualization_results(
+    group_dir: Path,
+    *,
+    rows: Sequence[Mapping[str, Any]],
+    similarity_matrix: np.ndarray,
+    object_ids: Sequence[int],
+    heatmap_labels: Sequence[str],
+) -> Dict[str, Path]:
+    refined = run_refined_graph_visualization_pipeline(
+        rows,
+        similarity_matrix=similarity_matrix,
+        object_ids=object_ids,
+    )
+    similarity_diag1_source = np.asarray(refined["similarity_matrix"], dtype=np.float32).copy()
+    _write_json(
+        group_dir / "refined_graph_cluster_labels.json",
+        {
+            "labels": refined["labels"].tolist(),
+            "ordered_cluster_labels": list(refined["ordered_cluster_labels"]),
+            "ordered_object_ids": list(refined["ordered_object_ids"]),
+            "boundary_after_indices": list(refined["boundary_after_indices"]),
+            "knn_k": int(refined["knn_k"]),
+            "spectral_dim": int(refined["spectral_dim"]),
+            "dbscan_eps": float(refined["dbscan_eps"]),
+            "dbscan_min_samples": int(refined["dbscan_min_samples"]),
+            "noise_count": int(refined["noise_count"]),
+            "num_clusters_excluding_noise": int(refined["num_clusters_excluding_noise"]),
+        },
+    )
+    np.save(
+        group_dir / "refined_graph_knn_affinity_matrix.npy",
+        np.asarray(refined["knn_affinity_matrix"], dtype=np.float32),
+    )
+    np.save(
+        group_dir / "refined_graph_laplacian.npy",
+        np.asarray(refined["laplacian"], dtype=np.float32),
+    )
+    np.save(
+        group_dir / "refined_graph_spectral_embedding.npy",
+        np.asarray(refined["spectral_embedding"], dtype=np.float32),
+    )
+    np.save(
+        group_dir / "refined_graph_reordered_similarity_matrix.npy",
+        np.asarray(refined["reordered_similarity_matrix"], dtype=np.float32),
+    )
+    np.save(
+        group_dir / "refined_graph_reordered_visual_similarity_matrix.npy",
+        np.asarray(refined["reordered_visual_similarity_matrix"], dtype=np.float32),
+    )
+    np.save(
+        group_dir / "refined_graph_similarity_diag1_source_matrix.npy",
+        similarity_diag1_source,
+    )
+    plot_similarity_heatmap(
+        similarity_diag1_source,
+        group_dir / "refined_graph_clustered_similarity_heatmap.png",
+        title=REFINED_GRAPH_HEATMAP_TITLE,
+        order=refined["order"],
+        boundary_after_indices=refined["boundary_after_indices"],
+        axis_labels=heatmap_labels,
+        annotate_values=False,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="linear",
+        suppress_diagonal_display=False,
+    )
+    plot_similarity_heatmap(
+        refined["visual_similarity_matrix"],
+        group_dir / "refined_graph_clustered_similarity_heatmap_offdiag_only.png",
+        title=REFINED_GRAPH_OFFDIAG_HEATMAP_TITLE,
+        order=refined["order"],
+        boundary_after_indices=refined["boundary_after_indices"],
+        axis_labels=heatmap_labels,
+        annotate_values=False,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="offdiag_extreme",
+        suppress_diagonal_display=True,
+    )
+    plot_similarity_heatmap(
+        similarity_diag1_source,
+        group_dir / "refined_graph_clustered_similarity_heatmap_diag1.png",
+        title=REFINED_GRAPH_DIAG1_HEATMAP_TITLE,
+        order=refined["order"],
+        boundary_after_indices=refined["boundary_after_indices"],
+        axis_labels=heatmap_labels,
+        annotate_values=False,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="offdiag_extreme",
+        suppress_diagonal_display=False,
+        diagonal_brightness_budget_ratio=0.18,
+        diagonal_display_cap=0.82,
+    )
+    return {
+        "refined_graph_cluster_labels": group_dir / "refined_graph_cluster_labels.json",
+        "refined_graph_knn_affinity_matrix": group_dir / "refined_graph_knn_affinity_matrix.npy",
+        "refined_graph_laplacian": group_dir / "refined_graph_laplacian.npy",
+        "refined_graph_spectral_embedding": group_dir / "refined_graph_spectral_embedding.npy",
+        "refined_graph_reordered_similarity_matrix": group_dir / "refined_graph_reordered_similarity_matrix.npy",
+        "refined_graph_reordered_visual_similarity_matrix": group_dir / "refined_graph_reordered_visual_similarity_matrix.npy",
+        "refined_graph_similarity_diag1_source_matrix": group_dir / "refined_graph_similarity_diag1_source_matrix.npy",
+        "refined_graph_clustered_similarity_heatmap": group_dir / "refined_graph_clustered_similarity_heatmap.png",
+        "refined_graph_clustered_similarity_heatmap_offdiag_only": group_dir / "refined_graph_clustered_similarity_heatmap_offdiag_only.png",
+        "refined_graph_clustered_similarity_heatmap_diag1": group_dir / "refined_graph_clustered_similarity_heatmap_diag1.png",
+    }
+
+
 def save_cluster_results(
     group_dir: Path,
     *,
@@ -1403,11 +2040,27 @@ def save_cluster_results(
 ) -> Dict[str, Path]:
     group_dir.mkdir(parents=True, exist_ok=True)
     object_ids = [_safe_int(row.get("object_global_id"), index) for index, row in enumerate(rows)]
-    order = _cluster_order(labels, object_ids) if len(rows) else []
+    reordered_similarity = reorder_similarity_matrix_by_cluster(
+        similarity_matrix,
+        labels,
+        object_ids=object_ids,
+    )
+    order = reordered_similarity["order"]
+    boundary_after_indices = reordered_similarity["boundary_after_indices"]
     heatmap_labels = [_format_heatmap_axis_label(row) for row in rows]
 
     np.save(group_dir / "similarity_matrix.npy", np.asarray(similarity_matrix, dtype=np.float32))
     np.save(group_dir / "affinity_matrix.npy", np.asarray(affinity_matrix, dtype=np.float32))
+    np.save(
+        group_dir / "clustered_similarity_matrix.npy",
+        np.asarray(reordered_similarity["reordered_matrix"], dtype=np.float32),
+    )
+    np.savetxt(
+        group_dir / "clustered_similarity_matrix.csv",
+        np.asarray(reordered_similarity["reordered_matrix"], dtype=np.float32),
+        delimiter=",",
+        fmt="%.6f",
+    )
 
     _write_json(
         group_dir / "objects.json",
@@ -1426,6 +2079,17 @@ def save_cluster_results(
         _cluster_summary_markdown(cluster_summary),
         encoding="utf-8",
     )
+    _write_json(
+        group_dir / "clustered_similarity_order.json",
+        {
+            "group_id": str(group_id),
+            "group_type": str(group_type),
+            "order": list(order),
+            "boundary_after_indices": list(boundary_after_indices),
+            "ordered_cluster_labels": list(reordered_similarity["ordered_cluster_labels"]),
+            "ordered_object_ids": list(reordered_similarity["ordered_object_ids"]),
+        },
+    )
     if group_metadata is not None:
         _write_json(group_dir / "group_metadata.json", dict(group_metadata))
 
@@ -1434,6 +2098,13 @@ def save_cluster_results(
         rows=rows,
         labels=labels,
         image_roots=list(image_roots or []),
+    )
+    refined_paths = save_refined_graph_visualization_results(
+        group_dir,
+        rows=rows,
+        similarity_matrix=similarity_matrix,
+        object_ids=object_ids,
+        heatmap_labels=heatmap_labels,
     )
 
     plot_similarity_heatmap(
@@ -1454,19 +2125,50 @@ def save_cluster_results(
         vmin=0.0,
         vmax=1.0,
     )
-    return {
+    plot_similarity_heatmap(
+        similarity_matrix,
+        group_dir / "clustered_similarity_heatmap.png",
+        title=CLUSTERED_SIMILARITY_HEATMAP_TITLE,
+        order=order,
+        boundary_after_indices=boundary_after_indices,
+        axis_labels=heatmap_labels,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="log",
+    )
+    plot_similarity_heatmap(
+        similarity_matrix,
+        group_dir / "clustered_similarity_heatmap_offdiag_only.png",
+        title=CLUSTERED_SIMILARITY_OFFDIAG_HEATMAP_TITLE,
+        order=order,
+        boundary_after_indices=boundary_after_indices,
+        axis_labels=heatmap_labels,
+        annotate_values=False,
+        vmin=0.0,
+        vmax=1.0,
+        display_transform="offdiag_extreme",
+        suppress_diagonal_display=True,
+    )
+    saved = {
         "objects_json": group_dir / "objects.json",
         "similarity_matrix": group_dir / "similarity_matrix.npy",
         "affinity_matrix": group_dir / "affinity_matrix.npy",
+        "clustered_similarity_matrix": group_dir / "clustered_similarity_matrix.npy",
+        "clustered_similarity_matrix_csv": group_dir / "clustered_similarity_matrix.csv",
+        "clustered_similarity_order": group_dir / "clustered_similarity_order.json",
         "cluster_labels": group_dir / "cluster_labels.json",
         "cluster_summary": group_dir / "cluster_summary.json",
         "cluster_summary_md": group_dir / "cluster_summary.md",
         "similarity_heatmap": group_dir / "similarity_heatmap.png",
         "affinity_heatmap": group_dir / "affinity_heatmap.png",
+        "clustered_similarity_heatmap": group_dir / "clustered_similarity_heatmap.png",
+        "clustered_similarity_heatmap_offdiag_only": group_dir / "clustered_similarity_heatmap_offdiag_only.png",
         "view_annotations_dir": annotation_paths["annotations_dir"],
         "view_annotations_manifest": annotation_paths["manifest_path"],
         "view_annotations_grid": annotation_paths["grid_path"],
     }
+    saved.update(refined_paths)
+    return saved
 
 
 def build_manual_anchor_camera_specs(
@@ -1790,7 +2492,6 @@ def collect_manual_anchor_groups(
     text_mode: str = DEFAULT_TEXT_MODE,
     embedder=None,
 ) -> List[Dict[str, Any]]:
-    del text_mode
     anchors = _load_jsonl(Path(anchors_jsonl))
     if not anchors:
         return []
@@ -2078,6 +2779,7 @@ def run_object_instance_clustering(
     output_dir: str,
     group_mode: str = DEFAULT_GROUP_MODE,
     db_dir: Optional[str] = None,
+    entry_ids: Optional[Sequence[int]] = None,
     anchors_jsonl: Optional[str] = None,
     scene_path: str = SCENE_PATH,
     text_mode: str = DEFAULT_TEXT_MODE,
@@ -2109,6 +2811,7 @@ def run_object_instance_clustering(
         if not db_dir:
             raise ValueError("db_dir is required when group_mode='place'")
         observations = load_object_observations(db_dir=db_dir, text_mode=text_mode, embedder=embedder)
+        observations = _filter_observations_by_entry_ids(observations, entry_ids)
         groups: List[Dict[str, Any]] = []
         for group_id, rows in group_objects_by_scope(observations, group_mode="place").items():
             groups.append(
@@ -2118,10 +2821,29 @@ def run_object_instance_clustering(
                     "objects": rows,
                     "group_metadata": {
                         "source_db_dir": db_dir,
+                        "selected_entry_ids": None if not entry_ids else [int(entry_id) for entry_id in entry_ids],
                     },
                 }
             )
+    elif mode == "selected_views":
+        if not db_dir:
+            raise ValueError("db_dir is required when group_mode='selected_views'")
+        observations = load_object_observations(db_dir=db_dir, text_mode=text_mode, embedder=embedder)
+        observations = _filter_observations_by_entry_ids(observations, entry_ids)
+        groups = [
+            {
+                "group_id": "selected_views",
+                "group_type": "selected_views",
+                "objects": list(observations),
+                "group_metadata": {
+                    "source_db_dir": db_dir,
+                    "selected_entry_ids": None if not entry_ids else [int(entry_id) for entry_id in entry_ids],
+                },
+            }
+        ]
     else:
+        if entry_ids:
+            raise ValueError("entry_ids is only supported when group_mode='place' or 'selected_views'")
         if not anchors_jsonl:
             raise ValueError("anchors_jsonl is required when group_mode='manual_anchor_center'")
         groups = collect_manual_anchor_groups(
@@ -2187,6 +2909,7 @@ def run_object_instance_clustering(
     report = {
         "group_mode": mode,
         "text_mode": text_mode,
+        "selected_entry_ids": None if not entry_ids else [int(entry_id) for entry_id in entry_ids],
         "cluster_count_mode": _normalize_cluster_count_mode(cluster_count_mode),
         "same_view_policy": _normalize_same_view_policy(same_view_policy),
         "same_view_penalty": float(same_view_penalty),
@@ -2217,17 +2940,23 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         "--group_mode",
         type=str,
         default=DEFAULT_GROUP_MODE,
-        choices=["place", "manual_anchor_center"],
+        choices=["place", "selected_views", "manual_anchor_center"],
         help="Grouping scope for object clustering",
     )
     parser.add_argument("--db_dir", type=str, default=None, help="Existing spatial DB directory for place grouping")
+    parser.add_argument(
+        "--entry_ids",
+        type=str,
+        default=None,
+        help="Optional comma-separated entry ids to restrict place-mode clustering to a subset of views",
+    )
     parser.add_argument("--anchors_jsonl", type=str, default=None, help="Manual anchor JSONL for manual anchor mode")
     parser.add_argument("--scene_path", type=str, default=SCENE_PATH, help="Habitat scene path for manual anchor mode")
     parser.add_argument(
         "--text_mode",
         type=str,
         default=DEFAULT_TEXT_MODE,
-        choices=["short", "long"],
+        choices=["short", "long", "long_neighbors"],
         help="Which object text embedding variant to use",
     )
     parser.add_argument(
@@ -2274,6 +3003,7 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         output_dir=args.output_dir,
         group_mode=args.group_mode,
         db_dir=args.db_dir,
+        entry_ids=_parse_entry_ids_arg(args.entry_ids),
         anchors_jsonl=args.anchors_jsonl,
         scene_path=args.scene_path,
         text_mode=args.text_mode,

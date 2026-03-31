@@ -1,0 +1,876 @@
+{
+  "instance_candidates": [
+    {
+      "node_type": "InstanceCandidate",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "group_id": "place_00002",
+      "group_type": "place",
+      "cluster_id": 0,
+      "num_members": 24,
+      "representative_object_id": 96,
+      "representative_label": "cabinet",
+      "representative_description": "Dark stained wooden cabinet door with a vertical recessed central panel and molded frame, smooth slightly glossy finish showing wood grain and minor surface wear; mostly visible but edges are slightly cropped in the image, estimated ~1.0 m from the camera.",
+      "same_view_collision": true,
+      "member_object_ids": [
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015",
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 13,
+        "chair": 4,
+        "coffee maker": 1,
+        "dining table": 1,
+        "lamp": 1,
+        "oven": 1,
+        "refrigerator": 1,
+        "rug": 1,
+        "towel": 1
+      }
+    },
+    {
+      "node_type": "InstanceCandidate",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "num_members": 20,
+      "representative_object_id": 130,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown stained wooden cabinet door with a single recessed rectangular panel and low-sheen finish, vertical orientation; appears slightly edge-cropped on the left and photographed at close range (~0.8 m from camera).",
+      "same_view_collision": true,
+      "member_object_ids": [
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 10,
+        "chair": 3,
+        "clock": 1,
+        "coffee maker": 2,
+        "dining table": 1,
+        "outlet": 1,
+        "picture frame": 1,
+        "refrigerator": 1
+      }
+    },
+    {
+      "node_type": "InstanceCandidate",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "num_members": 15,
+      "representative_object_id": 188,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown wooden cabinet door with a recessed rectangular central panel and visible vertical wood grain; smooth satin finish with subtle light reflection; mostly fully visible but slightly cropped at the sides and with a small metallic/cloth occlusion near the top-left; estimated distance about 0.8 m from the camera.",
+      "same_view_collision": true,
+      "member_object_ids": [
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198
+      ],
+      "member_view_ids": [
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "cabinet": 8,
+        "chair": 2,
+        "clock": 2,
+        "dining table": 2,
+        "refrigerator": 1
+      }
+    },
+    {
+      "node_type": "InstanceCandidate",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "num_members": 18,
+      "representative_object_id": 222,
+      "representative_label": "cabinet",
+      "representative_description": "Tall dark-brown stained wooden cabinet door with a single recessed rectangular panel and simple frame, smooth semi-gloss finish with subtle vertical wood grain and no visible hardware; lower edge of the cabinet is cropped in the image and the object appears approximately 1.2 m from the camera.",
+      "same_view_collision": true,
+      "member_object_ids": [
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238
+      ],
+      "member_view_ids": [
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 11,
+        "coffee maker": 2,
+        "refrigerator": 1,
+        "sink": 1,
+        "table": 1,
+        "toaster": 2
+      }
+    }
+  ],
+  "observation_membership_edges": [
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 84,
+      "observation_id": "obs_000084",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 85,
+      "observation_id": "obs_000085",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 86,
+      "observation_id": "obs_000086",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 87,
+      "observation_id": "obs_000087",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 88,
+      "observation_id": "obs_000088",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 89,
+      "observation_id": "obs_000089",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 90,
+      "observation_id": "obs_000090",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 91,
+      "observation_id": "obs_000091",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 92,
+      "observation_id": "obs_000092",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 93,
+      "observation_id": "obs_000093",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 94,
+      "observation_id": "obs_000094",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 95,
+      "observation_id": "obs_000095",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 96,
+      "observation_id": "obs_000096",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 97,
+      "observation_id": "obs_000097",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 98,
+      "observation_id": "obs_000098",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 99,
+      "observation_id": "obs_000099",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 100,
+      "observation_id": "obs_000100",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 101,
+      "observation_id": "obs_000101",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 102,
+      "observation_id": "obs_000102",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 103,
+      "observation_id": "obs_000103",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 104,
+      "observation_id": "obs_000104",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 105,
+      "observation_id": "obs_000105",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 106,
+      "observation_id": "obs_000106",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00002:cluster_000",
+      "object_global_id": 107,
+      "observation_id": "obs_000107",
+      "view_id": "view_00015",
+      "group_id": "place_00002"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 128,
+      "observation_id": "obs_000128",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 129,
+      "observation_id": "obs_000129",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 130,
+      "observation_id": "obs_000130",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 131,
+      "observation_id": "obs_000131",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 132,
+      "observation_id": "obs_000132",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 133,
+      "observation_id": "obs_000133",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 134,
+      "observation_id": "obs_000134",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 135,
+      "observation_id": "obs_000135",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 136,
+      "observation_id": "obs_000136",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 137,
+      "observation_id": "obs_000137",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 138,
+      "observation_id": "obs_000138",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 139,
+      "observation_id": "obs_000139",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 140,
+      "observation_id": "obs_000140",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 141,
+      "observation_id": "obs_000141",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 142,
+      "observation_id": "obs_000142",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 143,
+      "observation_id": "obs_000143",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 144,
+      "observation_id": "obs_000144",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 145,
+      "observation_id": "obs_000145",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 146,
+      "observation_id": "obs_000146",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00003:cluster_000",
+      "object_global_id": 147,
+      "observation_id": "obs_000147",
+      "view_id": "view_00019",
+      "group_id": "place_00003"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 184,
+      "observation_id": "obs_000184",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 185,
+      "observation_id": "obs_000185",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 186,
+      "observation_id": "obs_000186",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 187,
+      "observation_id": "obs_000187",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 188,
+      "observation_id": "obs_000188",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 189,
+      "observation_id": "obs_000189",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 190,
+      "observation_id": "obs_000190",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 191,
+      "observation_id": "obs_000191",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 192,
+      "observation_id": "obs_000192",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 193,
+      "observation_id": "obs_000193",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 194,
+      "observation_id": "obs_000194",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 195,
+      "observation_id": "obs_000195",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 196,
+      "observation_id": "obs_000196",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 197,
+      "observation_id": "obs_000197",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00004:cluster_000",
+      "object_global_id": 198,
+      "observation_id": "obs_000198",
+      "view_id": "view_00023",
+      "group_id": "place_00004"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 221,
+      "observation_id": "obs_000221",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 222,
+      "observation_id": "obs_000222",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 223,
+      "observation_id": "obs_000223",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 224,
+      "observation_id": "obs_000224",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 225,
+      "observation_id": "obs_000225",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 226,
+      "observation_id": "obs_000226",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 227,
+      "observation_id": "obs_000227",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 228,
+      "observation_id": "obs_000228",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 229,
+      "observation_id": "obs_000229",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 230,
+      "observation_id": "obs_000230",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 231,
+      "observation_id": "obs_000231",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 232,
+      "observation_id": "obs_000232",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 233,
+      "observation_id": "obs_000233",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 234,
+      "observation_id": "obs_000234",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 235,
+      "observation_id": "obs_000235",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 236,
+      "observation_id": "obs_000236",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 237,
+      "observation_id": "obs_000237",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "object_global_id": 238,
+      "observation_id": "obs_000238",
+      "view_id": "view_00027",
+      "group_id": "place_00005"
+    }
+  ]
+}

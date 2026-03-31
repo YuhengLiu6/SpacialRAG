@@ -1,0 +1,135 @@
+{
+  "views": [
+    {
+      "view_id": "view_00160",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00040_o000_000160.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00028/view_annotations/view_00160_annotated.jpg",
+      "source_file_name": "images/pose_00040_o000_000160.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 1082,
+          "label": "unknown",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00161",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00040_o090_000161.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00028/view_annotations/view_00161_annotated.jpg",
+      "source_file_name": "images/pose_00040_o090_000161.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 1083,
+          "label": "none",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00162",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00040_o180_000162.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00028/view_annotations/view_00162_annotated.jpg",
+      "source_file_name": "images/pose_00040_o180_000162.jpg",
+      "num_objects": 3,
+      "objects": [
+        {
+          "object_global_id": 1084,
+          "label": "bed",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 1085,
+          "label": "tv",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 1086,
+          "label": "basket",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00163",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00040_o270_000163.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00028/view_annotations/view_00163_annotated.jpg",
+      "source_file_name": "images/pose_00040_o270_000163.jpg",
+      "num_objects": 8,
+      "objects": [
+        {
+          "object_global_id": 1087,
+          "label": "fan",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 1088,
+          "label": "bed",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 1089,
+          "label": "nightstand",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 1090,
+          "label": "dresser",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 1091,
+          "label": "pillow",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 1092,
+          "label": "basket",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 1093,
+          "label": "lamp",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 1094,
+          "label": "bed",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

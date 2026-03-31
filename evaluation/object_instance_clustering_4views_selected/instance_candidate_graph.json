@@ -1,0 +1,549 @@
+{
+  "instance_candidates": [
+    {
+      "node_type": "InstanceCandidate",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "group_id": "selected_views",
+      "group_type": "selected_views",
+      "cluster_id": 0,
+      "num_members": 51,
+      "representative_object_id": 141,
+      "representative_label": "cabinet",
+      "representative_description": "Partial view of a dark mahogany/brown wooden cabinet front with a glossy, slightly reflective finish and simple rectangular face panels; lower portion is visible and cut off by the image edge, appearing about 1\u20132 meters from the camera.",
+      "same_view_collision": true,
+      "member_object_ids": [
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        518,
+        519,
+        520,
+        521,
+        522,
+        523,
+        524,
+        525,
+        526,
+        527,
+        528,
+        529,
+        530,
+        531,
+        532,
+        587,
+        588,
+        589,
+        590,
+        591,
+        592,
+        593,
+        594,
+        595
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00058",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065",
+        "view_00065"
+      ],
+      "label_histogram": {
+        "cabinet": 15,
+        "chair": 6,
+        "clock": 3,
+        "coffee maker": 4,
+        "couch": 3,
+        "dining table": 1,
+        "fireplace": 4,
+        "microwave": 1,
+        "outlet": 1,
+        "oven": 1,
+        "picture frame": 1,
+        "refrigerator": 1,
+        "shelf": 1,
+        "side table": 8,
+        "table lamp": 1
+      }
+    }
+  ],
+  "observation_membership_edges": [
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 128,
+      "observation_id": "obs_000128",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 129,
+      "observation_id": "obs_000129",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 130,
+      "observation_id": "obs_000130",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 131,
+      "observation_id": "obs_000131",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 132,
+      "observation_id": "obs_000132",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 133,
+      "observation_id": "obs_000133",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 134,
+      "observation_id": "obs_000134",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 135,
+      "observation_id": "obs_000135",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 136,
+      "observation_id": "obs_000136",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 137,
+      "observation_id": "obs_000137",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 138,
+      "observation_id": "obs_000138",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 139,
+      "observation_id": "obs_000139",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 140,
+      "observation_id": "obs_000140",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 141,
+      "observation_id": "obs_000141",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 142,
+      "observation_id": "obs_000142",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 143,
+      "observation_id": "obs_000143",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 144,
+      "observation_id": "obs_000144",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 145,
+      "observation_id": "obs_000145",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 146,
+      "observation_id": "obs_000146",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 147,
+      "observation_id": "obs_000147",
+      "view_id": "view_00019",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 199,
+      "observation_id": "obs_000199",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 200,
+      "observation_id": "obs_000200",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 201,
+      "observation_id": "obs_000201",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 202,
+      "observation_id": "obs_000202",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 203,
+      "observation_id": "obs_000203",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 204,
+      "observation_id": "obs_000204",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 205,
+      "observation_id": "obs_000205",
+      "view_id": "view_00024",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 518,
+      "observation_id": "obs_000518",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 519,
+      "observation_id": "obs_000519",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 520,
+      "observation_id": "obs_000520",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 521,
+      "observation_id": "obs_000521",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 522,
+      "observation_id": "obs_000522",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 523,
+      "observation_id": "obs_000523",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 524,
+      "observation_id": "obs_000524",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 525,
+      "observation_id": "obs_000525",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 526,
+      "observation_id": "obs_000526",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 527,
+      "observation_id": "obs_000527",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 528,
+      "observation_id": "obs_000528",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 529,
+      "observation_id": "obs_000529",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 530,
+      "observation_id": "obs_000530",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 531,
+      "observation_id": "obs_000531",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 532,
+      "observation_id": "obs_000532",
+      "view_id": "view_00058",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 587,
+      "observation_id": "obs_000587",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 588,
+      "observation_id": "obs_000588",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 589,
+      "observation_id": "obs_000589",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 590,
+      "observation_id": "obs_000590",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 591,
+      "observation_id": "obs_000591",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 592,
+      "observation_id": "obs_000592",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 593,
+      "observation_id": "obs_000593",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 594,
+      "observation_id": "obs_000594",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    },
+    {
+      "edge_type": "OBSERVATION_MEMBER_OF",
+      "candidate_instance_id": "selected_views:selected_views:cluster_000",
+      "object_global_id": 595,
+      "observation_id": "obs_000595",
+      "view_id": "view_00065",
+      "group_id": "selected_views"
+    }
+  ]
+}

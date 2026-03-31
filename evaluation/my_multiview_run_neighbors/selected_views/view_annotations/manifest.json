@@ -1,0 +1,287 @@
+{
+  "views": [
+    {
+      "view_id": "view_00019",
+      "source_file_name": "images/pose_00004_o270_000019.jpg",
+      "status": "missing_image",
+      "objects": [
+        {
+          "object_global_id": 128,
+          "label": "refrigerator",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 129,
+          "label": "picture frame",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 130,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 131,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 132,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 133,
+          "label": "dining table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 134,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 135,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 136,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 137,
+          "label": "clock",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 138,
+          "label": "coffee maker",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 139,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 140,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 141,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 142,
+          "label": "coffee maker",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 143,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 144,
+          "label": "outlet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 145,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 146,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 147,
+          "label": "cabinet",
+          "cluster_id": 0
+        }
+      ]
+    },
+    {
+      "view_id": "view_00024",
+      "source_file_name": "images/pose_00006_o000_000024.jpg",
+      "status": "missing_image",
+      "objects": [
+        {
+          "object_global_id": 199,
+          "label": "couch",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 200,
+          "label": "clock",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 201,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 202,
+          "label": "shelf",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 203,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 204,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 205,
+          "label": "side table",
+          "cluster_id": 0
+        }
+      ]
+    },
+    {
+      "view_id": "view_00058",
+      "source_file_name": "images/pose_00014_o180_000058.jpg",
+      "status": "missing_image",
+      "objects": [
+        {
+          "object_global_id": 518,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 519,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 520,
+          "label": "microwave",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 521,
+          "label": "oven",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 522,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 523,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 524,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 525,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 526,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 527,
+          "label": "cabinet",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 528,
+          "label": "fireplace",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 529,
+          "label": "coffee maker",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 530,
+          "label": "fireplace",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 531,
+          "label": "coffee maker",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 532,
+          "label": "side table",
+          "cluster_id": 0
+        }
+      ]
+    },
+    {
+      "view_id": "view_00065",
+      "source_file_name": "images/pose_00016_o090_000065.jpg",
+      "status": "missing_image",
+      "objects": [
+        {
+          "object_global_id": 587,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 588,
+          "label": "couch",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 589,
+          "label": "clock",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 590,
+          "label": "side table",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 591,
+          "label": "table lamp",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 592,
+          "label": "couch",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 593,
+          "label": "chair",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 594,
+          "label": "fireplace",
+          "cluster_id": 0
+        },
+        {
+          "object_global_id": 595,
+          "label": "fireplace",
+          "cluster_id": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+# Cluster Summary: place_00002
+
+- group_type: place
+- n_objects: 24
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00002:cluster_000
+- num_members: 24
+- representative_label: cabinet
+- representative_description: Dark stained wooden cabinet door with a vertical recessed central panel and molded frame, smooth slightly glossy finish showing wood grain and minor surface wear; mostly visible but edges are slightly cropped in the image, estimated ~1.0 m from the camera.
+- same_view_collision: True
+- offending_view_ids: view_00015
+- member: object_id=84 view_id=view_00015 label=towel description=cream printed cotton kitchen towel
+- member: object_id=85 view_id=view_00015 label=oven description=stainless steel oven front partial
+- member: object_id=86 view_id=view_00015 label=lamp description=white fabric lampshade edge-crop
+- member: object_id=87 view_id=view_00015 label=cabinet description=dark wooden cabinet door, edge-cropped
+- member: object_id=88 view_id=view_00015 label=cabinet description=dark wooden cabinet, right-edge cropped
+- member: object_id=89 view_id=view_00015 label=dining table description=light wood top dark base partial
+- member: object_id=90 view_id=view_00015 label=chair description=dark mahogany carved chair (cropped)
+- member: object_id=91 view_id=view_00015 label=chair description=dark wooden barstool with black seat
+- member: object_id=92 view_id=view_00015 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=93 view_id=view_00015 label=cabinet description=dark mahogany lower cabinet panel
+- member: object_id=94 view_id=view_00015 label=cabinet description=dark wooden cabinet door edge
+- member: object_id=95 view_id=view_00015 label=rug description=small teal rectangular rug, partial
+- member: object_id=96 view_id=view_00015 label=cabinet description=dark wooden recessed cabinet door
+- member: object_id=97 view_id=view_00015 label=cabinet description=dark brown paneled cabinet doors
+- member: object_id=98 view_id=view_00015 label=cabinet description=dark brown wood cabinet door
+- member: object_id=99 view_id=view_00015 label=cabinet description=light brown wood cabinet edge
+- member: object_id=100 view_id=view_00015 label=cabinet description=dark wooden cabinet lower edge crop
+- member: object_id=101 view_id=view_00015 label=cabinet description=dark brown wooden cabinet door edge
+- member: object_id=102 view_id=view_00015 label=chair description=reddish-brown carved wooden chair edge
+- member: object_id=103 view_id=view_00015 label=cabinet description=dark brown wooden cabinet door, edge-cropped
+- member: object_id=104 view_id=view_00015 label=cabinet description=dark wooden double-door cabinet
+- member: object_id=105 view_id=view_00015 label=coffee maker description=glossy dark blue compact coffee maker
+- member: object_id=106 view_id=view_00015 label=cabinet description=dark brown paneled cabinet door
+- member: object_id=107 view_id=view_00015 label=chair description=brown wooden chair, partial edge crop

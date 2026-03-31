@@ -1,0 +1,357 @@
+{
+  "group_id": "place_00028",
+  "group_type": "place",
+  "n_objects": 13,
+  "n_clusters": 10,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00028:cluster_000",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        1082,
+        1083
+      ],
+      "member_observation_ids": [
+        "obs_001082",
+        "obs_001083"
+      ],
+      "member_view_ids": [
+        "view_00160",
+        "view_00161"
+      ],
+      "member_labels": [
+        "unknown",
+        "none"
+      ],
+      "member_descriptions": [
+        "object: unknown | attrs: textured, matte finish, dark gray-brown, grainy / noisy | anchor: x=-0.5, z=-9.0 | nearby: none",
+        ""
+      ],
+      "member_long_descriptions": [
+        "object: unknown | attributes: textured, matte finish, dark gray-brown, grainy / noisy, uniform surface | camera_relation: distance=0.5, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-9.0 | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=close-up of a textured vertical surface (likely a wall), uniform dark gray-brown color with visible grain/noise, low lighting / underexposed, no distinct furniture or objects visible, image shows digital noise or high ISO grain; wall_color=dark gray-brown",
+        ""
+      ],
+      "label_histogram": {
+        "none": 1,
+        "unknown": 1
+      },
+      "representative_object_id": 1082,
+      "representative_label": "unknown",
+      "representative_description": "object: unknown | attributes: textured, matte finish, dark gray-brown, grainy / noisy, uniform surface | camera_relation: distance=0.5, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-9.0 | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=close-up of a textured vertical surface (likely a wall), uniform dark gray-brown color with visible grain/noise, low lighting / underexposed, no distinct furniture or objects visible, image shows digital noise or high ISO grain; wall_color=dark gray-brown",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00028:cluster_001",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        1084,
+        1088
+      ],
+      "member_observation_ids": [
+        "obs_001084",
+        "obs_001088"
+      ],
+      "member_view_ids": [
+        "view_00162",
+        "view_00163"
+      ],
+      "member_labels": [
+        "bed",
+        "bed"
+      ],
+      "member_descriptions": [
+        "beige striped bedspread edge crop",
+        "striped gray-white bed edge crop"
+      ],
+      "member_long_descriptions": [
+        "Close-up view of a beige-and-cream striped bedspread draped over a dark wooden footboard, showing woven fabric texture and wrinkles; partial/edge-cropped view of the bed, approximately 0.7 m from the camera.",
+        "Close-up of a partial bed showing a striped gray-beige fabric bedspread and a matching pillow at the left, with a dark wooden headboard partially visible; the mattress and bedding are cropped by the image edges and appear about 0.6 m from the camera."
+      ],
+      "label_histogram": {
+        "bed": 2
+      },
+      "representative_object_id": 1084,
+      "representative_label": "bed",
+      "representative_description": "Close-up view of a beige-and-cream striped bedspread draped over a dark wooden footboard, showing woven fabric texture and wrinkles; partial/edge-cropped view of the bed, approximately 0.7 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00028:cluster_002",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1085
+      ],
+      "member_observation_ids": [
+        "obs_001085"
+      ],
+      "member_view_ids": [
+        "view_00162"
+      ],
+      "member_labels": [
+        "tv"
+      ],
+      "member_descriptions": [
+        "large reflective black flat-screen TV"
+      ],
+      "member_long_descriptions": [
+        "Large reflective black flat-screen TV with a thin bezel; the dark glass surface fills most of the crop and clearly reflects the room (ceiling fan, two bedside lamps and a dresser), showing mild glare and faint smudges \u2014 estimated ~2.0 meters from the camera."
+      ],
+      "label_histogram": {
+        "tv": 1
+      },
+      "representative_object_id": 1085,
+      "representative_label": "tv",
+      "representative_description": "Large reflective black flat-screen TV with a thin bezel; the dark glass surface fills most of the crop and clearly reflects the room (ceiling fan, two bedside lamps and a dresser), showing mild glare and faint smudges \u2014 estimated ~2.0 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00028:cluster_003",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        1086,
+        1092
+      ],
+      "member_observation_ids": [
+        "obs_001086",
+        "obs_001092"
+      ],
+      "member_view_ids": [
+        "view_00162",
+        "view_00163"
+      ],
+      "member_labels": [
+        "basket",
+        "basket"
+      ],
+      "member_descriptions": [
+        "gray woven basket with liner",
+        "navy fabric storage basket, beige handle"
+      ],
+      "member_long_descriptions": [
+        "Gray-brown woven rectangular storage basket with a folded light-gray fabric liner visible at the top; textured wicker-like weave with slight wear, front face largely visible but top edge is partially cropped \u2014 appears to be about 0.8 meters from the camera.",
+        "Soft-sided navy-blue fabric storage basket with a subtle diamond/check texture and a sewn beige loop handle on the front; rectangular cuboid, open-top bin that is slightly occluded at the bottom by a white shelf edge and appears about 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "basket": 2
+      },
+      "representative_object_id": 1086,
+      "representative_label": "basket",
+      "representative_description": "Gray-brown woven rectangular storage basket with a folded light-gray fabric liner visible at the top; textured wicker-like weave with slight wear, front face largely visible but top edge is partially cropped \u2014 appears to be about 0.8 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00028:cluster_004",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1087
+      ],
+      "member_observation_ids": [
+        "obs_001087"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "fan"
+      ],
+      "member_descriptions": [
+        "brown wooden-blade ceiling fan edge crop"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a ceiling-mounted fan with brown wooden blades and a central frosted glass light globe; the unit is partially cut off by the crop (blade edges and housing visible) and shot from a low angled perspective, with slight motion blur on the blades, approximately 2.5 meters from the camera."
+      ],
+      "label_histogram": {
+        "fan": 1
+      },
+      "representative_object_id": 1087,
+      "representative_label": "fan",
+      "representative_description": "Close-up of a ceiling-mounted fan with brown wooden blades and a central frosted glass light globe; the unit is partially cut off by the crop (blade edges and housing visible) and shot from a low angled perspective, with slight motion blur on the blades, approximately 2.5 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00028:cluster_005",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1089
+      ],
+      "member_observation_ids": [
+        "obs_001089"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "nightstand"
+      ],
+      "member_descriptions": [
+        "dark wooden nightstand, front view"
+      ],
+      "member_long_descriptions": [
+        "Front-facing dark brown wooden nightstand with three visible drawers and round brass knobs, worn/scuffed finish and visible wood grain, low rectangular profile on short legs; horizontally edge-cropped in the image; approximate distance from camera ~1.5 m."
+      ],
+      "label_histogram": {
+        "nightstand": 1
+      },
+      "representative_object_id": 1089,
+      "representative_label": "nightstand",
+      "representative_description": "Front-facing dark brown wooden nightstand with three visible drawers and round brass knobs, worn/scuffed finish and visible wood grain, low rectangular profile on short legs; horizontally edge-cropped in the image; approximate distance from camera ~1.5 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00028:cluster_006",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1090
+      ],
+      "member_observation_ids": [
+        "obs_001090"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "dresser"
+      ],
+      "member_descriptions": [
+        "dark wooden low dresser, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Low, long dark-stained wooden dresser with a glossy finish, recessed-panel drawer fronts and multiple round knobs; floor-standing piece occupying the foreground, partially cropped at the left and right edges, estimated ~1.5 m from the camera."
+      ],
+      "label_histogram": {
+        "dresser": 1
+      },
+      "representative_object_id": 1090,
+      "representative_label": "dresser",
+      "representative_description": "Low, long dark-stained wooden dresser with a glossy finish, recessed-panel drawer fronts and multiple round knobs; floor-standing piece occupying the foreground, partially cropped at the left and right edges, estimated ~1.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "place:place_00028:cluster_007",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1091
+      ],
+      "member_observation_ids": [
+        "obs_001091"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "pillow"
+      ],
+      "member_descriptions": [
+        "off-white rectangular pillow edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Close-up (~0.5 m) of an off-white rectangular bed pillow with wrinkled, linen-like fabric, visible seam/piping and horizontal crease lines; pillow is partially cropped at the image edge and shows light shadowing along folds."
+      ],
+      "label_histogram": {
+        "pillow": 1
+      },
+      "representative_object_id": 1091,
+      "representative_label": "pillow",
+      "representative_description": "Close-up (~0.5 m) of an off-white rectangular bed pillow with wrinkled, linen-like fabric, visible seam/piping and horizontal crease lines; pillow is partially cropped at the image edge and shows light shadowing along folds.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 8,
+      "candidate_instance_id": "place:place_00028:cluster_008",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1093
+      ],
+      "member_observation_ids": [
+        "obs_001093"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "lamp"
+      ],
+      "member_descriptions": [
+        "cream glass bowl pendant lamp"
+      ],
+      "member_long_descriptions": [
+        "Cream/ivory glass bowl-shaped pendant lamp with a glossy surface and a brown/bronze metal cap; the fixture appears close-up, rotated and partially cropped at the image edge (approx. 0.6 m from camera)."
+      ],
+      "label_histogram": {
+        "lamp": 1
+      },
+      "representative_object_id": 1093,
+      "representative_label": "lamp",
+      "representative_description": "Cream/ivory glass bowl-shaped pendant lamp with a glossy surface and a brown/bronze metal cap; the fixture appears close-up, rotated and partially cropped at the image edge (approx. 0.6 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 9,
+      "candidate_instance_id": "place:place_00028:cluster_009",
+      "group_id": "place_00028",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        1094
+      ],
+      "member_observation_ids": [
+        "obs_001094"
+      ],
+      "member_view_ids": [
+        "view_00163"
+      ],
+      "member_labels": [
+        "bed"
+      ],
+      "member_descriptions": [
+        "light-striped bed surface, partial"
+      ],
+      "member_long_descriptions": [
+        "Partial foreground view of a bed with a light-gray and beige striped bedspread and a matching pillow near the head; the wooden headboard is partially visible at the left and the left side of the mattress is occluded by a lamp \u2014 bed surface appears made and flat; estimated distance about 0.8 m from camera."
+      ],
+      "label_histogram": {
+        "bed": 1
+      },
+      "representative_object_id": 1094,
+      "representative_label": "bed",
+      "representative_description": "Partial foreground view of a bed with a light-gray and beige striped bedspread and a matching pillow near the head; the wooden headboard is partially visible at the left and the left side of the mattress is occluded by a lamp \u2014 bed surface appears made and flat; estimated distance about 0.8 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

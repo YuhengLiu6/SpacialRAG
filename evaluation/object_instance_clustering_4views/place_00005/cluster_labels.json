@@ -1,0 +1,83 @@
+{
+  "group_id": "place_00005",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 199,
+      "observation_id": "obs_000199",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "couch",
+      "description": "edge-cropped dark brown leather couch arm"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 200,
+      "observation_id": "obs_000200",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "clock",
+      "description": "dark scalloped-framed wall clock"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 201,
+      "observation_id": "obs_000201",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "side table",
+      "description": "dark wooden side table edge-cropped"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 202,
+      "observation_id": "obs_000202",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "shelf",
+      "description": "white wire pantry shelf, partial"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 203,
+      "observation_id": "obs_000203",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "side table",
+      "description": "dark wooden side table close-up"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 204,
+      "observation_id": "obs_000204",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "side table",
+      "description": "dark wooden side table corner"
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 205,
+      "observation_id": "obs_000205",
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "label": "side table",
+      "description": "edge-cropped dark brown side table"
+    }
+  ]
+}

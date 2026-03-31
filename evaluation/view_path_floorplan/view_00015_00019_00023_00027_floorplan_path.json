@@ -1,0 +1,61 @@
+{
+  "db_dir": "spatial_db_nd",
+  "floorplan_path": "spatial_db_nd/overview/textured_floor_plan.jpg",
+  "projection_path": "spatial_db_nd/overview/floor_plan_projection.json",
+  "image_path": "evaluation/view_path_floorplan/view_00015_00019_00023_00027_floorplan_path.png",
+  "views": [
+    {
+      "entry_id": 15,
+      "view_id": "view_00015",
+      "world_x": -9.447001457214355,
+      "world_z": -2.4728803634643555,
+      "orientation_deg": 270.0,
+      "pixel_x": 99,
+      "pixel_y": 248
+    },
+    {
+      "entry_id": 19,
+      "view_id": "view_00019",
+      "world_x": -7.9470014572143555,
+      "world_z": -2.4728803634643555,
+      "orientation_deg": 270.0,
+      "pixel_x": 149,
+      "pixel_y": 248
+    },
+    {
+      "entry_id": 23,
+      "view_id": "view_00023",
+      "world_x": -6.4470014572143555,
+      "world_z": -2.4728803634643555,
+      "orientation_deg": 270.0,
+      "pixel_x": 199,
+      "pixel_y": 248
+    },
+    {
+      "entry_id": 27,
+      "view_id": "view_00027",
+      "world_x": -6.4470014572143555,
+      "world_z": -0.9728803634643555,
+      "orientation_deg": 270.0,
+      "pixel_x": 199,
+      "pixel_y": 298
+    }
+  ],
+  "segments": [
+    {
+      "from_view_id": "view_00015",
+      "to_view_id": "view_00019",
+      "distance_m": 1.5
+    },
+    {
+      "from_view_id": "view_00019",
+      "to_view_id": "view_00023",
+      "distance_m": 1.5
+    },
+    {
+      "from_view_id": "view_00023",
+      "to_view_id": "view_00027",
+      "distance_m": 1.5
+    }
+  ]
+}

@@ -1,0 +1,324 @@
+{
+  "views": [
+    {
+      "view_id": "view_00016",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00004_o000_000016.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00003/view_annotations/view_00016_annotated.jpg",
+      "source_file_name": "images/pose_00004_o000_000016.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 108,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00017",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00004_o090_000017.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00003/view_annotations/view_00017_annotated.jpg",
+      "source_file_name": "images/pose_00004_o090_000017.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 109,
+          "label": "couch",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 110,
+          "label": "couch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 111,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 112,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 113,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 114,
+          "label": "table lamp",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00018",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00004_o180_000018.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00003/view_annotations/view_00018_annotated.jpg",
+      "source_file_name": "images/pose_00004_o180_000018.jpg",
+      "num_objects": 13,
+      "objects": [
+        {
+          "object_global_id": 115,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 116,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 117,
+          "label": "oven",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 118,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 119,
+          "label": "microwave",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 120,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 121,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 122,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 123,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 124,
+          "label": "fireplace",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 125,
+          "label": "fireplace",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 126,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 127,
+          "label": "window",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00019",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00004_o270_000019.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00003/view_annotations/view_00019_annotated.jpg",
+      "source_file_name": "images/pose_00004_o270_000019.jpg",
+      "num_objects": 20,
+      "objects": [
+        {
+          "object_global_id": 128,
+          "label": "refrigerator",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 129,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 130,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 131,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 132,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 133,
+          "label": "dining table",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 134,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 135,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 136,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 137,
+          "label": "clock",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 138,
+          "label": "coffee maker",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 139,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 140,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 141,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 142,
+          "label": "coffee maker",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 143,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 144,
+          "label": "outlet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 145,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 146,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 147,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

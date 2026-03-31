@@ -1,0 +1,226 @@
+{
+  "group_id": "place_00003",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 128,
+      "observation_id": "obs_000128",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "refrigerator",
+      "description": "stainless-steel double-door fridge center"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 129,
+      "observation_id": "obs_000129",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "picture frame",
+      "description": "brown wooden beach picture frame"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 130,
+      "observation_id": "obs_000130",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet door"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 131,
+      "observation_id": "obs_000131",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "chair",
+      "description": "dark red wooden barstool chair with leather seat"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 132,
+      "observation_id": "obs_000132",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "chair",
+      "description": "dark red carved wooden chair (cropped)"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 133,
+      "observation_id": "obs_000133",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "dining table",
+      "description": "light wood tabletop with dark base"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 134,
+      "observation_id": "obs_000134",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark brown raised-panel cabinet, edge"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 135,
+      "observation_id": "obs_000135",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark wood tall cabinet, edge-cropped"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 136,
+      "observation_id": "obs_000136",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark wooden base cabinet edge"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 137,
+      "observation_id": "obs_000137",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "clock",
+      "description": "white-faced wall clock with scalloped rim"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 138,
+      "observation_id": "obs_000138",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "coffee maker",
+      "description": "glossy black coffee maker edge-cropped"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 139,
+      "observation_id": "obs_000139",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "chair",
+      "description": "dark brown wooden chair, edge-cropped"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 140,
+      "observation_id": "obs_000140",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "brown wooden cabinet edge crop"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 141,
+      "observation_id": "obs_000141",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark mahogany cabinet front edge-cropped"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 142,
+      "observation_id": "obs_000142",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "coffee maker",
+      "description": "stainless-steel drip coffee maker, partial crop"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 143,
+      "observation_id": "obs_000143",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet door"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 144,
+      "observation_id": "obs_000144",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "outlet",
+      "description": "white plastic outlet faceplate edge-cropped"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 145,
+      "observation_id": "obs_000145",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark wooden cabinet door panel"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 146,
+      "observation_id": "obs_000146",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark wooden cabinet edge crop"
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 147,
+      "observation_id": "obs_000147",
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet door edge-cropped"
+    }
+  ]
+}

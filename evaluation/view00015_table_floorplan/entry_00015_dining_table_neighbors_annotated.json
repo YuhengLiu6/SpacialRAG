@@ -1,0 +1,66 @@
+{
+  "entry_id": 15,
+  "selected_object_global_id": 89,
+  "selected_object_label": "dining table",
+  "camera_pixel": [
+    100,
+    249
+  ],
+  "table_pixel": [
+    196,
+    278
+  ],
+  "neighbor_annotations": [
+    {
+      "target_object_global_id": 95,
+      "label": "rug",
+      "relation_to_primary": "slightly in front, below",
+      "distance_from_primary_m": 0.20606856383045405,
+      "pixel": [
+        190,
+        280
+      ]
+    },
+    {
+      "target_object_global_id": 91,
+      "label": "chair",
+      "relation_to_primary": "slightly left, slightly behind",
+      "distance_from_primary_m": 0.6009640888450233,
+      "pixel": [
+        203,
+        260
+      ]
+    },
+    {
+      "target_object_global_id": 102,
+      "label": "chair",
+      "relation_to_primary": "slightly left, slightly behind",
+      "distance_from_primary_m": 0.8703852833157246,
+      "pixel": [
+        213,
+        257
+      ]
+    },
+    {
+      "target_object_global_id": 93,
+      "label": "cabinet",
+      "relation_to_primary": "slightly right, slightly behind",
+      "distance_from_primary_m": 0.9763834306281559,
+      "pixel": [
+        207,
+        322
+      ]
+    },
+    {
+      "target_object_global_id": 84,
+      "label": "towel",
+      "relation_to_primary": "right, slightly in front",
+      "distance_from_primary_m": 1.0653638417424984,
+      "pixel": [
+        186,
+        317
+      ]
+    }
+  ],
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/entry_00015_dining_table_neighbors_annotated.png"
+}

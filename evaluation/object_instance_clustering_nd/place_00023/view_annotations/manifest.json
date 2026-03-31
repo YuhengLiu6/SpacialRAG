@@ -1,0 +1,191 @@
+{
+  "views": [
+    {
+      "view_id": "view_00120",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00030_o000_000120.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00023/view_annotations/view_00120_annotated.jpg",
+      "source_file_name": "images/pose_00030_o000_000120.jpg",
+      "num_objects": 8,
+      "objects": [
+        {
+          "object_global_id": 867,
+          "label": "bed",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 868,
+          "label": "nightstand",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 869,
+          "label": "table lamp",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 870,
+          "label": "nightstand",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 871,
+          "label": "pillow",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 872,
+          "label": "table lamp",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 873,
+          "label": "pillow",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 874,
+          "label": "dresser",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00121",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00030_o090_000121.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00023/view_annotations/view_00121_annotated.jpg",
+      "source_file_name": "images/pose_00030_o090_000121.jpg",
+      "num_objects": 2,
+      "objects": [
+        {
+          "object_global_id": 875,
+          "label": "bed",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 876,
+          "label": "tv",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00122",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00030_o180_000122.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00023/view_annotations/view_00122_annotated.jpg",
+      "source_file_name": "images/pose_00030_o180_000122.jpg",
+      "num_objects": 5,
+      "objects": [
+        {
+          "object_global_id": 877,
+          "label": "dresser",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 878,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 879,
+          "label": "pillow",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 880,
+          "label": "monitor",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 881,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00123",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00030_o270_000123.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00023/view_annotations/view_00123_annotated.jpg",
+      "source_file_name": "images/pose_00030_o270_000123.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 882,
+          "label": "book",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 883,
+          "label": "desk",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 884,
+          "label": "curtain",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 885,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 886,
+          "label": "blinds",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 887,
+          "label": "curtain",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

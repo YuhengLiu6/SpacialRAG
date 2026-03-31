@@ -1,0 +1,292 @@
+{
+  "group_id": "place_00009",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 514,
+      "observation_id": "obs_000514",
+      "view_id": "view_00056",
+      "entry_id": 56,
+      "label": "picture frame",
+      "description": "silver metal picture frame edge"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 515,
+      "observation_id": "obs_000515",
+      "view_id": "view_00057",
+      "entry_id": 57,
+      "label": "couch",
+      "description": "black leather three-seat couch edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 516,
+      "observation_id": "obs_000516",
+      "view_id": "view_00057",
+      "entry_id": 57,
+      "label": "side table",
+      "description": "dark glossy rounded side-table edge"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 517,
+      "observation_id": "obs_000517",
+      "view_id": "view_00057",
+      "entry_id": 57,
+      "label": "side table",
+      "description": "dark glossy-top side table edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 518,
+      "observation_id": "obs_000518",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "chair",
+      "description": "brown leather recliner, right-side"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 519,
+      "observation_id": "obs_000519",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "chair",
+      "description": "red wooden carved chair edge"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 520,
+      "observation_id": "obs_000520",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "microwave",
+      "description": "stainless-steel microwave with glass"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 521,
+      "observation_id": "obs_000521",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "oven",
+      "description": "brown front oven with towel"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 522,
+      "observation_id": "obs_000522",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "side table",
+      "description": "dark wooden side table, edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 7,
+      "object_global_id": 523,
+      "observation_id": "obs_000523",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark recessed-panel cabinet door, partial"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 8,
+      "object_global_id": 524,
+      "observation_id": "obs_000524",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wood paneled cabinet edge-crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 9,
+      "object_global_id": 525,
+      "observation_id": "obs_000525",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark recessed wooden cabinet door edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 526,
+      "observation_id": "obs_000526",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wooden cabinet panels, edge crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 11,
+      "object_global_id": 527,
+      "observation_id": "obs_000527",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wooden cabinet edge-crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 12,
+      "object_global_id": 528,
+      "observation_id": "obs_000528",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "fireplace",
+      "description": "white painted mantel with black firebox"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 13,
+      "object_global_id": 529,
+      "observation_id": "obs_000529",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "coffee maker",
+      "description": "black drip coffee maker, partial"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 14,
+      "object_global_id": 530,
+      "observation_id": "obs_000530",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "fireplace",
+      "description": "black metal fireplace opening"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 531,
+      "observation_id": "obs_000531",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "coffee maker",
+      "description": "black stainless coffee maker, edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 15,
+      "object_global_id": 532,
+      "observation_id": "obs_000532",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "side table",
+      "description": "dark charcoal cylindrical side-table column"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 16,
+      "object_global_id": 533,
+      "observation_id": "obs_000533",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "mirror",
+      "description": "oval frameless wall mirror crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 17,
+      "object_global_id": 534,
+      "observation_id": "obs_000534",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "picture frame",
+      "description": "silver metal picture-frame edge crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 18,
+      "object_global_id": 535,
+      "observation_id": "obs_000535",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "sink",
+      "description": "white porcelain sink, front chip"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 19,
+      "object_global_id": 536,
+      "observation_id": "obs_000536",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "picture frame",
+      "description": "narrow vertical gilded picture frame"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 537,
+      "observation_id": "obs_000537",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "faucet",
+      "description": "chrome faucet spout, edge crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 20,
+      "object_global_id": 538,
+      "observation_id": "obs_000538",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "faucet",
+      "description": "chrome curved spout, edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 21,
+      "object_global_id": 539,
+      "observation_id": "obs_000539",
+      "view_id": "view_00059",
+      "entry_id": 59,
+      "label": "towel",
+      "description": "off-white printed hand towel edge-crop"
+    }
+  ]
+}

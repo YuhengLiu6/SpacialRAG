@@ -1,0 +1,78 @@
+# Cluster Summary: selected_views
+
+- group_type: selected_views
+- n_objects: 51
+- n_clusters: 3
+
+## Cluster 0
+- candidate_instance_id: selected_views:selected_views:cluster_000
+- num_members: 49
+- representative_label: cabinet
+- representative_description: Partial view of a dark mahogany/brown wooden cabinet front with a glossy, slightly reflective finish and simple rectangular face panels; lower portion is visible and cut off by the image edge, appearing about 1–2 meters from the camera.
+- same_view_collision: True
+- offending_view_ids: view_00019, view_00024, view_00058, view_00065
+- member: object_id=128 view_id=view_00019 label=refrigerator description=stainless-steel double-door fridge center
+- member: object_id=129 view_id=view_00019 label=picture frame description=brown wooden beach picture frame
+- member: object_id=130 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=131 view_id=view_00019 label=chair description=dark red wooden barstool chair with leather seat
+- member: object_id=132 view_id=view_00019 label=chair description=dark red carved wooden chair (cropped)
+- member: object_id=133 view_id=view_00019 label=dining table description=light wood tabletop with dark base
+- member: object_id=134 view_id=view_00019 label=cabinet description=dark brown raised-panel cabinet, edge
+- member: object_id=135 view_id=view_00019 label=cabinet description=dark wood tall cabinet, edge-cropped
+- member: object_id=136 view_id=view_00019 label=cabinet description=dark wooden base cabinet edge
+- member: object_id=137 view_id=view_00019 label=clock description=white-faced wall clock with scalloped rim
+- member: object_id=138 view_id=view_00019 label=coffee maker description=glossy black coffee maker edge-cropped
+- member: object_id=139 view_id=view_00019 label=chair description=dark brown wooden chair, edge-cropped
+- member: object_id=140 view_id=view_00019 label=cabinet description=brown wooden cabinet edge crop
+- member: object_id=141 view_id=view_00019 label=cabinet description=dark mahogany cabinet front edge-cropped
+- member: object_id=142 view_id=view_00019 label=coffee maker description=stainless-steel drip coffee maker, partial crop
+- member: object_id=143 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=144 view_id=view_00019 label=outlet description=white plastic outlet faceplate edge-cropped
+- member: object_id=145 view_id=view_00019 label=cabinet description=dark wooden cabinet door panel
+- member: object_id=146 view_id=view_00019 label=cabinet description=dark wooden cabinet edge crop
+- member: object_id=147 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door edge-cropped
+- member: object_id=199 view_id=view_00024 label=couch description=edge-cropped dark brown leather couch arm
+- member: object_id=200 view_id=view_00024 label=clock description=dark scalloped-framed wall clock
+- member: object_id=201 view_id=view_00024 label=side table description=dark wooden side table edge-cropped
+- member: object_id=203 view_id=view_00024 label=side table description=dark wooden side table close-up
+- member: object_id=204 view_id=view_00024 label=side table description=dark wooden side table corner
+- member: object_id=205 view_id=view_00024 label=side table description=edge-cropped dark brown side table
+- member: object_id=518 view_id=view_00058 label=chair description=brown leather recliner, right-side
+- member: object_id=519 view_id=view_00058 label=chair description=red wooden carved chair edge
+- member: object_id=520 view_id=view_00058 label=microwave description=stainless-steel microwave with glass
+- member: object_id=521 view_id=view_00058 label=oven description=brown front oven with towel
+- member: object_id=522 view_id=view_00058 label=side table description=dark wooden side table, edge-cropped
+- member: object_id=523 view_id=view_00058 label=cabinet description=dark recessed-panel cabinet door, partial
+- member: object_id=524 view_id=view_00058 label=cabinet description=dark wood paneled cabinet edge-crop
+- member: object_id=525 view_id=view_00058 label=cabinet description=dark recessed wooden cabinet door edge-cropped
+- member: object_id=526 view_id=view_00058 label=cabinet description=dark wooden cabinet panels, edge crop
+- member: object_id=527 view_id=view_00058 label=cabinet description=dark wooden cabinet edge-crop
+- member: object_id=528 view_id=view_00058 label=fireplace description=white painted mantel with black firebox
+- member: object_id=529 view_id=view_00058 label=coffee maker description=black drip coffee maker, partial
+- member: object_id=530 view_id=view_00058 label=fireplace description=black metal fireplace opening
+- member: object_id=531 view_id=view_00058 label=coffee maker description=black stainless coffee maker, edge-cropped
+- member: object_id=532 view_id=view_00058 label=side table description=dark charcoal cylindrical side-table column
+- member: object_id=587 view_id=view_00065 label=side table description=dark wooden side table partial
+- member: object_id=588 view_id=view_00065 label=couch description=dark brown leather three-seat couch
+- member: object_id=589 view_id=view_00065 label=clock description=white round clock with Roman numerals
+- member: object_id=590 view_id=view_00065 label=side table description=dark wood side table edge-crop
+- member: object_id=592 view_id=view_00065 label=couch description=dark brown leather recliner, left crop
+- member: object_id=593 view_id=view_00065 label=chair description=dark brown leather recliner edge-crop
+- member: object_id=594 view_id=view_00065 label=fireplace description=dark gray rectangular fireplace opening (partial)
+- member: object_id=595 view_id=view_00065 label=fireplace description=white wooden mantel with black firebox
+
+## Cluster 1
+- candidate_instance_id: selected_views:selected_views:cluster_001
+- num_members: 1
+- representative_label: shelf
+- representative_description: Partial white metal wire pantry shelving with multiple horizontal tiers holding assorted packaged food, containers, and jars; visible through a doorway at the right edge of the crop and cut off by the image border, with some areas slightly blurred — approximate distance from camera ~1.5 m.
+- same_view_collision: False
+- member: object_id=202 view_id=view_00024 label=shelf description=white wire pantry shelf, partial
+
+## Cluster 2
+- candidate_instance_id: selected_views:selected_views:cluster_002
+- num_members: 1
+- representative_label: table lamp
+- representative_description: Cream/white pleated fabric shade sitting on a faceted clear glass column base with a metallic socket/rim; lamp appears unlit and the bottom is slightly cropped by the image edge, approximate distance ~0.6 m from camera.
+- same_view_collision: False
+- member: object_id=591 view_id=view_00065 label=table lamp description=cream pleated shade table lamp

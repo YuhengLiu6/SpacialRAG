@@ -1,0 +1,63 @@
+{
+  "views": [
+    {
+      "view_id": "view_00024",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00006_o000_000024.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_4views/place_00005/view_annotations/view_00024_annotated.jpg",
+      "source_file_name": "images/pose_00006_o000_000024.jpg",
+      "num_objects": 7,
+      "objects": [
+        {
+          "object_global_id": 199,
+          "label": "couch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 200,
+          "label": "clock",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 201,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 202,
+          "label": "shelf",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 203,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 204,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 205,
+          "label": "side table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

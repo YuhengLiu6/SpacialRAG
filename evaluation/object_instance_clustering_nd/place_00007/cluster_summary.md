@@ -1,0 +1,91 @@
+# Cluster Summary: place_00007
+
+- group_type: place
+- n_objects: 78
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00007:cluster_000
+- num_members: 78
+- representative_label: cabinet
+- representative_description: Tall dark-brown stained wooden cabinet door with a recessed central panel and vertical wood grain; glossy finish shows a central light reflection and minor surface wear; mostly visible but slightly edge-cropped on the right — approximate distance ~0.8 m from camera.
+- same_view_collision: True
+- offending_view_ids: view_00032, view_00033, view_00034, view_00035, view_00040, view_00041, view_00042, view_00043
+- member: object_id=276 view_id=view_00032 label=side table description=dark wooden side table, edge-cropped
+- member: object_id=277 view_id=view_00032 label=picture frame description=black-framed square sailboat print
+- member: object_id=278 view_id=view_00032 label=couch description=black leather three-seat couch front
+- member: object_id=279 view_id=view_00032 label=picture frame description=white rectangular frame with seascape
+- member: object_id=280 view_id=view_00032 label=side table description=dark wooden side table edge crop
+- member: object_id=281 view_id=view_00032 label=table lamp description=white fabric lampshade table lamp
+- member: object_id=282 view_id=view_00032 label=picture frame description=cream-painted picture frame edge crop
+- member: object_id=283 view_id=view_00032 label=picture frame description=white-framed seaside print, partial
+- member: object_id=284 view_id=view_00032 label=side table description=dark brown wooden side table edge
+- member: object_id=285 view_id=view_00032 label=picture frame description=black-framed rectangular wall picture
+- member: object_id=286 view_id=view_00032 label=picture frame description=black-framed wall picture, banister-occluded
+- member: object_id=287 view_id=view_00032 label=table lamp description=off-white scalloped shade table lamp
+- member: object_id=288 view_id=view_00033 label=couch description=dark brown leather couch, right-side crop
+- member: object_id=289 view_id=view_00033 label=outlet description=white rectangular outlet plate edge-cropped
+- member: object_id=290 view_id=view_00033 label=window description=white window with venetian blinds
+- member: object_id=291 view_id=view_00034 label=fireplace description=dark metal fireplace opening
+- member: object_id=292 view_id=view_00034 label=plant description=variegated green spider plant partial
+- member: object_id=293 view_id=view_00035 label=clock description=white-faced wall clock, dark scalloped
+- member: object_id=294 view_id=view_00035 label=chair description=black leather armchair, cropped front
+- member: object_id=295 view_id=view_00035 label=picture frame description=dark wood picture frame, partial crop
+- member: object_id=296 view_id=view_00035 label=chair description=dark mahogany barstool with cushion
+- member: object_id=297 view_id=view_00035 label=oven description=stainless steel oven with towel
+- member: object_id=298 view_id=view_00035 label=cabinet description=dark wooden cabinet door, partial
+- member: object_id=299 view_id=view_00035 label=cabinet description=tall brown cabinet door, right-cropped
+- member: object_id=300 view_id=view_00035 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=301 view_id=view_00035 label=cabinet description=tall dark wood cabinet, edge-cropped
+- member: object_id=302 view_id=view_00035 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=303 view_id=view_00035 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=304 view_id=view_00035 label=cabinet description=dark wooden paneled cabinet door
+- member: object_id=305 view_id=view_00035 label=table description=dark wooden table with light top
+- member: object_id=306 view_id=view_00035 label=coffee maker description=black plastic drip coffee maker
+- member: object_id=307 view_id=view_00035 label=cabinet description=tall dark brown cabinet door
+- member: object_id=308 view_id=view_00035 label=microwave description=stainless-steel microwave front crop
+- member: object_id=309 view_id=view_00035 label=faucet description=chrome curved faucet spout edge-cropped
+- member: object_id=310 view_id=view_00035 label=faucet description=chrome faucet neck, edge-cropped
+- member: object_id=311 view_id=view_00035 label=cabinet description=dark wood cabinet door, partial
+- member: object_id=312 view_id=view_00035 label=cabinet description=dark brown wooden cabinet door edge-cropped
+- member: object_id=313 view_id=view_00035 label=rug description=cream rectangular rug, edge-cropped
+- member: object_id=314 view_id=view_00035 label=cabinet description=dark brown paneled base cabinet
+- member: object_id=315 view_id=view_00035 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=316 view_id=view_00035 label=faucet description=chrome cylindrical faucet, partial crop
+- member: object_id=343 view_id=view_00040 label=side table description=dark wood side table edge-crop
+- member: object_id=344 view_id=view_00040 label=picture frame description=rectangular dark and silver picture frame
+- member: object_id=345 view_id=view_00040 label=couch description=dark brown leather three-seat couch
+- member: object_id=346 view_id=view_00040 label=picture frame description=white wood picture frame, partial
+- member: object_id=347 view_id=view_00040 label=side table description=dark wood side table edge-crop
+- member: object_id=348 view_id=view_00040 label=table lamp description=white fabric-shade table lamp partial
+- member: object_id=349 view_id=view_00040 label=picture frame description=narrow gold frame edge crop
+- member: object_id=350 view_id=view_00040 label=picture frame description=white-matted beach print frame
+- member: object_id=351 view_id=view_00040 label=side table description=dark polished wooden side table edge-cropped
+- member: object_id=352 view_id=view_00040 label=picture frame description=black-edged rectangular picture frame (partial)
+- member: object_id=353 view_id=view_00040 label=picture frame description=black-framed wall picture, partially occluded
+- member: object_id=354 view_id=view_00040 label=table lamp description=off-white scalloped lampshade edge-cropped
+- member: object_id=355 view_id=view_00041 label=couch description=dark brown leather couch edge crop
+- member: object_id=356 view_id=view_00041 label=outlet description=white plastic outlet faceplate
+- member: object_id=357 view_id=view_00041 label=window description=right-edge white window with blinds
+- member: object_id=358 view_id=view_00042 label=fireplace description=dark-painted mantel top, partial firebox
+- member: object_id=359 view_id=view_00042 label=plant description=edge-cropped potted plant, arching leaves
+- member: object_id=360 view_id=view_00043 label=clock description=white face scalloped dark wall clock
+- member: object_id=361 view_id=view_00043 label=towel description=off-white folded hanging towel
+- member: object_id=362 view_id=view_00043 label=chair description=dark leather recliner, edge-cropped
+- member: object_id=363 view_id=view_00043 label=chair description=dark wooden carved chair edge crop
+- member: object_id=364 view_id=view_00043 label=oven description=stainless steel oven front with towel
+- member: object_id=365 view_id=view_00043 label=table description=dark wooden table base crop
+- member: object_id=366 view_id=view_00043 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=367 view_id=view_00043 label=microwave description=stainless steel microwave door crop
+- member: object_id=368 view_id=view_00043 label=cabinet description=dark wood kitchen cabinet edge
+- member: object_id=369 view_id=view_00043 label=faucet description=chrome faucet spout partial edge-crop
+- member: object_id=370 view_id=view_00043 label=cabinet description=dark wooden cabinet door panel
+- member: object_id=371 view_id=view_00043 label=cabinet description=tall beige inset cabinet door
+- member: object_id=372 view_id=view_00043 label=coffee maker description=black stainless coffee maker, partial crop
+- member: object_id=373 view_id=view_00043 label=faucet description=brass-colored faucet spout partial crop
+- member: object_id=374 view_id=view_00043 label=cabinet description=tall dark wooden cabinet, edge crop
+- member: object_id=375 view_id=view_00043 label=rug description=cream rug with orange stripes
+- member: object_id=376 view_id=view_00043 label=cabinet description=tall dark-brown wooden cabinet door
+- member: object_id=377 view_id=view_00043 label=cabinet description=dark brown wooden cabinet door edge crop
+- member: object_id=378 view_id=view_00043 label=cabinet description=dark recessed wooden cabinet door
+- member: object_id=379 view_id=view_00043 label=outlet description=white plastic duplex outlet plate

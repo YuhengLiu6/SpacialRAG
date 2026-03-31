@@ -1,0 +1,105 @@
+{
+  "group_id": "place_00011",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 587,
+      "observation_id": "obs_000587",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "side table",
+      "description": "dark wooden side table partial"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 588,
+      "observation_id": "obs_000588",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "couch",
+      "description": "dark brown leather three-seat couch"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 589,
+      "observation_id": "obs_000589",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "clock",
+      "description": "white round clock with Roman numerals"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 590,
+      "observation_id": "obs_000590",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "side table",
+      "description": "dark wood side table edge-crop"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 591,
+      "observation_id": "obs_000591",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "table lamp",
+      "description": "cream pleated shade table lamp"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 592,
+      "observation_id": "obs_000592",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "couch",
+      "description": "dark brown leather recliner, left crop"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 593,
+      "observation_id": "obs_000593",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "chair",
+      "description": "dark brown leather recliner edge-crop"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 594,
+      "observation_id": "obs_000594",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "fireplace",
+      "description": "dark gray rectangular fireplace opening (partial)"
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 595,
+      "observation_id": "obs_000595",
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "label": "fireplace",
+      "description": "white wooden mantel with black firebox"
+    }
+  ]
+}

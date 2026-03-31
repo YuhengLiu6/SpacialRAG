@@ -1,0 +1,97 @@
+{
+  "db_dir": "spatial_db_nd",
+  "selected_view_ids": [
+    "view_00015",
+    "view_00019",
+    "view_00023",
+    "view_00027"
+  ],
+  "views": [
+    {
+      "view_id": "view_00015",
+      "entry_id": 15,
+      "file_name": "images/pose_00003_o270_000015.jpg",
+      "num_objects": 24,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "file_name": "images/pose_00004_o270_000019.jpg",
+      "num_objects": 20,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "file_name": "images/pose_00005_o270_000023.jpg",
+      "num_objects": 15,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00027",
+      "entry_id": 27,
+      "file_name": "images/pose_00006_o270_000027.jpg",
+      "num_objects": 18,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    }
+  ],
+  "stored_view_images": [
+    {
+      "view_id": "view_00015",
+      "entry_id": 15,
+      "source_file_name": "images/pose_00003_o270_000015.jpg",
+      "source_image_path": "spatial_db_nd/images/pose_00003_o270_000015.jpg",
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "spatial_db_nd/geometry/view_00015/detection_overlay.jpg",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "source_file_name": "images/pose_00004_o270_000019.jpg",
+      "source_image_path": "spatial_db_nd/images/pose_00004_o270_000019.jpg",
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "spatial_db_nd/geometry/view_00019/detection_overlay.jpg",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "source_file_name": "images/pose_00005_o270_000023.jpg",
+      "source_image_path": "spatial_db_nd/images/pose_00005_o270_000023.jpg",
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "spatial_db_nd/geometry/view_00023/detection_overlay.jpg",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00027",
+      "entry_id": 27,
+      "source_file_name": "images/pose_00006_o270_000027.jpg",
+      "source_image_path": "spatial_db_nd/images/pose_00006_o270_000027.jpg",
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "spatial_db_nd/geometry/view_00027/detection_overlay.jpg",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    }
+  ]
+}

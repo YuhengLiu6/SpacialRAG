@@ -1,0 +1,13 @@
+{
+  "entry_id": 15,
+  "selected_object_global_id": 89,
+  "selected_object_label": "dining table",
+  "neighbor_labels": [
+    "rug",
+    "chair",
+    "chair",
+    "cabinet",
+    "towel"
+  ],
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/entry_00015_dining_table_neighbors_name_only.png"
+}

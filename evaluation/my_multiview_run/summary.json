@@ -1,0 +1,28 @@
+{
+  "group_mode": "selected_views",
+  "text_mode": "long",
+  "selected_entry_ids": [
+    19,
+    24,
+    58,
+    65
+  ],
+  "cluster_count_mode": "eigengap",
+  "same_view_policy": "soft_penalty",
+  "same_view_penalty": 0.8,
+  "min_similarity": 0.4,
+  "top_k": null,
+  "num_groups": 1,
+  "groups": [
+    {
+      "group_id": "selected_views",
+      "group_type": "selected_views",
+      "n_objects": 51,
+      "n_clusters": 3,
+      "average_cluster_size": 17.0,
+      "backend": "explicit_numpy",
+      "fallback_reason": null,
+      "skip_reason": null
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+# Cluster Summary: place_00005
+
+- group_type: place
+- n_objects: 86
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00005:cluster_000
+- num_members: 86
+- representative_label: cabinet
+- representative_description: Tall dark-brown stained wooden cabinet door with a single recessed rectangular panel and simple frame, smooth semi-gloss finish with subtle vertical wood grain and no visible hardware; lower edge of the cabinet is cropped in the image and the object appears approximately 1.2 m from the camera.
+- same_view_collision: True
+- offending_view_ids: view_00024, view_00025, view_00026, view_00027, view_00048, view_00049, view_00050, view_00051
+- member: object_id=199 view_id=view_00024 label=couch description=edge-cropped dark brown leather couch arm
+- member: object_id=200 view_id=view_00024 label=clock description=dark scalloped-framed wall clock
+- member: object_id=201 view_id=view_00024 label=side table description=dark wooden side table edge-cropped
+- member: object_id=202 view_id=view_00024 label=shelf description=white wire pantry shelf, partial
+- member: object_id=203 view_id=view_00024 label=side table description=dark wooden side table close-up
+- member: object_id=204 view_id=view_00024 label=side table description=dark wooden side table corner
+- member: object_id=205 view_id=view_00024 label=side table description=edge-cropped dark brown side table
+- member: object_id=206 view_id=view_00025 label=side table description=dark wood side table edge-crop
+- member: object_id=207 view_id=view_00025 label=couch description=dark brown leather couch right-edge cropped
+- member: object_id=208 view_id=view_00025 label=couch description=black leather reclining couch, partial
+- member: object_id=209 view_id=view_00025 label=side table description=dark wood side table edge-crop
+- member: object_id=210 view_id=view_00025 label=fireplace description=dark painted fireplace opening, partial
+- member: object_id=211 view_id=view_00025 label=couch description=dark brown leather couch arm crop
+- member: object_id=212 view_id=view_00025 label=fireplace description=white wooden mantel, dark insert
+- member: object_id=213 view_id=view_00026 label=microwave description=stainless-steel over-the-range microwave
+- member: object_id=214 view_id=view_00026 label=cabinet description=dark brown wooden cabinet doors
+- member: object_id=215 view_id=view_00026 label=cabinet description=dark brown cabinet door, edge crop
+- member: object_id=216 view_id=view_00026 label=cabinet description=dark recessed wood cabinet door
+- member: object_id=217 view_id=view_00026 label=couch description=brown leather armrest and striped cushion
+- member: object_id=218 view_id=view_00026 label=cabinet description=dark brown wooden cabinet top edge
+- member: object_id=219 view_id=view_00026 label=stove description=black glossy stovetop with knobs
+- member: object_id=220 view_id=view_00026 label=sink description=partial dark inset sink corner
+- member: object_id=221 view_id=view_00027 label=refrigerator description=stainless steel side-by-side refrigerator
+- member: object_id=222 view_id=view_00027 label=cabinet description=dark brown recessed-panel cabinet
+- member: object_id=223 view_id=view_00027 label=cabinet description=dark wood tall cabinet edge-crop
+- member: object_id=224 view_id=view_00027 label=coffee maker description=silver metal coffee maker edge-cropped
+- member: object_id=225 view_id=view_00027 label=cabinet description=beige recessed cabinet door edge-cropped
+- member: object_id=226 view_id=view_00027 label=cabinet description=dark wood kitchen cabinet edge
+- member: object_id=227 view_id=view_00027 label=cabinet description=dark wooden cabinet door recessed panel
+- member: object_id=228 view_id=view_00027 label=table description=beige speckled table surface
+- member: object_id=229 view_id=view_00027 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=230 view_id=view_00027 label=coffee maker description=black glossy single-serve coffee maker
+- member: object_id=231 view_id=view_00027 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=232 view_id=view_00027 label=sink description=polished stainless rectangular sink edge-crop
+- member: object_id=233 view_id=view_00027 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=234 view_id=view_00027 label=cabinet description=dark mahogany cabinet edge crop
+- member: object_id=235 view_id=view_00027 label=toaster description=cropped glossy black toaster front
+- member: object_id=236 view_id=view_00027 label=toaster description=stainless steel toaster partial crop
+- member: object_id=237 view_id=view_00027 label=cabinet description=dark brown recessed cabinet door
+- member: object_id=238 view_id=view_00027 label=cabinet description=dark brown cabinet door edge
+- member: object_id=417 view_id=view_00048 label=couch description=dark brown leather couch arm crop
+- member: object_id=418 view_id=view_00048 label=clock description=round white-face wall clock
+- member: object_id=419 view_id=view_00048 label=side table description=dark wooden side table, lower shelf
+- member: object_id=420 view_id=view_00048 label=shelf description=white wire pantry shelf partial
+- member: object_id=421 view_id=view_00048 label=side table description=dark wooden side table edge
+- member: object_id=422 view_id=view_00048 label=side table description=dark wooden side table edge-crop
+- member: object_id=423 view_id=view_00048 label=side table description=dark wooden two-tier side table
+- member: object_id=424 view_id=view_00049 label=side table description=dark brown wooden side table edge
+- member: object_id=425 view_id=view_00049 label=picture frame description=light wood rectangular frame
+- member: object_id=426 view_id=view_00049 label=couch description=dark brown leather reclining couch
+- member: object_id=427 view_id=view_00049 label=couch description=dark leather reclining loveseat, edge-cropped
+- member: object_id=428 view_id=view_00049 label=side table description=light beige wooden two-tier side table
+- member: object_id=429 view_id=view_00049 label=picture frame description=dark glossy rectangular frame, edge-cropped
+- member: object_id=430 view_id=view_00049 label=fireplace description=dark gray fireplace opening, partial
+- member: object_id=431 view_id=view_00049 label=couch description=dark brown leather couch arm crop
+- member: object_id=432 view_id=view_00049 label=fireplace description=white wooden mantel fireplace, partial
+- member: object_id=433 view_id=view_00049 label=table lamp description=cream scalloped lampshade partial crop
+- member: object_id=434 view_id=view_00050 label=microwave description=stainless steel front microwave partial
+- member: object_id=435 view_id=view_00050 label=cabinet description=dark wood cabinet double doors
+- member: object_id=436 view_id=view_00050 label=cabinet description=dark recessed wooden cabinet door
+- member: object_id=437 view_id=view_00050 label=cabinet description=dark wood cabinet door crop
+- member: object_id=438 view_id=view_00050 label=couch description=brown glossy fabric couch cushion edge crop
+- member: object_id=439 view_id=view_00050 label=cabinet description=dark brown cabinet top edge
+- member: object_id=440 view_id=view_00050 label=stove description=partial black stove control panel
+- member: object_id=441 view_id=view_00050 label=sink description=white ceramic sink edge crop
+- member: object_id=442 view_id=view_00050 label=stove description=black stainless gas stove top
+- member: object_id=443 view_id=view_00051 label=refrigerator description=stainless steel side-by-side refrigerator
+- member: object_id=444 view_id=view_00051 label=cabinet description=dark wood cabinet door, edge crop
+- member: object_id=445 view_id=view_00051 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=446 view_id=view_00051 label=cabinet description=dark wooden tall cabinet edge-crop
+- member: object_id=447 view_id=view_00051 label=cabinet description=medium brown cabinet door edge-cropped
+- member: object_id=448 view_id=view_00051 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=449 view_id=view_00051 label=cabinet description=dark brown recessed-panel cabinet door
+- member: object_id=450 view_id=view_00051 label=coffee maker description=silver metal coffee maker, partial
+- member: object_id=451 view_id=view_00051 label=cabinet description=dark wooden cabinet edge crop
+- member: object_id=452 view_id=view_00051 label=cabinet description=tall dark wood cabinet door
+- member: object_id=453 view_id=view_00051 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=454 view_id=view_00051 label=cabinet description=dark brown wooden base cabinet edge
+- member: object_id=455 view_id=view_00051 label=coffee maker description=black glossy single-serve brewer
+- member: object_id=456 view_id=view_00051 label=cabinet description=dark brown wooden cabinet front cropped
+- member: object_id=457 view_id=view_00051 label=cabinet description=dark reddish-brown wooden cabinet edge
+- member: object_id=458 view_id=view_00051 label=sink description=rectangular stainless steel sink, partial
+- member: object_id=459 view_id=view_00051 label=toaster description=stainless-steel two-slot toaster (partial)
+- member: object_id=460 view_id=view_00051 label=toaster description=curved black chrome toaster top (partial)
+- member: object_id=461 view_id=view_00051 label=cabinet description=dark wood cabinet door edge-cropped
+- member: object_id=462 view_id=view_00051 label=chair description=partial green upholstered chair seat edge

@@ -1,0 +1,204 @@
+{
+  "group_id": "place_00020",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 784,
+      "observation_id": "obs_000784",
+      "view_id": "view_00104",
+      "entry_id": 104,
+      "label": "bed",
+      "description": "dark wood bed with striped bedding"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 785,
+      "observation_id": "obs_000785",
+      "view_id": "view_00104",
+      "entry_id": 104,
+      "label": "pillow",
+      "description": "beige striped rectangular pillow, edge-cropped"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 786,
+      "observation_id": "obs_000786",
+      "view_id": "view_00104",
+      "entry_id": 104,
+      "label": "pillow",
+      "description": "beige striped fabric pillow edge"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 787,
+      "observation_id": "obs_000787",
+      "view_id": "view_00105",
+      "entry_id": 105,
+      "label": "door",
+      "description": "object: door | attrs: white, painted wood, raised panel, semi-gloss finish | anchor: x=-2.0, z=-4.5 | nearby: right door@(-2.0,-5.0), door trim (top)@(-2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 788,
+      "observation_id": "obs_000788",
+      "view_id": "view_00105",
+      "entry_id": 105,
+      "label": "other",
+      "description": "object: other | attrs: white painted wood, rectilinear profile | anchor: x=-2.0, z=-5.5 | nearby: right door@(-2.0,-5.0), wall (right)@(-2.0,-5.5)"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 789,
+      "observation_id": "obs_000789",
+      "view_id": "view_00105",
+      "entry_id": 105,
+      "label": "door",
+      "description": "object: door | attrs: white, painted wood, raised panel, semi-gloss finish | anchor: x=-2.0, z=-5.0 | nearby: left door@(-2.0,-4.5), door hinge (rightmost)@(-1.5,-5.5)"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 790,
+      "observation_id": "obs_000790",
+      "view_id": "view_00105",
+      "entry_id": 105,
+      "label": "other",
+      "description": "object: other | attrs: metal hinge, visible screws, bronze/brass tone | anchor: x=-1.5, z=-5.5 | nearby: door trim (right jamb)@(-1.5,-5.5), right door@(-2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 791,
+      "observation_id": "obs_000791",
+      "view_id": "view_00106",
+      "entry_id": 106,
+      "label": "picture frame",
+      "description": "dark wood gold-trim picture frame edge-crop"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 792,
+      "observation_id": "obs_000792",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "bed",
+      "description": "striped white bed, partial"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 793,
+      "observation_id": "obs_000793",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "nightstand",
+      "description": "dark glossy wooden nightstand partial"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 794,
+      "observation_id": "obs_000794",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "fan",
+      "description": "brown wooden-blade ceiling fan edge-crop"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 795,
+      "observation_id": "obs_000795",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "table lamp",
+      "description": "beige fabric shade, bronze base"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 796,
+      "observation_id": "obs_000796",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "dresser",
+      "description": "dark wood multi-drawer dresser"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 797,
+      "observation_id": "obs_000797",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "pillow",
+      "description": "striped beige-gray pillow edge crop"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 798,
+      "observation_id": "obs_000798",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "window",
+      "description": "white horizontal blind-covered window"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 799,
+      "observation_id": "obs_000799",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "pillow",
+      "description": "striped light-gray pillow edge crop"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 800,
+      "observation_id": "obs_000800",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "window",
+      "description": "tall window with white blinds"
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 801,
+      "observation_id": "obs_000801",
+      "view_id": "view_00107",
+      "entry_id": 107,
+      "label": "pillow",
+      "description": "muted beige striped pillow, edge-cropped"
+    }
+  ]
+}

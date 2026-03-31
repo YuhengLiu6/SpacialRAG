@@ -1,0 +1,604 @@
+{
+  "step_index": 2,
+  "view_id": "view_00058",
+  "num_current_objects": 15,
+  "num_existing_clusters": 19,
+  "num_appended": 3,
+  "num_merged_clusters": 3,
+  "num_new_tail_clusters": 12,
+  "spectral_summary": {
+    "n_clusters": 3,
+    "cluster_count_mode": "eigengap",
+    "backend": "sklearn",
+    "fallback_reason": null,
+    "num_nodes": 34
+  },
+  "num_connected_components_after_spectral": 5,
+  "clusters_after_step": [
+    {
+      "cluster_id": 0,
+      "members": [
+        "refrigerator (128)",
+        "picture frame (129)",
+        "coffee maker (138)",
+        "cabinet (130)",
+        "cabinet (134)",
+        "cabinet (143)",
+        "side table (205)",
+        "cabinet (135)",
+        "couch (199)",
+        "cabinet (136)",
+        "chair (139)",
+        "cabinet (140)",
+        "cabinet (141)",
+        "cabinet (146)",
+        "side table (204)",
+        "coffee maker (142)",
+        "outlet (144)",
+        "cabinet (145)",
+        "cabinet (147)",
+        "side table (203)",
+        "cabinet (524)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00024",
+        "view_00019",
+        "view_00024",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00024",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00024",
+        "view_00058"
+      ],
+      "label_histogram": {
+        "cabinet": 11,
+        "chair": 1,
+        "coffee maker": 2,
+        "couch": 1,
+        "outlet": 1,
+        "picture frame": 1,
+        "refrigerator": 1,
+        "side table": 3
+      }
+    },
+    {
+      "cluster_id": 3,
+      "members": [
+        "chair (131)",
+        "chair (132)",
+        "clock (137)",
+        "chair (519)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00058"
+      ],
+      "label_histogram": {
+        "chair": 3,
+        "clock": 1
+      }
+    },
+    {
+      "cluster_id": 5,
+      "members": [
+        "dining table (133)",
+        "side table (201)",
+        "side table (522)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00024",
+        "view_00058"
+      ],
+      "label_histogram": {
+        "dining table": 1,
+        "side table": 2
+      }
+    },
+    {
+      "cluster_id": 20,
+      "members": [
+        "clock (200)"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "label_histogram": {
+        "clock": 1
+      }
+    },
+    {
+      "cluster_id": 22,
+      "members": [
+        "shelf (202)"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "label_histogram": {
+        "shelf": 1
+      }
+    },
+    {
+      "cluster_id": 23,
+      "members": [
+        "cabinet (525)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 24,
+      "members": [
+        "cabinet (523)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 25,
+      "members": [
+        "cabinet (527)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 26,
+      "members": [
+        "cabinet (526)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 27,
+      "members": [
+        "coffee maker (531)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      }
+    },
+    {
+      "cluster_id": 28,
+      "members": [
+        "coffee maker (529)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      }
+    },
+    {
+      "cluster_id": 29,
+      "members": [
+        "oven (521)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "oven": 1
+      }
+    },
+    {
+      "cluster_id": 30,
+      "members": [
+        "microwave (520)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "microwave": 1
+      }
+    },
+    {
+      "cluster_id": 31,
+      "members": [
+        "side table (532)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "side table": 1
+      }
+    },
+    {
+      "cluster_id": 32,
+      "members": [
+        "chair (518)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "chair": 1
+      }
+    },
+    {
+      "cluster_id": 33,
+      "members": [
+        "fireplace (528)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      }
+    },
+    {
+      "cluster_id": 34,
+      "members": [
+        "fireplace (530)"
+      ],
+      "member_view_ids": [
+        "view_00058"
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      }
+    }
+  ],
+  "append_cases": [
+    {
+      "step_index": 2,
+      "cluster_id": 0,
+      "appended_object_id": 524,
+      "view_id": "view_00058",
+      "score": 0.7002855293041235,
+      "detail": {
+        "combined_similarity": 0.7002855293041235,
+        "text_similarity": 0.8065628409385681,
+        "global_geo_similarity": 0.6197956687715208,
+        "polar_similarity": 0.11732406892821681,
+        "global_geo_distance_m": 1.3832793235778809,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 3,
+      "appended_object_id": 519,
+      "view_id": "view_00058",
+      "score": 0.7228524960868403,
+      "detail": {
+        "combined_similarity": 0.7228524960868403,
+        "text_similarity": 0.6617937684059143,
+        "global_geo_similarity": 0.9777411419573439,
+        "polar_similarity": 0.6404862981123157,
+        "global_geo_distance_m": 0.30006882548332214,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 5,
+      "appended_object_id": 522,
+      "view_id": "view_00058",
+      "score": 0.52620552924989,
+      "detail": {
+        "combined_similarity": 0.52620552924989,
+        "text_similarity": 0.6559592485427856,
+        "global_geo_similarity": 0.14311068363246812,
+        "polar_similarity": 0.38411918543446505,
+        "global_geo_distance_m": 2.7886462211608887,
+        "used_3d_global_geo": true
+      }
+    }
+  ],
+  "merge_cases": [
+    {
+      "step_index": 2,
+      "merged_cluster_ids": [
+        0,
+        1,
+        2,
+        7,
+        8,
+        11,
+        12,
+        13,
+        14,
+        16,
+        17,
+        19
+      ],
+      "into_cluster_id": 0
+    },
+    {
+      "step_index": 2,
+      "merged_cluster_ids": [
+        3,
+        4,
+        9
+      ],
+      "into_cluster_id": 3
+    },
+    {
+      "step_index": 2,
+      "merged_cluster_ids": [
+        5,
+        21
+      ],
+      "into_cluster_id": 5
+    }
+  ],
+  "tail_spawn_cases": [
+    {
+      "step_index": 2,
+      "new_cluster_id": 23,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        525
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.648424459189696,
+        "text_similarity": 0.7986662983894348,
+        "global_geo_similarity": 0.09020929445020325,
+        "polar_similarity": 0.7131619142705119,
+        "global_geo_distance_m": 3.1020140647888184,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 24,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        523
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.6352652286670853,
+        "text_similarity": 0.7963844537734985,
+        "global_geo_similarity": 0.25992426231900295,
+        "polar_similarity": 0.25811258561835904,
+        "global_geo_distance_m": 2.321521043777466,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 25,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        527
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.6006046793914739,
+        "text_similarity": 0.7889928817749023,
+        "global_geo_similarity": 0.061139518669439834,
+        "polar_similarity": 0.36081758415154325,
+        "global_geo_distance_m": 3.343409538269043,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 26,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        526
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.5744320545150094,
+        "text_similarity": 0.7597774267196655,
+        "global_geo_similarity": 0.11744171322569048,
+        "polar_similarity": 0.19099513166105456,
+        "global_geo_distance_m": 2.9269869327545166,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 27,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        531
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.572449180045078,
+        "text_similarity": 0.5650525093078613,
+        "global_geo_similarity": 0.7671520188159692,
+        "polar_similarity": 0.23482019766381307,
+        "global_geo_distance_m": 1.0296995639801025,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 28,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        529
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.5663514636154114,
+        "text_similarity": 0.5596187114715576,
+        "global_geo_similarity": 0.7532807094145662,
+        "polar_similarity": 0.23962223702408011,
+        "global_geo_distance_m": 1.0645512342453003,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 29,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        521
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.4885999076814513,
+        "text_similarity": 0.5626256465911865,
+        "global_geo_similarity": 0.1884523239574744,
+        "polar_similarity": 0.5707149027612587,
+        "global_geo_distance_m": 2.583726167678833,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 30,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        520
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.4552865327813921,
+        "text_similarity": 0.5390530824661255,
+        "global_geo_similarity": 0.15966663469732806,
+        "polar_similarity": 0.4601604811563862,
+        "global_geo_distance_m": 2.7089977264404297,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 31,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        532
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.4273543269306556,
+        "text_similarity": 0.5645293593406677,
+        "global_geo_similarity": 0.04542552234623659,
+        "polar_similarity": 0.23098670922940917,
+        "global_geo_distance_m": 3.5166354179382324,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 32,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        518
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.42546345596300633,
+        "text_similarity": 0.4392353296279907,
+        "global_geo_similarity": 0.2990267596587747,
+        "polar_similarity": 0.5819337329165792,
+        "global_geo_distance_m": 2.1974732875823975,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 33,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        528
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.2942514622344303,
+        "text_similarity": 0.3884616196155548,
+        "global_geo_similarity": 0.029887862098506593,
+        "polar_similarity": 0.16350756083840667,
+        "global_geo_distance_m": 3.7471604347229004,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 34,
+      "reason": "tail_after_competing_for_existing_cluster",
+      "object_ids": [
+        530
+      ],
+      "view_ids": [
+        "view_00058"
+      ],
+      "detail": {
+        "combined_similarity": 0.27461000355247084,
+        "text_similarity": 0.3536266088485718,
+        "global_geo_similarity": 0.03251951672618965,
+        "polar_similarity": 0.20567474013232676,
+        "global_geo_distance_m": 3.701845407485962,
+        "used_3d_global_geo": true
+      }
+    }
+  ],
+  "cross_affinity_shape": [
+    15,
+    19
+  ],
+  "cocluster_shape": [
+    34,
+    34
+  ]
+}

@@ -787,6 +787,34 @@ def _build_object_object_relations(
     return relations
 
 
+def _get_polar_surroundings_builder():
+    from spatial_rag.polar_surrounding_postprocess import build_polar_surroundings
+
+    return build_polar_surroundings
+
+
+def _run_optional_polar_surrounding_postprocess(
+    output_root: Path,
+    *,
+    enabled: bool,
+) -> Dict[str, Any]:
+    if not bool(enabled):
+        return {
+            "enabled": False,
+            "ran": False,
+            "ok": False,
+        }
+
+    build_polar_surroundings = _get_polar_surroundings_builder()
+    summary = build_polar_surroundings(str(output_root))
+    return {
+        "enabled": True,
+        "ran": True,
+        "ok": True,
+        **dict(summary),
+    }
+
+
 def _enrich_scene_objects_geometry(
     scene_objects,
     camera_x: float,
@@ -1014,6 +1042,7 @@ def _build_spatial_database_core(
     report_builder_variant: str,
     angle_split_enable: bool,
     angle_step: int,
+    run_polar_surrounding_postprocess: bool,
 ) -> Dict:
     try:
         from spatial_rag.embedder import Embedder
@@ -1118,6 +1147,11 @@ def _build_spatial_database_core(
         "resumed_entry_count": 0,
         "regenerated_length_entry_count": 0,
         "generated_entry_count": 0,
+        "polar_surrounding_postprocess": {
+            "enabled": bool(run_polar_surrounding_postprocess),
+            "ran": False,
+            "ok": False,
+        },
     }
 
     try:
@@ -1975,6 +2009,19 @@ def _build_spatial_database_core(
         report["total_objects"] = len(object_metadata_records)
         report["total_view_object_relations"] = len(view_object_relations)
         report["total_object_object_relations"] = len(object_object_relations)
+        try:
+            report["polar_surrounding_postprocess"] = _run_optional_polar_surrounding_postprocess(
+                output_root,
+                enabled=bool(run_polar_surrounding_postprocess),
+            )
+        except Exception as exc:
+            failures.append({"postprocess": "polar_surrounding", "error": str(exc)})
+            report["polar_surrounding_postprocess"] = {
+                "enabled": bool(run_polar_surrounding_postprocess),
+                "ran": bool(run_polar_surrounding_postprocess),
+                "ok": False,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
         if len(metadata_records) > 0:
             report["avg_objects_per_frame"] = float(len(object_metadata_records) / len(metadata_records))
         report["finished_at"] = _now_iso()
@@ -2005,6 +2052,7 @@ def build_spatial_database(
     random_seed: Optional[int] = None,
     random_max_attempts_per_step: int = 32,
     random_include_start_scan: bool = True,
+    run_polar_surrounding_postprocess: bool = False,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -2029,6 +2077,7 @@ def build_spatial_database(
         report_builder_variant="standard",
         angle_split_enable=False,
         angle_step=int(VLM_ANGLE_STEP),
+        run_polar_surrounding_postprocess=bool(run_polar_surrounding_postprocess),
     )
 
 
@@ -2052,6 +2101,7 @@ def build_spatial_database_angle_split(
     random_include_start_scan: bool = True,
     angle_split_enable: bool = VLM_ANGLE_SPLIT_ENABLE,
     angle_step: int = VLM_ANGLE_STEP,
+    run_polar_surrounding_postprocess: bool = False,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -2076,6 +2126,7 @@ def build_spatial_database_angle_split(
         report_builder_variant="angle_split",
         angle_split_enable=bool(angle_split_enable),
         angle_step=int(angle_step),
+        run_polar_surrounding_postprocess=bool(run_polar_surrounding_postprocess),
     )
 
 
@@ -2171,6 +2222,12 @@ def main() -> None:
         default=True,
         help="Whether to capture scan at start position in random tour (true/false)",
     )
+    parser.add_argument(
+        "--run_polar_surrounding_postprocess",
+        type=_str_to_bool,
+        default=False,
+        help="Whether to rebuild polar surrounding context after DB build (true/false)",
+    )
     args = parser.parse_args()
 
     report = build_spatial_database(
@@ -2191,6 +2248,7 @@ def main() -> None:
         random_seed=args.random_seed,
         random_max_attempts_per_step=args.random_max_attempts_per_step,
         random_include_start_scan=args.random_include_start_scan,
+        run_polar_surrounding_postprocess=args.run_polar_surrounding_postprocess,
     )
     print(json.dumps(report, indent=2, ensure_ascii=True))
 

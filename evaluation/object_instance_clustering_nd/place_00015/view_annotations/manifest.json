@@ -1,0 +1,149 @@
+{
+  "views": [
+    {
+      "view_id": "view_00084",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00021_o000_000084.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00015/view_annotations/view_00084_annotated.jpg",
+      "source_file_name": "images/pose_00021_o000_000084.jpg",
+      "num_objects": 3,
+      "objects": [
+        {
+          "object_global_id": 705,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 706,
+          "label": "art",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 707,
+          "label": "wall switch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00085",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00021_o090_000085.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00015/view_annotations/view_00085_annotated.jpg",
+      "source_file_name": "images/pose_00021_o090_000085.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 708,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00086",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00021_o180_000086.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00015/view_annotations/view_00086_annotated.jpg",
+      "source_file_name": "images/pose_00021_o180_000086.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 709,
+          "label": "door",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 710,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 711,
+          "label": "blinds",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 712,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 713,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 714,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00087",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00021_o270_000087.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd/place_00015/view_annotations/view_00087_annotated.jpg",
+      "source_file_name": "images/pose_00021_o270_000087.jpg",
+      "num_objects": 5,
+      "objects": [
+        {
+          "object_global_id": 715,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 716,
+          "label": "door",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 717,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 718,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 719,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

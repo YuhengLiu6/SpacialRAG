@@ -1,0 +1,306 @@
+{
+  "group_id": "place_00019",
+  "group_type": "place",
+  "n_objects": 13,
+  "n_clusters": 8,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00019:cluster_000",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        771,
+        783
+      ],
+      "member_observation_ids": [
+        "obs_000771",
+        "obs_000783"
+      ],
+      "member_view_ids": [
+        "view_00100",
+        "view_00103"
+      ],
+      "member_labels": [
+        "door",
+        "chair"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: painted white, paneled, closed, hinges visible on right edge | anchor: x=-1.5, z=-4.5 | nearby: right doorway / damaged opening@(-1.0,-4.5), ceiling corner@(-1.5,-5.0)",
+        "partial striped chair back"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: painted white, paneled, closed, hinges visible on right edge | camera_relation: distance=0.6, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-1.5, z=-4.5 | surroundings: right doorway / damaged opening | relation=across the corridor / opposite | primary_dist=0.8 | global=(-1.0,-4.5); ceiling corner | relation=above and slightly left | primary_dist=1.0 | global=(-1.5,-5.0); center blank wall | relation=directly ahead along corridor | primary_dist=1.5 | global=(-1.5,-6.0) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige",
+        "Partial chair back covered in high-contrast black-and-white zebra-like fabric upholstery with visible creases and a rounded top edge; the object is edge-cropped in the image and appears close to the camera (approx. 0.8 m)."
+      ],
+      "label_histogram": {
+        "chair": 1,
+        "door": 1
+      },
+      "representative_object_id": 771,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: painted white, paneled, closed, hinges visible on right edge | camera_relation: distance=0.6, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-1.5, z=-4.5 | surroundings: right doorway / damaged opening | relation=across the corridor / opposite | primary_dist=0.8 | global=(-1.0,-4.5); ceiling corner | relation=above and slightly left | primary_dist=1.0 | global=(-1.5,-5.0); center blank wall | relation=directly ahead along corridor | primary_dist=1.5 | global=(-1.5,-6.0) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00019:cluster_001",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        772
+      ],
+      "member_observation_ids": [
+        "obs_000772"
+      ],
+      "member_view_ids": [
+        "view_00100"
+      ],
+      "member_labels": [
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white trim, trim largely intact, surrounding drywall/wallpaper torn, exposed dark void | anchor: x=-1.0, z=-4.5 | nearby: torn wall / hole@(-1.0,-5.0), center blank wall@(-1.5,-5.5)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white trim, trim largely intact, surrounding drywall/wallpaper torn, exposed dark void | camera_relation: distance=1.0, bearing=30.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: torn wall / hole | relation=immediately adjacent / on same opening | primary_dist=0.2 | global=(-1.0,-5.0); center blank wall | relation=to the left and ahead | primary_dist=0.5 | global=(-1.5,-5.5); left paneled door | relation=across corridor / opposite | primary_dist=0.8 | global=(-1.5,-4.5) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige"
+      ],
+      "label_histogram": {
+        "door": 1
+      },
+      "representative_object_id": 772,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white trim, trim largely intact, surrounding drywall/wallpaper torn, exposed dark void | camera_relation: distance=1.0, bearing=30.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: torn wall / hole | relation=immediately adjacent / on same opening | primary_dist=0.2 | global=(-1.0,-5.0); center blank wall | relation=to the left and ahead | primary_dist=0.5 | global=(-1.5,-5.5); left paneled door | relation=across corridor / opposite | primary_dist=0.8 | global=(-1.5,-4.5) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00019:cluster_002",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        773
+      ],
+      "member_observation_ids": [
+        "obs_000773"
+      ],
+      "member_view_ids": [
+        "view_00100"
+      ],
+      "member_labels": [
+        "other"
+      ],
+      "member_descriptions": [
+        "object: other | attrs: peeling wallpaper, jagged edges, exposed cavity (dark) | anchor: x=-1.0, z=-5.0 | nearby: right doorway / frame@(-1.0,-4.5), center blank wall@(-1.5,-6.0)"
+      ],
+      "member_long_descriptions": [
+        "object: other | attributes: peeling wallpaper, jagged edges, exposed cavity (dark) | camera_relation: distance=1.1, bearing=28.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-5.0 | surroundings: right doorway / frame | relation=directly adjacent | primary_dist=0.2 | global=(-1.0,-4.5); center blank wall | relation=across corridor / ahead | primary_dist=0.9 | global=(-1.5,-6.0); left paneled door | relation=across corridor / opposite | primary_dist=1.0 | global=(-1.5,-4.5) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige"
+      ],
+      "label_histogram": {
+        "other": 1
+      },
+      "representative_object_id": 773,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: peeling wallpaper, jagged edges, exposed cavity (dark) | camera_relation: distance=1.1, bearing=28.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-5.0 | surroundings: right doorway / frame | relation=directly adjacent | primary_dist=0.2 | global=(-1.0,-4.5); center blank wall | relation=across corridor / ahead | primary_dist=0.9 | global=(-1.5,-6.0); left paneled door | relation=across corridor / opposite | primary_dist=1.0 | global=(-1.5,-4.5) | scene_context: floor_pattern=unknown; scene_attributes=textured plaster walls, white painted door trim and casing, peeling wallpaper / torn drywall on right wall, narrow corridor, high ceiling; wall_color=off-white / light beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00019:cluster_003",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 3,
+      "member_object_ids": [
+        774,
+        779,
+        780
+      ],
+      "member_observation_ids": [
+        "obs_000774",
+        "obs_000779",
+        "obs_000780"
+      ],
+      "member_view_ids": [
+        "view_00101",
+        "view_00103",
+        "view_00103"
+      ],
+      "member_labels": [
+        "dining table",
+        "dining table",
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "light-wood dining table corner",
+        "dark glossy wooden table edge",
+        "dark glossy cabinet top edge"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped view of a light\u2013medium stained solid-wood dining table corner with a thick beveled top, carved apron and ornate carved legs; chairs are tucked underneath and small potted plants sit on the tabletop \u2014 close view, approximately 1.0 m from the camera.",
+        "Partial close-up of a dark brown, glossy wooden dining table edge with a bevelled corner and visible surface reflections and minor scuffs; a terracotta plant pot sits on the top surface \u2014 approximate distance ~0.6 m from camera.",
+        "Partial, edge-cropped view of a dark glossy wooden cabinet top with a rounded beveled front edge; surface displays reflective sheen and minor scuffs, with a terracotta pot and scattered papers sitting on it \u2014 appears close to the camera (approximately 0.6 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1,
+        "dining table": 2
+      },
+      "representative_object_id": 779,
+      "representative_label": "dining table",
+      "representative_description": "Partial close-up of a dark brown, glossy wooden dining table edge with a bevelled corner and visible surface reflections and minor scuffs; a terracotta plant pot sits on the top surface \u2014 approximate distance ~0.6 m from camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00103"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00019:cluster_004",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        775,
+        778
+      ],
+      "member_observation_ids": [
+        "obs_000775",
+        "obs_000778"
+      ],
+      "member_view_ids": [
+        "view_00101",
+        "view_00103"
+      ],
+      "member_labels": [
+        "chair",
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark wooden chair base partial",
+        "dark wooden chair back edge"
+      ],
+      "member_long_descriptions": [
+        "Partial lower section of a dark-stained wooden chair showing glossy, curved legs and a horizontal stretcher; seat and back are cut off by the crop and the piece appears close to the camera (approx. 0.6 m).",
+        "Partial, edge-cropped view of a dark reddish-brown varnished wooden chair back showing multiple curved vertical slats and a rounded top rail; appears photographed from roughly 0.6 meters away."
+      ],
+      "label_histogram": {
+        "chair": 2
+      },
+      "representative_object_id": 775,
+      "representative_label": "chair",
+      "representative_description": "Partial lower section of a dark-stained wooden chair showing glossy, curved legs and a horizontal stretcher; seat and back are cut off by the crop and the piece appears close to the camera (approx. 0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00019:cluster_005",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        776,
+        782
+      ],
+      "member_observation_ids": [
+        "obs_000776",
+        "obs_000782"
+      ],
+      "member_view_ids": [
+        "view_00102",
+        "view_00103"
+      ],
+      "member_labels": [
+        "picture frame",
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "dark wood framed sailboat print",
+        "tall dark wood picture frame edge crop"
+      ],
+      "member_long_descriptions": [
+        "Rectangular, wall-mounted picture frame with a dark brown wooden moulding and thin gold inner trim containing a muted seascape of sailboats; image captured at an angled perspective with the left edge near the crop boundary and slight surface gloss visible \u2014 estimated ~0.6 m from the camera.",
+        "Partial vertical crop showing a tall, narrow dark-brown wooden picture frame with a slim profile and visible inner artwork area behind glass; the frame is edge-cropped at top and bottom and shows slight surface reflection \u2014 approximately 2.0 meters from the camera."
+      ],
+      "label_histogram": {
+        "picture frame": 2
+      },
+      "representative_object_id": 776,
+      "representative_label": "picture frame",
+      "representative_description": "Rectangular, wall-mounted picture frame with a dark brown wooden moulding and thin gold inner trim containing a muted seascape of sailboats; image captured at an angled perspective with the left edge near the crop boundary and slight surface gloss visible \u2014 estimated ~0.6 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00019:cluster_006",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        777
+      ],
+      "member_observation_ids": [
+        "obs_000777"
+      ],
+      "member_view_ids": [
+        "view_00103"
+      ],
+      "member_labels": [
+        "dining table"
+      ],
+      "member_descriptions": [
+        "reddish wooden dining table edge"
+      ],
+      "member_long_descriptions": [
+        "Close, edge-cropped view of a reddish-brown wooden rectangular dining table top with visible plank seams and a mostly smooth satin finish; the tabletop fills the crop and is partially cut off by the image border (approx. 1.2 m from camera)."
+      ],
+      "label_histogram": {
+        "dining table": 1
+      },
+      "representative_object_id": 777,
+      "representative_label": "dining table",
+      "representative_description": "Close, edge-cropped view of a reddish-brown wooden rectangular dining table top with visible plank seams and a mostly smooth satin finish; the tabletop fills the crop and is partially cut off by the image border (approx. 1.2 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "place:place_00019:cluster_007",
+      "group_id": "place_00019",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        781
+      ],
+      "member_observation_ids": [
+        "obs_000781"
+      ],
+      "member_view_ids": [
+        "view_00103"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark metal chair back, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Edge-cropped partial dark metal chair showing a circular, ringed backrest with several curved slats and a shadowed, occluded lower seat area; appears photographed close to the camera (approximately 1.2 m) in low indoor light."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 781,
+      "representative_label": "chair",
+      "representative_description": "Edge-cropped partial dark metal chair showing a circular, ringed backrest with several curved slats and a shadowed, occluded lower seat area; appears photographed close to the camera (approximately 1.2 m) in low indoor light.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

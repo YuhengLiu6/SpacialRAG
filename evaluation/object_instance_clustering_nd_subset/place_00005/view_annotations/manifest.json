@@ -1,0 +1,140 @@
+{
+  "views": [
+    {
+      "view_id": "view_00027",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00006_o270_000027.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_clustering_nd_subset/place_00005/view_annotations/view_00027_annotated.jpg",
+      "source_file_name": "images/pose_00006_o270_000027.jpg",
+      "num_objects": 18,
+      "objects": [
+        {
+          "object_global_id": 221,
+          "label": "refrigerator",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 222,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 223,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 224,
+          "label": "coffee maker",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 225,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 226,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 227,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 228,
+          "label": "table",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 229,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 230,
+          "label": "coffee maker",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 231,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 232,
+          "label": "sink",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 233,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 234,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 235,
+          "label": "toaster",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 236,
+          "label": "toaster",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 237,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 238,
+          "label": "cabinet",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

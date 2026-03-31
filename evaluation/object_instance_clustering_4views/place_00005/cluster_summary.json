@@ -1,0 +1,82 @@
+{
+  "group_id": "place_00005",
+  "group_type": "place",
+  "n_objects": 7,
+  "n_clusters": 1,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 7,
+      "member_object_ids": [
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205
+      ],
+      "member_observation_ids": [
+        "obs_000199",
+        "obs_000200",
+        "obs_000201",
+        "obs_000202",
+        "obs_000203",
+        "obs_000204",
+        "obs_000205"
+      ],
+      "member_view_ids": [
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024",
+        "view_00024"
+      ],
+      "member_labels": [
+        "couch",
+        "clock",
+        "side table",
+        "shelf",
+        "side table",
+        "side table",
+        "side table"
+      ],
+      "member_descriptions": [
+        "edge-cropped dark brown leather couch arm",
+        "dark scalloped-framed wall clock",
+        "dark wooden side table edge-cropped",
+        "white wire pantry shelf, partial",
+        "dark wooden side table close-up",
+        "dark wooden side table corner",
+        "edge-cropped dark brown side table"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark brown leather couch showing a padded armrest/console and adjacent two-seat cushions with vertical seamed stitching and a slight glossy worn finish; a small remote or device sits on the armrest and a wooden side table is visible at the lower right\u2014approximately 1.2 m from the camera.",
+        "Circular wall clock with a dark glossy scalloped frame and white face showing black Roman numerals and black hour/minute hands; glass-covered dial, slightly blurred/pixelated in the image, fully visible and intact \u2014 estimated diameter ~30\u201335 cm and photographed from about 1.5 m away.",
+        "Small dark-brown wooden side table with a turned leg and rounded tabletop visible in the crop; top holds stacked books and a draped cloth, base shows scuffs and wear; object is partially edge-cropped and occluded by items, and appears close to the camera (estimated ~0.8 m away).",
+        "Partial white metal wire pantry shelving with multiple horizontal tiers holding assorted packaged food, containers, and jars; visible through a doorway at the right edge of the crop and cut off by the image border, with some areas slightly blurred \u2014 approximate distance from camera ~1.5 m.",
+        "Close-up of a dark brown wooden side table with a rectangular top and turned legs, visible lower shelf holding a woven basketlike object; wood finish looks scuffed/worn and the right side is edge-cropped in the image; appears approximately 0.8 m from the camera.",
+        "Partial crop showing the corner of a dark-stained wooden side table: rectangular top edge and a molded square leg are visible, with worn/scuffed finish on the top; object is close to the camera and cut off by the image edge (approx. 0.6 m away).",
+        "Edge-cropped dark brown wooden side table with a rectangular top and thick square legs, scuffed/worn finish and visible clutter (books) on the tabletop; partial view shows underside and one leg, likely a low-height table approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "clock": 1,
+        "couch": 1,
+        "shelf": 1,
+        "side table": 4
+      },
+      "representative_object_id": 205,
+      "representative_label": "side table",
+      "representative_description": "Edge-cropped dark brown wooden side table with a rectangular top and thick square legs, scuffed/worn finish and visible clutter (books) on the tabletop; partial view shows underside and one leg, likely a low-height table approximately 0.8 m from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00024"
+      ]
+    }
+  ]
+}

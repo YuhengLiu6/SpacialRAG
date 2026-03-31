@@ -1,0 +1,237 @@
+{
+  "group_id": "place_00023",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 867,
+      "observation_id": "obs_000867",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "bed",
+      "description": "beige striped bed with wood headboard"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 868,
+      "observation_id": "obs_000868",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "nightstand",
+      "description": "dark wooden nightstand, three drawers"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 869,
+      "observation_id": "obs_000869",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "table lamp",
+      "description": "beige pleated shade table lamp"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 870,
+      "observation_id": "obs_000870",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "nightstand",
+      "description": "edge-cropped dark wooden nightstand"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 871,
+      "observation_id": "obs_000871",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "pillow",
+      "description": "rectangular striped off-white pillow, edge"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 872,
+      "observation_id": "obs_000872",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "table lamp",
+      "description": "beige pleated shade table lamp"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 873,
+      "observation_id": "obs_000873",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "pillow",
+      "description": "rectangular beige striped pillow"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 7,
+      "object_global_id": 874,
+      "observation_id": "obs_000874",
+      "view_id": "view_00120",
+      "entry_id": 120,
+      "label": "dresser",
+      "description": "dark mahogany dresser top, partial"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 8,
+      "object_global_id": 875,
+      "observation_id": "obs_000875",
+      "view_id": "view_00121",
+      "entry_id": 121,
+      "label": "bed",
+      "description": "beige-gray striped duvet bed edge"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 9,
+      "object_global_id": 876,
+      "observation_id": "obs_000876",
+      "view_id": "view_00121",
+      "entry_id": 121,
+      "label": "tv",
+      "description": "black flat-screen TV edge-cropped"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 877,
+      "observation_id": "obs_000877",
+      "view_id": "view_00122",
+      "entry_id": 122,
+      "label": "dresser",
+      "description": "object: dresser | attrs: dark brown/black finish, flat top surface, vertical seam and cables along right side | anchor: x=2.0, z=-5.0 | nearby: cable@(2.0,-5.0), pillow@(2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 11,
+      "object_global_id": 878,
+      "observation_id": "obs_000878",
+      "view_id": "view_00122",
+      "entry_id": 122,
+      "label": "other",
+      "description": "object: other | attrs: black, thin, vertical | anchor: x=2.0, z=-5.0 | nearby: dresser@(2.0,-5.0), pillow@(2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 12,
+      "object_global_id": 879,
+      "observation_id": "obs_000879",
+      "view_id": "view_00122",
+      "entry_id": 122,
+      "label": "pillow",
+      "description": "object: pillow | attrs: beige to orange mottled color, soft fabric, irregular rounded shape | anchor: x=2.0, z=-5.0 | nearby: dresser@(2.0,-5.0), cable@(2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 13,
+      "object_global_id": 880,
+      "observation_id": "obs_000880",
+      "view_id": "view_00122",
+      "entry_id": 122,
+      "label": "monitor",
+      "description": "object: monitor | attrs: black/glossy surface, rectangular, mounted or sitting close to wall | anchor: x=1.5, z=-4.5 | nearby: picture frame@(1.5,-4.5), pillow@(2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 14,
+      "object_global_id": 881,
+      "observation_id": "obs_000881",
+      "view_id": "view_00122",
+      "entry_id": 122,
+      "label": "picture frame",
+      "description": "object: picture frame | attrs: narrow vertical, dark frame, hung on wall | anchor: x=1.5, z=-4.5 | nearby: monitor@(1.5,-4.5), dresser@(2.0,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 11,
+      "object_global_id": 882,
+      "observation_id": "obs_000882",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "book",
+      "description": "object: book | attrs: tan/gold, rectangular, small | anchor: x=3.0, z=-6.0 | nearby: desk@(3.0,-6.0), jewelry organizer@(3.5,-6.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 15,
+      "object_global_id": 883,
+      "observation_id": "obs_000883",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "desk",
+      "description": "object: desk | attrs: dark wood, beveled edge, polished surface | anchor: x=3.0, z=-6.0 | nearby: small book/wallet@(3.0,-6.0), jewelry organizer@(3.5,-6.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 16,
+      "object_global_id": 884,
+      "observation_id": "obs_000884",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "curtain",
+      "description": "object: curtain | attrs: dark navy/black, heavy fabric, full-length | anchor: x=4.5, z=-6.0 | nearby: blinds@(5.0,-5.5), jewelry organizer@(3.5,-6.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 17,
+      "object_global_id": 885,
+      "observation_id": "obs_000885",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "other",
+      "description": "object: other | attrs: metal hooks, various necklaces, earrings and small hanging pieces | anchor: x=3.5, z=-6.0 | nearby: desk@(3.0,-6.0), left curtain@(4.5,-6.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 18,
+      "object_global_id": 886,
+      "observation_id": "obs_000886",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "blinds",
+      "description": "object: blinds | attrs: white, horizontal slats, light-filtering, slightly wrinkled near bottom | anchor: x=5.0, z=-5.5 | nearby: left curtain@(4.5,-6.0), right curtain@(4.5,-5.0)"
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 887,
+      "observation_id": "obs_000887",
+      "view_id": "view_00123",
+      "entry_id": 123,
+      "label": "curtain",
+      "description": "object: curtain | attrs: dark navy/black, heavy fabric, full-length | anchor: x=4.5, z=-5.0 | nearby: blinds@(5.0,-5.5), right wall@(4.5,-4.5)"
+    }
+  ]
+}

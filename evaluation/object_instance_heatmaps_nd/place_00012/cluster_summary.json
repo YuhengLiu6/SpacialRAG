@@ -1,0 +1,690 @@
+{
+  "group_id": "place_00012",
+  "group_type": "place",
+  "n_objects": 23,
+  "n_clusters": 20,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00012:cluster_000",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        625
+      ],
+      "member_observation_ids": [
+        "obs_000625"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "other"
+      ],
+      "member_descriptions": [
+        "object: other | attrs: metal, mounted high on wall | anchor: x=-2.5, z=-4.5 | nearby: flag@(-3.0,-4.5), light switch plate@(-2.5,-4.0)"
+      ],
+      "member_long_descriptions": [
+        "object: other | attributes: metal, mounted high on wall | camera_relation: distance=1.9, bearing=-2.0, laterality=center, verticality=high | global_anchor: x=-2.5, z=-4.5 | surroundings: flag | relation=below | primary_dist=0.3 | global=(-3.0,-4.5); light switch plate | relation=right-below | primary_dist=0.7 | global=(-2.5,-4.0); doorway (bedroom) | relation=right-forward | primary_dist=1.9 | global=(-1.0,-5.0); torn wall / damaged plaster near jamb | relation=right-forward | primary_dist=1.9 | global=(-1.0,-5.0); bed (visible through doorway) | relation=inside room | primary_dist=3.2 | global=(0.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "other": 1
+      },
+      "representative_object_id": 625,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: metal, mounted high on wall | camera_relation: distance=1.9, bearing=-2.0, laterality=center, verticality=high | global_anchor: x=-2.5, z=-4.5 | surroundings: flag | relation=below | primary_dist=0.3 | global=(-3.0,-4.5); light switch plate | relation=right-below | primary_dist=0.7 | global=(-2.5,-4.0); doorway (bedroom) | relation=right-forward | primary_dist=1.9 | global=(-1.0,-5.0); torn wall / damaged plaster near jamb | relation=right-forward | primary_dist=1.9 | global=(-1.0,-5.0); bed (visible through doorway) | relation=inside room | primary_dist=3.2 | global=(0.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00012:cluster_001",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        626
+      ],
+      "member_observation_ids": [
+        "obs_000626"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "other"
+      ],
+      "member_descriptions": [
+        "object: other | attrs: red white and blue, fabric, vertical orientation, star field upper-left | anchor: x=-3.0, z=-4.5 | nearby: wall hook/nail@(-2.5,-4.5), light switch plate@(-2.5,-4.0)"
+      ],
+      "member_long_descriptions": [
+        "object: other | attributes: red white and blue, fabric, vertical orientation, star field upper-left | camera_relation: distance=1.8, bearing=-5.0, laterality=center, verticality=middle | global_anchor: x=-3.0, z=-4.5 | surroundings: wall hook/nail | relation=above | primary_dist=0.3 | global=(-2.5,-4.5); light switch plate | relation=right of | primary_dist=0.6 | global=(-2.5,-4.0); doorway (bedroom) | relation=right and slightly forward | primary_dist=1.0 | global=(-1.0,-4.5); torn wall / damaged plaster near jamb | relation=right and forward | primary_dist=1.0 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond doorway | primary_dist=2.0 | global=(-0.5,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "other": 1
+      },
+      "representative_object_id": 626,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: red white and blue, fabric, vertical orientation, star field upper-left | camera_relation: distance=1.8, bearing=-5.0, laterality=center, verticality=middle | global_anchor: x=-3.0, z=-4.5 | surroundings: wall hook/nail | relation=above | primary_dist=0.3 | global=(-2.5,-4.5); light switch plate | relation=right of | primary_dist=0.6 | global=(-2.5,-4.0); doorway (bedroom) | relation=right and slightly forward | primary_dist=1.0 | global=(-1.0,-4.5); torn wall / damaged plaster near jamb | relation=right and forward | primary_dist=1.0 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond doorway | primary_dist=2.0 | global=(-0.5,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00012:cluster_002",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        627
+      ],
+      "member_observation_ids": [
+        "obs_000627"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "wall switch"
+      ],
+      "member_descriptions": [
+        "object: wall switch | attrs: white plastic, two rocker switches, rectangular plate | anchor: x=-2.5, z=-4.0 | nearby: flag@(-3.0,-4.5), wall hook/nail@(-2.5,-4.5)"
+      ],
+      "member_long_descriptions": [
+        "object: wall switch | attributes: white plastic, two rocker switches, rectangular plate | camera_relation: distance=1.6, bearing=8.0, laterality=center, verticality=middle | global_anchor: x=-2.5, z=-4.0 | surroundings: flag | relation=left of | primary_dist=0.6 | global=(-3.0,-4.5); wall hook/nail | relation=left-above | primary_dist=0.7 | global=(-2.5,-4.5); doorway (bedroom) | relation=right-forward | primary_dist=1.2 | global=(-1.5,-4.5); torn wall / damaged plaster near jamb | relation=right-forward | primary_dist=1.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond doorway | primary_dist=2.8 | global=(0.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "wall switch": 1
+      },
+      "representative_object_id": 627,
+      "representative_label": "wall switch",
+      "representative_description": "object: wall switch | attributes: white plastic, two rocker switches, rectangular plate | camera_relation: distance=1.6, bearing=8.0, laterality=center, verticality=middle | global_anchor: x=-2.5, z=-4.0 | surroundings: flag | relation=left of | primary_dist=0.6 | global=(-3.0,-4.5); wall hook/nail | relation=left-above | primary_dist=0.7 | global=(-2.5,-4.5); doorway (bedroom) | relation=right-forward | primary_dist=1.2 | global=(-1.5,-4.5); torn wall / damaged plaster near jamb | relation=right-forward | primary_dist=1.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond doorway | primary_dist=2.8 | global=(0.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00012:cluster_003",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        628
+      ],
+      "member_observation_ids": [
+        "obs_000628"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white frame, ornate molding, open to right | anchor: x=-1.0, z=-4.5 | nearby: torn wall / damaged plaster near jamb@(-1.0,-4.5), bed (visible through doorway)@(-0.5,-5.0)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white frame, ornate molding, open to right | camera_relation: distance=2.5, bearing=35.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: torn wall / damaged plaster near jamb | relation=adjacent to (jamb area) | primary_dist=0.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond | primary_dist=0.7 | global=(-0.5,-5.0); flag | relation=left of | primary_dist=1.0 | global=(-3.0,-4.5); light switch plate | relation=left of | primary_dist=1.2 | global=(-2.5,-4.0); wall hook/nail | relation=left-above | primary_dist=1.9 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "door": 1
+      },
+      "representative_object_id": 628,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white frame, ornate molding, open to right | camera_relation: distance=2.5, bearing=35.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: torn wall / damaged plaster near jamb | relation=adjacent to (jamb area) | primary_dist=0.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=inside room beyond | primary_dist=0.7 | global=(-0.5,-5.0); flag | relation=left of | primary_dist=1.0 | global=(-3.0,-4.5); light switch plate | relation=left of | primary_dist=1.2 | global=(-2.5,-4.0); wall hook/nail | relation=left-above | primary_dist=1.9 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00012:cluster_004",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        629
+      ],
+      "member_observation_ids": [
+        "obs_000629"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "other"
+      ],
+      "member_descriptions": [
+        "object: other | attrs: peeling paper/plaster, irregular torn edges, exposed darker cavity | anchor: x=-1.0, z=-4.5 | nearby: doorway (bedroom)@(-1.0,-4.5), bed (visible through doorway)@(-0.5,-5.5)"
+      ],
+      "member_long_descriptions": [
+        "object: other | attributes: peeling paper/plaster, irregular torn edges, exposed darker cavity | camera_relation: distance=2.4, bearing=38.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: doorway (bedroom) | relation=adjacent to (jamb) | primary_dist=0.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=nearby inside room | primary_dist=0.8 | global=(-0.5,-5.5); flag | relation=left | primary_dist=1.0 | global=(-3.0,-4.5); light switch plate | relation=left | primary_dist=1.2 | global=(-2.5,-4.0); wall hook/nail | relation=left-above | primary_dist=1.9 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "other": 1
+      },
+      "representative_object_id": 629,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: peeling paper/plaster, irregular torn edges, exposed darker cavity | camera_relation: distance=2.4, bearing=38.0, laterality=right, verticality=middle | global_anchor: x=-1.0, z=-4.5 | surroundings: doorway (bedroom) | relation=adjacent to (jamb) | primary_dist=0.2 | global=(-1.0,-4.5); bed (visible through doorway) | relation=nearby inside room | primary_dist=0.8 | global=(-0.5,-5.5); flag | relation=left | primary_dist=1.0 | global=(-3.0,-4.5); light switch plate | relation=left | primary_dist=1.2 | global=(-2.5,-4.0); wall hook/nail | relation=left-above | primary_dist=1.9 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00012:cluster_005",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        630
+      ],
+      "member_observation_ids": [
+        "obs_000630"
+      ],
+      "member_view_ids": [
+        "view_00068"
+      ],
+      "member_labels": [
+        "bed"
+      ],
+      "member_descriptions": [
+        "object: bed | attrs: dark wood headboard, beige/cream bedding | anchor: x=-0.5, z=-5.5 | nearby: doorway (bedroom)@(-1.0,-4.5), torn wall / damaged plaster near jamb@(-1.0,-4.5)"
+      ],
+      "member_long_descriptions": [
+        "object: bed | attributes: dark wood headboard, beige/cream bedding | camera_relation: distance=3.5, bearing=40.0, laterality=right, verticality=low | global_anchor: x=-0.5, z=-5.5 | surroundings: doorway (bedroom) | relation=just outside (front of) | primary_dist=0.7 | global=(-1.0,-4.5); torn wall / damaged plaster near jamb | relation=nearby (left of bed from view) | primary_dist=0.8 | global=(-1.0,-4.5); flag | relation=across hallway left-forward | primary_dist=2.0 | global=(-3.0,-4.5); light switch plate | relation=across hallway left | primary_dist=2.8 | global=(-2.5,-4.0); wall hook/nail | relation=across hallway left-above | primary_dist=3.2 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige"
+      ],
+      "label_histogram": {
+        "bed": 1
+      },
+      "representative_object_id": 630,
+      "representative_label": "bed",
+      "representative_description": "object: bed | attributes: dark wood headboard, beige/cream bedding | camera_relation: distance=3.5, bearing=40.0, laterality=right, verticality=low | global_anchor: x=-0.5, z=-5.5 | surroundings: doorway (bedroom) | relation=just outside (front of) | primary_dist=0.7 | global=(-1.0,-4.5); torn wall / damaged plaster near jamb | relation=nearby (left of bed from view) | primary_dist=0.8 | global=(-1.0,-4.5); flag | relation=across hallway left-forward | primary_dist=2.0 | global=(-3.0,-4.5); light switch plate | relation=across hallway left | primary_dist=2.8 | global=(-2.5,-4.0); wall hook/nail | relation=across hallway left-above | primary_dist=3.2 | global=(-2.5,-4.5) | scene_context: floor_pattern=wood; scene_attributes=textured beige wall (stucco/knockdown finish), vertical hanging US flag on dowel, white dual light switch plate, open doorway to a bedroom at right, visible dark wood headboard through doorway; wall_color=beige",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00012:cluster_006",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 3,
+      "member_object_ids": [
+        631,
+        633,
+        635
+      ],
+      "member_observation_ids": [
+        "obs_000631",
+        "obs_000633",
+        "obs_000635"
+      ],
+      "member_view_ids": [
+        "view_00069",
+        "view_00069",
+        "view_00069"
+      ],
+      "member_labels": [
+        "chair",
+        "couch",
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark glossy wooden chair edge-crop",
+        "dark leather reclining couch edge",
+        "dark carved wooden side table"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark reddish-brown glossy wooden chair with a black upholstered seat cushion and carved curved legs and back; the chair appears close to the camera (approx. 0.6 m) and is partially occluded by a tabletop, with reflective varnished surfaces visible.",
+        "Partial close-up of a dark (black-brown) leather reclining couch showing two padded seats with vertical stitched channel backrests and a cushioned armrest; the right side is edge-cropped and a small dark object (possible remote or folded cloth) sits on the arm \u2014 estimated distance ~1.0 m from the camera.",
+        "Small dark-brown carved wooden side table with ornate legs and a lower shelf holding a folded patterned cloth; front and top surfaces are visible while the right edge is slightly cropped, finish appears glossy with small items on the tabletop; photographed fairly close to the camera (\u22481.2 m)."
+      ],
+      "label_histogram": {
+        "chair": 1,
+        "couch": 1,
+        "side table": 1
+      },
+      "representative_object_id": 631,
+      "representative_label": "chair",
+      "representative_description": "Partial, edge-cropped dark reddish-brown glossy wooden chair with a black upholstered seat cushion and carved curved legs and back; the chair appears close to the camera (approx. 0.6 m) and is partially occluded by a tabletop, with reflective varnished surfaces visible.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00069"
+      ]
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "place:place_00012:cluster_007",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        632
+      ],
+      "member_observation_ids": [
+        "obs_000632"
+      ],
+      "member_view_ids": [
+        "view_00069"
+      ],
+      "member_labels": [
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "light-brown frame with document"
+      ],
+      "member_long_descriptions": [
+        "Light-brown rectangular picture frame holding a white printed document or shipping label with black text and barcodes under glass; the frame fills most of the crop and is partially edge-cropped (top/right); photographed at close range (approx. 0.5 m)."
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      },
+      "representative_object_id": 632,
+      "representative_label": "picture frame",
+      "representative_description": "Light-brown rectangular picture frame holding a white printed document or shipping label with black text and barcodes under glass; the frame fills most of the crop and is partially edge-cropped (top/right); photographed at close range (approx. 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 8,
+      "candidate_instance_id": "place:place_00012:cluster_008",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        634
+      ],
+      "member_observation_ids": [
+        "obs_000634"
+      ],
+      "member_view_ids": [
+        "view_00069"
+      ],
+      "member_labels": [
+        "clock"
+      ],
+      "member_descriptions": [
+        "black fluted wall clock partial"
+      ],
+      "member_long_descriptions": [
+        "Round wall-mounted clock with a glossy black fluted (scalloped) plastic or metal frame, white dial with bold dark Roman-style numerals and black hour and minute hands; the clock is slightly edge-cropped in the crop and appears photographed from about 1.2 m away."
+      ],
+      "label_histogram": {
+        "clock": 1
+      },
+      "representative_object_id": 634,
+      "representative_label": "clock",
+      "representative_description": "Round wall-mounted clock with a glossy black fluted (scalloped) plastic or metal frame, white dial with bold dark Roman-style numerals and black hour and minute hands; the clock is slightly edge-cropped in the crop and appears photographed from about 1.2 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 9,
+      "candidate_instance_id": "place:place_00012:cluster_009",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        636
+      ],
+      "member_observation_ids": [
+        "obs_000636"
+      ],
+      "member_view_ids": [
+        "view_00070"
+      ],
+      "member_labels": [
+        "rug"
+      ],
+      "member_descriptions": [
+        "multicolored floral rug corner crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped multicolored floral rug with a blue border and red, white and yellow flower motifs on a textured woven/tufted pile, visible at the corner next to a hardwood floor; appears close to the camera (approx. 0.5 m away)."
+      ],
+      "label_histogram": {
+        "rug": 1
+      },
+      "representative_object_id": 636,
+      "representative_label": "rug",
+      "representative_description": "Partial, edge-cropped multicolored floral rug with a blue border and red, white and yellow flower motifs on a textured woven/tufted pile, visible at the corner next to a hardwood floor; appears close to the camera (approx. 0.5 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 10,
+      "candidate_instance_id": "place:place_00012:cluster_010",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        637,
+        638
+      ],
+      "member_observation_ids": [
+        "obs_000637",
+        "obs_000638"
+      ],
+      "member_view_ids": [
+        "view_00070",
+        "view_00071"
+      ],
+      "member_labels": [
+        "rug",
+        "rug"
+      ],
+      "member_descriptions": [
+        "small beige floral rug corner",
+        "muted blue-beige patterned rug edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Partial edge-cropped small beige low-pile area rug with muted floral motifs in pale green and brown; only the corner is visible against hardwood flooring and the weave appears slightly worn \u2014 visible portion suggests a small area rug, approximately 1.2 m from the camera.",
+        "Partial edge-cropped rectangular woven rug with a muted blue, beige, tan and cream abstract wavy/floral pattern and narrow reddish-brown binding visible against a hardwood floor; appears to be a low-pile or flatweave on the floor about 1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "rug": 2
+      },
+      "representative_object_id": 637,
+      "representative_label": "rug",
+      "representative_description": "Partial edge-cropped small beige low-pile area rug with muted floral motifs in pale green and brown; only the corner is visible against hardwood flooring and the weave appears slightly worn \u2014 visible portion suggests a small area rug, approximately 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 11,
+      "candidate_instance_id": "place:place_00012:cluster_011",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        639
+      ],
+      "member_observation_ids": [
+        "obs_000639"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "ornate dark wooden chair back"
+      ],
+      "member_long_descriptions": [
+        "Dark reddish-brown wooden chair back with carved, interlaced circular openwork and a glossy finish; the upper back is partially cropped by the image edge and shows some surface wear and darker discoloration \u2014 appears to be about 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 639,
+      "representative_label": "chair",
+      "representative_description": "Dark reddish-brown wooden chair back with carved, interlaced circular openwork and a glossy finish; the upper back is partially cropped by the image edge and shows some surface wear and darker discoloration \u2014 appears to be about 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 12,
+      "candidate_instance_id": "place:place_00012:cluster_012",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        640
+      ],
+      "member_observation_ids": [
+        "obs_000640"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark glossy wooden chair back edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, cropped close-up of a dark glossy wooden chair back showing multiple curved vertical slats with lighter worn highlights on the edges; lacquered finish appears reflective and the object is close to the camera (approx. 0.5 m)."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 640,
+      "representative_label": "chair",
+      "representative_description": "Partial, cropped close-up of a dark glossy wooden chair back showing multiple curved vertical slats with lighter worn highlights on the edges; lacquered finish appears reflective and the object is close to the camera (approx. 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 13,
+      "candidate_instance_id": "place:place_00012:cluster_013",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        641
+      ],
+      "member_observation_ids": [
+        "obs_000641"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "dining table"
+      ],
+      "member_descriptions": [
+        "dark mahogany rectangular dining table"
+      ],
+      "member_long_descriptions": [
+        "Dark mahogany rectangular dining table with a polished wood-grain top and rounded corners; front edge is partially occluded by carved wooden chairs and the crop cuts off parts of the table, viewed from close range (approximately 1.2 m)."
+      ],
+      "label_histogram": {
+        "dining table": 1
+      },
+      "representative_object_id": 641,
+      "representative_label": "dining table",
+      "representative_description": "Dark mahogany rectangular dining table with a polished wood-grain top and rounded corners; front edge is partially occluded by carved wooden chairs and the crop cuts off parts of the table, viewed from close range (approximately 1.2 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 14,
+      "candidate_instance_id": "place:place_00012:cluster_014",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        642
+      ],
+      "member_observation_ids": [
+        "obs_000642"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark wooden slatted chair side crop"
+      ],
+      "member_long_descriptions": [
+        "Side view of a dark reddish-brown wooden dining chair with vertical slatted back and carved top rail; seat and lower stretcher are visible but the chair is partially cropped at the image edge and appears about 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 642,
+      "representative_label": "chair",
+      "representative_description": "Side view of a dark reddish-brown wooden dining chair with vertical slatted back and carved top rail; seat and lower stretcher are visible but the chair is partially cropped at the image edge and appears about 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 15,
+      "candidate_instance_id": "place:place_00012:cluster_015",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        643
+      ],
+      "member_observation_ids": [
+        "obs_000643"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark carved wooden chair edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Partial edge-cropped dark reddish-brown wooden dining chair showing a carved front leg, scalloped apron and patterned upholstered back at the right edge; glossy finish with shadowed lower area \u2014 appears about 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 643,
+      "representative_label": "chair",
+      "representative_description": "Partial edge-cropped dark reddish-brown wooden dining chair showing a carved front leg, scalloped apron and patterned upholstered back at the right edge; glossy finish with shadowed lower area \u2014 appears about 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 16,
+      "candidate_instance_id": "place:place_00012:cluster_016",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        644
+      ],
+      "member_observation_ids": [
+        "obs_000644"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wooden cabinet corner crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark reddish-brown wooden cabinet showing a carved molding and raised-panel door with a small brass keyhole escutcheon and worn varnish; ornate vertical pilaster/detail visible at left \u2014 appears close to the camera, approximately 0.8 m away."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 644,
+      "representative_label": "cabinet",
+      "representative_description": "Partial, edge-cropped dark reddish-brown wooden cabinet showing a carved molding and raised-panel door with a small brass keyhole escutcheon and worn varnish; ornate vertical pilaster/detail visible at left \u2014 appears close to the camera, approximately 0.8 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 17,
+      "candidate_instance_id": "place:place_00012:cluster_017",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        645
+      ],
+      "member_observation_ids": [
+        "obs_000645"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark wooden chair back, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped view of a dark reddish-brown wooden chair back with vertical slats and a slightly curved top rail; wood grain and a semi-gloss finish are visible and the piece appears close to the camera (approximately 0.5 m)."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 645,
+      "representative_label": "chair",
+      "representative_description": "Partial, edge-cropped view of a dark reddish-brown wooden chair back with vertical slats and a slightly curved top rail; wood grain and a semi-gloss finish are visible and the piece appears close to the camera (approximately 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 18,
+      "candidate_instance_id": "place:place_00012:cluster_018",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        646
+      ],
+      "member_observation_ids": [
+        "obs_000646"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark mahogany wooden cabinet base"
+      ],
+      "member_long_descriptions": [
+        "Partial lower-side crop of an antique dark mahogany wooden cabinet base, showing two paneled doors with brass drop handles, three small upper drawers with decorative knobs, carved ornate feet and a glossy varnished finish with minor scuffing; appears about 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 646,
+      "representative_label": "cabinet",
+      "representative_description": "Partial lower-side crop of an antique dark mahogany wooden cabinet base, showing two paneled doors with brass drop handles, three small upper drawers with decorative knobs, carved ornate feet and a glossy varnished finish with minor scuffing; appears about 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 19,
+      "candidate_instance_id": "place:place_00012:cluster_019",
+      "group_id": "place_00012",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        647
+      ],
+      "member_observation_ids": [
+        "obs_000647"
+      ],
+      "member_view_ids": [
+        "view_00071"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "dark wooden slatted chair back (partial)"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark wooden chair back with a curved top rail and multiple vertical slats, glossy/dark-stained finish; a patterned fabric or coat with hanging fringe is draped over the lower area. Object appears close to the camera, approximately 0.6 m away."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 647,
+      "representative_label": "chair",
+      "representative_description": "Partial, edge-cropped dark wooden chair back with a curved top rail and multiple vertical slats, glossy/dark-stained finish; a patterned fabric or coat with hanging fringe is draped over the lower area. Object appears close to the camera, approximately 0.6 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

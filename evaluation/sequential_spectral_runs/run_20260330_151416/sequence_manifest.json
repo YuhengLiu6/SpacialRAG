@@ -1,0 +1,97 @@
+{
+  "db_dir": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd",
+  "selected_view_ids": [
+    "view_00019",
+    "view_00024",
+    "view_00058",
+    "view_00065"
+  ],
+  "views": [
+    {
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "file_name": "images/pose_00004_o270_000019.jpg",
+      "num_objects": 20,
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00019.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00019_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "file_name": "images/pose_00006_o000_000024.jpg",
+      "num_objects": 7,
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00024.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00024_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "file_name": "images/pose_00014_o180_000058.jpg",
+      "num_objects": 15,
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00058.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00058_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "file_name": "images/pose_00016_o090_000065.jpg",
+      "num_objects": 9,
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00065.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00065_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    }
+  ],
+  "stored_view_images": [
+    {
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "source_file_name": "images/pose_00004_o270_000019.jpg",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00004_o270_000019.jpg",
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00019.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/geometry/view_00019/detection_overlay.jpg",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00019_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00024",
+      "entry_id": 24,
+      "source_file_name": "images/pose_00006_o000_000024.jpg",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00006_o000_000024.jpg",
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00024.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/geometry/view_00024/detection_overlay.jpg",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00024_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "source_file_name": "images/pose_00014_o180_000058.jpg",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00014_o180_000058.jpg",
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00058.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/geometry/view_00058/detection_overlay.jpg",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00058_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00065",
+      "entry_id": 65,
+      "source_file_name": "images/pose_00016_o090_000065.jpg",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o090_000065.jpg",
+      "stored_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00065.jpg",
+      "status": "copied",
+      "source_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/geometry/view_00065/detection_overlay.jpg",
+      "stored_detection_overlay_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/sequential_spectral_runs/run_20260330_151416/selected_view_images/view_00065_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    }
+  ]
+}

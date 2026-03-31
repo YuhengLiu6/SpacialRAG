@@ -1,0 +1,12 @@
+{
+  "view_image": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00003_o270_000015.jpg",
+  "selected_object_global_id": 93,
+  "neighbor_object_global_ids": [
+    87,
+    103,
+    84,
+    100,
+    85
+  ],
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/view_00015_cabinet_obj93_neighbors_name_only_annotated.jpg"
+}

@@ -1,0 +1,523 @@
+[
+  {
+    "cluster_id": 0,
+    "members": [
+      "towel (84)"
+    ],
+    "member_view_ids": [
+      "view_00015"
+    ],
+    "label_histogram": {
+      "towel": 1
+    }
+  },
+  {
+    "cluster_id": 1,
+    "members": [
+      "oven (85)"
+    ],
+    "member_view_ids": [
+      "view_00015"
+    ],
+    "label_histogram": {
+      "oven": 1
+    }
+  },
+  {
+    "cluster_id": 2,
+    "members": [
+      "lamp (86)"
+    ],
+    "member_view_ids": [
+      "view_00015"
+    ],
+    "label_histogram": {
+      "lamp": 1
+    }
+  },
+  {
+    "cluster_id": 3,
+    "members": [
+      "cabinet (87)",
+      "cabinet (88)",
+      "dining table (89)",
+      "refrigerator (92)",
+      "cabinet (93)",
+      "cabinet (94)",
+      "cabinet (96)",
+      "cabinet (97)",
+      "cabinet (98)",
+      "cabinet (99)",
+      "cabinet (100)",
+      "cabinet (101)",
+      "cabinet (103)",
+      "cabinet (104)",
+      "coffee maker (105)",
+      "cabinet (106)",
+      "chair (107)",
+      "refrigerator (128)",
+      "cabinet (130)",
+      "cabinet (134)",
+      "cabinet (135)",
+      "cabinet (136)",
+      "coffee maker (138)",
+      "cabinet (140)",
+      "cabinet (141)",
+      "coffee maker (142)",
+      "cabinet (143)",
+      "outlet (144)",
+      "cabinet (145)",
+      "cabinet (146)",
+      "cabinet (147)",
+      "cabinet (188)",
+      "cabinet (198)"
+    ],
+    "member_view_ids": [
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00023",
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 25,
+      "chair": 1,
+      "coffee maker": 3,
+      "dining table": 1,
+      "outlet": 1,
+      "refrigerator": 2
+    }
+  },
+  {
+    "cluster_id": 6,
+    "members": [
+      "chair (90)",
+      "chair (91)",
+      "chair (102)",
+      "chair (131)",
+      "chair (132)",
+      "chair (139)",
+      "chair (185)"
+    ],
+    "member_view_ids": [
+      "view_00015",
+      "view_00015",
+      "view_00015",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00023"
+    ],
+    "label_histogram": {
+      "chair": 7
+    }
+  },
+  {
+    "cluster_id": 11,
+    "members": [
+      "rug (95)",
+      "dining table (133)"
+    ],
+    "member_view_ids": [
+      "view_00015",
+      "view_00019"
+    ],
+    "label_histogram": {
+      "dining table": 1,
+      "rug": 1
+    }
+  },
+  {
+    "cluster_id": 25,
+    "members": [
+      "picture frame (129)",
+      "clock (137)",
+      "clock (190)"
+    ],
+    "member_view_ids": [
+      "view_00019",
+      "view_00019",
+      "view_00023"
+    ],
+    "label_histogram": {
+      "clock": 2,
+      "picture frame": 1
+    }
+  },
+  {
+    "cluster_id": 44,
+    "members": [
+      "cabinet (191)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 45,
+    "members": [
+      "cabinet (192)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 46,
+    "members": [
+      "cabinet (193)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 47,
+    "members": [
+      "cabinet (195)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 48,
+    "members": [
+      "cabinet (189)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 49,
+    "members": [
+      "cabinet (196)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 50,
+    "members": [
+      "refrigerator (184)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "refrigerator": 1
+    }
+  },
+  {
+    "cluster_id": 51,
+    "members": [
+      "dining table (187)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "dining table": 1
+    }
+  },
+  {
+    "cluster_id": 52,
+    "members": [
+      "dining table (194)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "dining table": 1
+    }
+  },
+  {
+    "cluster_id": 53,
+    "members": [
+      "chair (197)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "chair": 1
+    }
+  },
+  {
+    "cluster_id": 54,
+    "members": [
+      "clock (186)"
+    ],
+    "member_view_ids": [
+      "view_00023"
+    ],
+    "label_histogram": {
+      "clock": 1
+    }
+  },
+  {
+    "cluster_id": 55,
+    "members": [
+      "refrigerator (221)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "refrigerator": 1
+    }
+  },
+  {
+    "cluster_id": 56,
+    "members": [
+      "cabinet (222)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 57,
+    "members": [
+      "cabinet (223)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 58,
+    "members": [
+      "coffee maker (224)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "coffee maker": 1
+    }
+  },
+  {
+    "cluster_id": 59,
+    "members": [
+      "cabinet (225)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 60,
+    "members": [
+      "cabinet (226)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 61,
+    "members": [
+      "cabinet (227)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 62,
+    "members": [
+      "table (228)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "table": 1
+    }
+  },
+  {
+    "cluster_id": 63,
+    "members": [
+      "cabinet (229)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 64,
+    "members": [
+      "coffee maker (230)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "coffee maker": 1
+    }
+  },
+  {
+    "cluster_id": 65,
+    "members": [
+      "cabinet (231)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 66,
+    "members": [
+      "sink (232)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "sink": 1
+    }
+  },
+  {
+    "cluster_id": 67,
+    "members": [
+      "cabinet (233)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 68,
+    "members": [
+      "cabinet (234)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 69,
+    "members": [
+      "toaster (235)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "toaster": 1
+    }
+  },
+  {
+    "cluster_id": 70,
+    "members": [
+      "toaster (236)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "toaster": 1
+    }
+  },
+  {
+    "cluster_id": 71,
+    "members": [
+      "cabinet (237)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 72,
+    "members": [
+      "cabinet (238)"
+    ],
+    "member_view_ids": [
+      "view_00027"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  }
+]

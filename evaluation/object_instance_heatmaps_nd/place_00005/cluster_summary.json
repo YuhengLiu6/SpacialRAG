@@ -1,0 +1,2740 @@
+{
+  "group_id": "place_00005",
+  "group_type": "place",
+  "n_objects": 86,
+  "n_clusters": 82,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00005:cluster_000",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        199
+      ],
+      "member_observation_ids": [
+        "obs_000199"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "edge-cropped dark brown leather couch arm"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark brown leather couch showing a padded armrest/console and adjacent two-seat cushions with vertical seamed stitching and a slight glossy worn finish; a small remote or device sits on the armrest and a wooden side table is visible at the lower right\u2014approximately 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 199,
+      "representative_label": "couch",
+      "representative_description": "Partial, edge-cropped dark brown leather couch showing a padded armrest/console and adjacent two-seat cushions with vertical seamed stitching and a slight glossy worn finish; a small remote or device sits on the armrest and a wooden side table is visible at the lower right\u2014approximately 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00005:cluster_001",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        200,
+        418
+      ],
+      "member_observation_ids": [
+        "obs_000200",
+        "obs_000418"
+      ],
+      "member_view_ids": [
+        "view_00024",
+        "view_00048"
+      ],
+      "member_labels": [
+        "clock",
+        "clock"
+      ],
+      "member_descriptions": [
+        "dark scalloped-framed wall clock",
+        "round white-face wall clock"
+      ],
+      "member_long_descriptions": [
+        "Circular wall clock with a dark glossy scalloped frame and white face showing black Roman numerals and black hour/minute hands; glass-covered dial, slightly blurred/pixelated in the image, fully visible and intact \u2014 estimated diameter ~30\u201335 cm and photographed from about 1.5 m away.",
+        "Circular wall clock with a white dial and black Roman numerals, black hour and minute hands, set in a dark glossy scalloped frame (likely wood or metal); fully visible in crop but slightly blurred/low-resolution with minor glare on the glass; estimated about 1.5 meters from the camera."
+      ],
+      "label_histogram": {
+        "clock": 2
+      },
+      "representative_object_id": 200,
+      "representative_label": "clock",
+      "representative_description": "Circular wall clock with a dark glossy scalloped frame and white face showing black Roman numerals and black hour/minute hands; glass-covered dial, slightly blurred/pixelated in the image, fully visible and intact \u2014 estimated diameter ~30\u201335 cm and photographed from about 1.5 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00005:cluster_002",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        201
+      ],
+      "member_observation_ids": [
+        "obs_000201"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Small dark-brown wooden side table with a turned leg and rounded tabletop visible in the crop; top holds stacked books and a draped cloth, base shows scuffs and wear; object is partially edge-cropped and occluded by items, and appears close to the camera (estimated ~0.8 m away)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 201,
+      "representative_label": "side table",
+      "representative_description": "Small dark-brown wooden side table with a turned leg and rounded tabletop visible in the crop; top holds stacked books and a draped cloth, base shows scuffs and wear; object is partially edge-cropped and occluded by items, and appears close to the camera (estimated ~0.8 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00005:cluster_003",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        202,
+        420
+      ],
+      "member_observation_ids": [
+        "obs_000202",
+        "obs_000420"
+      ],
+      "member_view_ids": [
+        "view_00024",
+        "view_00048"
+      ],
+      "member_labels": [
+        "shelf",
+        "shelf"
+      ],
+      "member_descriptions": [
+        "white wire pantry shelf, partial",
+        "white wire pantry shelf partial"
+      ],
+      "member_long_descriptions": [
+        "Partial white metal wire pantry shelving with multiple horizontal tiers holding assorted packaged food, containers, and jars; visible through a doorway at the right edge of the crop and cut off by the image border, with some areas slightly blurred \u2014 approximate distance from camera ~1.5 m.",
+        "Partial vertical crop of a white/chrome metal wire pantry shelf with three to four visible tiers holding assorted boxed and jarred food items and containers; shelf is edge-cropped at the image border and slightly blurred \u2014 estimated ~1.2 meters from the camera."
+      ],
+      "label_histogram": {
+        "shelf": 2
+      },
+      "representative_object_id": 202,
+      "representative_label": "shelf",
+      "representative_description": "Partial white metal wire pantry shelving with multiple horizontal tiers holding assorted packaged food, containers, and jars; visible through a doorway at the right edge of the crop and cut off by the image border, with some areas slightly blurred \u2014 approximate distance from camera ~1.5 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00005:cluster_004",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        203
+      ],
+      "member_observation_ids": [
+        "obs_000203"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table close-up"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a dark brown wooden side table with a rectangular top and turned legs, visible lower shelf holding a woven basketlike object; wood finish looks scuffed/worn and the right side is edge-cropped in the image; appears approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 203,
+      "representative_label": "side table",
+      "representative_description": "Close-up of a dark brown wooden side table with a rectangular top and turned legs, visible lower shelf holding a woven basketlike object; wood finish looks scuffed/worn and the right side is edge-cropped in the image; appears approximately 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00005:cluster_005",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        204
+      ],
+      "member_observation_ids": [
+        "obs_000204"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table corner"
+      ],
+      "member_long_descriptions": [
+        "Partial crop showing the corner of a dark-stained wooden side table: rectangular top edge and a molded square leg are visible, with worn/scuffed finish on the top; object is close to the camera and cut off by the image edge (approx. 0.6 m away)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 204,
+      "representative_label": "side table",
+      "representative_description": "Partial crop showing the corner of a dark-stained wooden side table: rectangular top edge and a molded square leg are visible, with worn/scuffed finish on the top; object is close to the camera and cut off by the image edge (approx. 0.6 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00005:cluster_006",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        205
+      ],
+      "member_observation_ids": [
+        "obs_000205"
+      ],
+      "member_view_ids": [
+        "view_00024"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "edge-cropped dark brown side table"
+      ],
+      "member_long_descriptions": [
+        "Edge-cropped dark brown wooden side table with a rectangular top and thick square legs, scuffed/worn finish and visible clutter (books) on the tabletop; partial view shows underside and one leg, likely a low-height table approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 205,
+      "representative_label": "side table",
+      "representative_description": "Edge-cropped dark brown wooden side table with a rectangular top and thick square legs, scuffed/worn finish and visible clutter (books) on the tabletop; partial view shows underside and one leg, likely a low-height table approximately 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "place:place_00005:cluster_007",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        206
+      ],
+      "member_observation_ids": [
+        "obs_000206"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wood side table edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden side table with a glossy rectangular top, carved curved apron and visible turned leg; surface holds a woven basket and small plate, and the table is partially edge-cropped in the image (approx. 1.0 m from camera)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 206,
+      "representative_label": "side table",
+      "representative_description": "Dark brown wooden side table with a glossy rectangular top, carved curved apron and visible turned leg; surface holds a woven basket and small plate, and the table is partially edge-cropped in the image (approx. 1.0 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 8,
+      "candidate_instance_id": "place:place_00005:cluster_008",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        207
+      ],
+      "member_observation_ids": [
+        "obs_000207"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark brown leather couch right-edge cropped"
+      ],
+      "member_long_descriptions": [
+        "Long dark brown leather three-seat couch with glossy, slightly worn upholstery, prominent stitched seams and segmented padded cushions; padded back/headrest sections visible and the right arm/edge is cropped \u2014 appears about 2.0 meters from the camera."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 207,
+      "representative_label": "couch",
+      "representative_description": "Long dark brown leather three-seat couch with glossy, slightly worn upholstery, prominent stitched seams and segmented padded cushions; padded back/headrest sections visible and the right arm/edge is cropped \u2014 appears about 2.0 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 9,
+      "candidate_instance_id": "place:place_00005:cluster_009",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        208
+      ],
+      "member_observation_ids": [
+        "obs_000208"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "black leather reclining couch, partial"
+      ],
+      "member_long_descriptions": [
+        "Dark black leather two-seat reclining couch with segmented padded cushions, stitched seams and high headrests; glossy faux-leather texture, visible right-arm cupholder/storage and floor-level base; mostly visible but slightly left-edge cropped in the image; estimated distance from camera ~2.0 m."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 208,
+      "representative_label": "couch",
+      "representative_description": "Dark black leather two-seat reclining couch with segmented padded cushions, stitched seams and high headrests; glossy faux-leather texture, visible right-arm cupholder/storage and floor-level base; mostly visible but slightly left-edge cropped in the image; estimated distance from camera ~2.0 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 10,
+      "candidate_instance_id": "place:place_00005:cluster_010",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        209
+      ],
+      "member_observation_ids": [
+        "obs_000209"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wood side table edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped small dark-brown wooden side table with turned/lathe-turned legs and a low stretcher shelf; traditional style, polished finish, appears close to the camera (approx. 0.8 m away)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 209,
+      "representative_label": "side table",
+      "representative_description": "Partial, edge-cropped small dark-brown wooden side table with turned/lathe-turned legs and a low stretcher shelf; traditional style, polished finish, appears close to the camera (approx. 0.8 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 11,
+      "candidate_instance_id": "place:place_00005:cluster_011",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        210
+      ],
+      "member_observation_ids": [
+        "obs_000210"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "fireplace"
+      ],
+      "member_descriptions": [
+        "dark painted fireplace opening, partial"
+      ],
+      "member_long_descriptions": [
+        "Partial view of a dark gray/black painted fireplace showing a rectangular recessed firebox with stepped/molded surround; the interior is shadowed black and the lower left edge is occluded by a nearby tabletop \u2014 approximate distance ~1.5 m from camera."
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      },
+      "representative_object_id": 210,
+      "representative_label": "fireplace",
+      "representative_description": "Partial view of a dark gray/black painted fireplace showing a rectangular recessed firebox with stepped/molded surround; the interior is shadowed black and the lower left edge is occluded by a nearby tabletop \u2014 approximate distance ~1.5 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 12,
+      "candidate_instance_id": "place:place_00005:cluster_012",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        211
+      ],
+      "member_observation_ids": [
+        "obs_000211"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark brown leather couch arm crop"
+      ],
+      "member_long_descriptions": [
+        "Close-up partial view of a dark brown leather couch showing the armrest and adjacent seat cushion with shiny, creased and worn surface, visible seams and plush padding; image is edge-cropped and the couch appears about 0.6 m from the camera."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 211,
+      "representative_label": "couch",
+      "representative_description": "Close-up partial view of a dark brown leather couch showing the armrest and adjacent seat cushion with shiny, creased and worn surface, visible seams and plush padding; image is edge-cropped and the couch appears about 0.6 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 13,
+      "candidate_instance_id": "place:place_00005:cluster_013",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        212
+      ],
+      "member_observation_ids": [
+        "obs_000212"
+      ],
+      "member_view_ids": [
+        "view_00025"
+      ],
+      "member_labels": [
+        "fireplace"
+      ],
+      "member_descriptions": [
+        "white wooden mantel, dark insert"
+      ],
+      "member_long_descriptions": [
+        "White painted wooden mantel with rectangular recessed panels and decorative trim surrounding a dark charcoal/black fireplace insert and empty firebox; the right side and top are slightly edge-cropped and the foreground shows tabletop objects partially obscuring the lower corner \u2014 approximate distance ~1.5 m from camera."
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      },
+      "representative_object_id": 212,
+      "representative_label": "fireplace",
+      "representative_description": "White painted wooden mantel with rectangular recessed panels and decorative trim surrounding a dark charcoal/black fireplace insert and empty firebox; the right side and top are slightly edge-cropped and the foreground shows tabletop objects partially obscuring the lower corner \u2014 approximate distance ~1.5 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 14,
+      "candidate_instance_id": "place:place_00005:cluster_014",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        213
+      ],
+      "member_observation_ids": [
+        "obs_000213"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "microwave"
+      ],
+      "member_descriptions": [
+        "stainless-steel over-the-range microwave"
+      ],
+      "member_long_descriptions": [
+        "Frontal stainless-steel over-the-range microwave with a large rectangular glass door framed by black trim, two interior lights visible through the window, and a vertical right-side digital control panel; reflective metal finish, slight low-resolution blur, and minor edge cropping at the image sides \u2014 estimated ~0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "microwave": 1
+      },
+      "representative_object_id": 213,
+      "representative_label": "microwave",
+      "representative_description": "Frontal stainless-steel over-the-range microwave with a large rectangular glass door framed by black trim, two interior lights visible through the window, and a vertical right-side digital control panel; reflective metal finish, slight low-resolution blur, and minor edge cropping at the image sides \u2014 estimated ~0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 15,
+      "candidate_instance_id": "place:place_00005:cluster_015",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        214
+      ],
+      "member_observation_ids": [
+        "obs_000214"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown wooden cabinet doors"
+      ],
+      "member_long_descriptions": [
+        "Pair of dark brown recessed-panel wooden cabinet doors with a central vertical seam, matte finish and visible wood grain; minor scuffing along the bottom rail is visible \u2014 close-range view, approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 214,
+      "representative_label": "cabinet",
+      "representative_description": "Pair of dark brown recessed-panel wooden cabinet doors with a central vertical seam, matte finish and visible wood grain; minor scuffing along the bottom rail is visible \u2014 close-range view, approximately 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 16,
+      "candidate_instance_id": "place:place_00005:cluster_016",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        215
+      ],
+      "member_observation_ids": [
+        "obs_000215"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown cabinet door, edge crop"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden cabinet door with a recessed central panel and narrow molding, matte finish with slight surface wear; right side is cut off by the image edge revealing part of a stainless-steel appliance, object appears partial and photographed from approximately 1.0 m."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 215,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown wooden cabinet door with a recessed central panel and narrow molding, matte finish with slight surface wear; right side is cut off by the image edge revealing part of a stainless-steel appliance, object appears partial and photographed from approximately 1.0 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 17,
+      "candidate_instance_id": "place:place_00005:cluster_017",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        216
+      ],
+      "member_observation_ids": [
+        "obs_000216"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark recessed wood cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Dark-stained wooden (or wood-veneered) cabinet door with a recessed central panel and vertical rectangular profile, matte finish with faint wood grain and a minor scuff near the bottom; door fills most of the crop and is slightly edge-cropped on the sides \u2014 estimated ~0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 216,
+      "representative_label": "cabinet",
+      "representative_description": "Dark-stained wooden (or wood-veneered) cabinet door with a recessed central panel and vertical rectangular profile, matte finish with faint wood grain and a minor scuff near the bottom; door fills most of the crop and is slightly edge-cropped on the sides \u2014 estimated ~0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 18,
+      "candidate_instance_id": "place:place_00005:cluster_018",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        217
+      ],
+      "member_observation_ids": [
+        "obs_000217"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "brown leather armrest and striped cushion"
+      ],
+      "member_long_descriptions": [
+        "Close-up partial crop of a couch showing a dark brown leather armrest at the lower left and a light gray-and-white striped fabric cushion or throw draped over the top; fabric appears wrinkled and textured, the object is edge-cropped and very close to the camera (approx. 0.6 m)."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 217,
+      "representative_label": "couch",
+      "representative_description": "Close-up partial crop of a couch showing a dark brown leather armrest at the lower left and a light gray-and-white striped fabric cushion or throw draped over the top; fabric appears wrinkled and textured, the object is edge-cropped and very close to the camera (approx. 0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 19,
+      "candidate_instance_id": "place:place_00005:cluster_019",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 3,
+      "member_object_ids": [
+        218,
+        437,
+        439
+      ],
+      "member_observation_ids": [
+        "obs_000218",
+        "obs_000437",
+        "obs_000439"
+      ],
+      "member_view_ids": [
+        "view_00026",
+        "view_00050",
+        "view_00050"
+      ],
+      "member_labels": [
+        "cabinet",
+        "cabinet",
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown wooden cabinet top edge",
+        "dark wood cabinet door crop",
+        "dark brown cabinet top edge"
+      ],
+      "member_long_descriptions": [
+        "Partial/edge-cropped view of a dark brown stained wooden cabinet front or top panel, horizontal rectangular face with a slightly recessed center and darker surrounding frame, matte/underlit finish with faint surface wear and discoloration; appears close to the camera (approximately 0.6 m away).",
+        "Vertical, dark-stained wooden cabinet door with a recessed central panel and narrow side trim; surface shows subtle wood grain and a matte-to-semi-gloss finish, small scuff near the bottom edge, and the image is edge-cropped at the left and right \u2014 estimated ~0.8 m from camera.",
+        "Partial close-up of a dark brown wooden cabinet showing the top edge and a flat rectangular front/top panel with a low-sheen veneer and minor wear; image is edge-cropped and under low light, estimated distance ~0.8 m from camera."
+      ],
+      "label_histogram": {
+        "cabinet": 3
+      },
+      "representative_object_id": 218,
+      "representative_label": "cabinet",
+      "representative_description": "Partial/edge-cropped view of a dark brown stained wooden cabinet front or top panel, horizontal rectangular face with a slightly recessed center and darker surrounding frame, matte/underlit finish with faint surface wear and discoloration; appears close to the camera (approximately 0.6 m away).",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00050"
+      ]
+    },
+    {
+      "cluster_id": 20,
+      "candidate_instance_id": "place:place_00005:cluster_020",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        219
+      ],
+      "member_observation_ids": [
+        "obs_000219"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "stove"
+      ],
+      "member_descriptions": [
+        "black glossy stovetop with knobs"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a black glossy stovetop/cooktop showing a horizontal row of chrome control knobs and stainless/chrome trim; reflective surface with slight blur and compression artifacts, partially edge-cropped at top and bottom, estimated ~0.6 m from camera."
+      ],
+      "label_histogram": {
+        "stove": 1
+      },
+      "representative_object_id": 219,
+      "representative_label": "stove",
+      "representative_description": "Close-up of a black glossy stovetop/cooktop showing a horizontal row of chrome control knobs and stainless/chrome trim; reflective surface with slight blur and compression artifacts, partially edge-cropped at top and bottom, estimated ~0.6 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 21,
+      "candidate_instance_id": "place:place_00005:cluster_021",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        220
+      ],
+      "member_observation_ids": [
+        "obs_000220"
+      ],
+      "member_view_ids": [
+        "view_00026"
+      ],
+      "member_labels": [
+        "sink"
+      ],
+      "member_descriptions": [
+        "partial dark inset sink corner"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped corner of a dark inset sink basin recessed into a light-colored tiled countertop with visible grout lines; the rim and shadowed interior are visible (appears metallic or glazed), only a small portion of the basin is shown \u2014 estimated distance from camera ~0.7 m."
+      ],
+      "label_histogram": {
+        "sink": 1
+      },
+      "representative_object_id": 220,
+      "representative_label": "sink",
+      "representative_description": "Partial, edge-cropped corner of a dark inset sink basin recessed into a light-colored tiled countertop with visible grout lines; the rim and shadowed interior are visible (appears metallic or glazed), only a small portion of the basin is shown \u2014 estimated distance from camera ~0.7 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 22,
+      "candidate_instance_id": "place:place_00005:cluster_022",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        221
+      ],
+      "member_observation_ids": [
+        "obs_000221"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "refrigerator"
+      ],
+      "member_descriptions": [
+        "stainless steel side-by-side refrigerator"
+      ],
+      "member_long_descriptions": [
+        "Full-height stainless-steel side-by-side refrigerator with reflective, slightly dented/smudged finish, vertical black recessed handles and a black water/ice dispenser on the left door; small brand badge visible at the top-right; approximately 1.5 meters from the camera."
+      ],
+      "label_histogram": {
+        "refrigerator": 1
+      },
+      "representative_object_id": 221,
+      "representative_label": "refrigerator",
+      "representative_description": "Full-height stainless-steel side-by-side refrigerator with reflective, slightly dented/smudged finish, vertical black recessed handles and a black water/ice dispenser on the left door; small brand badge visible at the top-right; approximately 1.5 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 23,
+      "candidate_instance_id": "place:place_00005:cluster_023",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        222
+      ],
+      "member_observation_ids": [
+        "obs_000222"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown recessed-panel cabinet"
+      ],
+      "member_long_descriptions": [
+        "Tall dark-brown stained wooden cabinet door with a single recessed rectangular panel and simple frame, smooth semi-gloss finish with subtle vertical wood grain and no visible hardware; lower edge of the cabinet is cropped in the image and the object appears approximately 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 222,
+      "representative_label": "cabinet",
+      "representative_description": "Tall dark-brown stained wooden cabinet door with a single recessed rectangular panel and simple frame, smooth semi-gloss finish with subtle vertical wood grain and no visible hardware; lower edge of the cabinet is cropped in the image and the object appears approximately 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 24,
+      "candidate_instance_id": "place:place_00005:cluster_024",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        223
+      ],
+      "member_observation_ids": [
+        "obs_000223"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wood tall cabinet edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Tall, dark-brown wooden cabinet with a recessed door panel and visible vertical edge/seam; the right side of the cabinet is cut off by the crop so the object is partially shown, with a satin finish and slight surface wear visible \u2014 appears photographed from about 1.0 m away."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 223,
+      "representative_label": "cabinet",
+      "representative_description": "Tall, dark-brown wooden cabinet with a recessed door panel and visible vertical edge/seam; the right side of the cabinet is cut off by the crop so the object is partially shown, with a satin finish and slight surface wear visible \u2014 appears photographed from about 1.0 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 25,
+      "candidate_instance_id": "place:place_00005:cluster_025",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        224
+      ],
+      "member_observation_ids": [
+        "obs_000224"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "coffee maker"
+      ],
+      "member_descriptions": [
+        "silver metal coffee maker edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped silver/gray metal drip-style coffee maker with a cylindrical upper reservoir and a visible glass carafe seated in a black plastic base; dark handle and some surface blur are visible and the countertop-sized unit appears roughly 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      },
+      "representative_object_id": 224,
+      "representative_label": "coffee maker",
+      "representative_description": "Partial, edge-cropped silver/gray metal drip-style coffee maker with a cylindrical upper reservoir and a visible glass carafe seated in a black plastic base; dark handle and some surface blur are visible and the countertop-sized unit appears roughly 0.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 26,
+      "candidate_instance_id": "place:place_00005:cluster_026",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        225
+      ],
+      "member_observation_ids": [
+        "obs_000225"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "beige recessed cabinet door edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial lower cabinet door of painted beige wood with a recessed panel and a short curved metal pull mounted near the top under a countertop; left edge of the door is cropped by the image frame, surface shows light gloss reflections and minor scuffs; approximate distance ~0.8 m from camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 225,
+      "representative_label": "cabinet",
+      "representative_description": "Partial lower cabinet door of painted beige wood with a recessed panel and a short curved metal pull mounted near the top under a countertop; left edge of the door is cropped by the image frame, surface shows light gloss reflections and minor scuffs; approximate distance ~0.8 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 27,
+      "candidate_instance_id": "place:place_00005:cluster_027",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        226
+      ],
+      "member_observation_ids": [
+        "obs_000226"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wood kitchen cabinet edge"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark-stained wooden kitchen cabinet front beneath a stone-look countertop with a stainless sink visible; shows a raised-panel door and horizontal top rail with some scuffs and shadowing, photographed close-up (approx. 0.6 m from camera)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 226,
+      "representative_label": "cabinet",
+      "representative_description": "Partial, edge-cropped dark-stained wooden kitchen cabinet front beneath a stone-look countertop with a stainless sink visible; shows a raised-panel door and horizontal top rail with some scuffs and shadowing, photographed close-up (approx. 0.6 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 28,
+      "candidate_instance_id": "place:place_00005:cluster_028",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        227
+      ],
+      "member_observation_ids": [
+        "obs_000227"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wooden cabinet door recessed panel"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden cabinet door with a recessed rectangular central panel and vertical wood grain, matte finish with light surface wear; image is slightly edge-cropped and the door fills most of the frame, approximately 0.6 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 227,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown wooden cabinet door with a recessed rectangular central panel and vertical wood grain, matte finish with light surface wear; image is slightly edge-cropped and the door fills most of the frame, approximately 0.6 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 29,
+      "candidate_instance_id": "place:place_00005:cluster_029",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        228
+      ],
+      "member_observation_ids": [
+        "obs_000228"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "table"
+      ],
+      "member_descriptions": [
+        "beige speckled table surface"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a beige, speckled stone or laminate table surface with granular brown and tan flecks and a slight glossy reflection; the surface is edge-cropped in the foreground and background and holds a small crumpled red-and-green object on a white paper, approximately 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "table": 1
+      },
+      "representative_object_id": 228,
+      "representative_label": "table",
+      "representative_description": "Close-up of a beige, speckled stone or laminate table surface with granular brown and tan flecks and a slight glossy reflection; the surface is edge-cropped in the foreground and background and holds a small crumpled red-and-green object on a white paper, approximately 0.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 30,
+      "candidate_instance_id": "place:place_00005:cluster_030",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        229
+      ],
+      "member_observation_ids": [
+        "obs_000229"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark stained wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Front-facing rectangular cabinet door made of dark-stained wood with a recessed central panel and visible vertical wood grain; matte finish with a small light reflection near the upper-left, no hardware or knobs visible, largely fully visible within the crop and approximately 1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 229,
+      "representative_label": "cabinet",
+      "representative_description": "Front-facing rectangular cabinet door made of dark-stained wood with a recessed central panel and visible vertical wood grain; matte finish with a small light reflection near the upper-left, no hardware or knobs visible, largely fully visible within the crop and approximately 1.0 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 31,
+      "candidate_instance_id": "place:place_00005:cluster_031",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        230
+      ],
+      "member_observation_ids": [
+        "obs_000230"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "coffee maker"
+      ],
+      "member_descriptions": [
+        "black glossy single-serve coffee maker"
+      ],
+      "member_long_descriptions": [
+        "Compact black glossy single-serve coffee maker with a chrome-accented lid and a translucent blue water-reservoir panel visible on the front; sits on a small drip tray, mostly visible but slightly cropped at the image edges, approximately 0.7 m from the camera."
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      },
+      "representative_object_id": 230,
+      "representative_label": "coffee maker",
+      "representative_description": "Compact black glossy single-serve coffee maker with a chrome-accented lid and a translucent blue water-reservoir panel visible on the front; sits on a small drip tray, mostly visible but slightly cropped at the image edges, approximately 0.7 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 32,
+      "candidate_instance_id": "place:place_00005:cluster_032",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        231
+      ],
+      "member_observation_ids": [
+        "obs_000231"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "tall dark wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "A tall dark-brown wooden cabinet/closet door with a recessed rectangular center panel and subtle vertical wood grain; matte finish with light scuffing and a slight central sheen, no visible hardware, and the left edge of the door is slightly cropped by the image border. Estimated distance from camera ~1.2 m."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 231,
+      "representative_label": "cabinet",
+      "representative_description": "A tall dark-brown wooden cabinet/closet door with a recessed rectangular center panel and subtle vertical wood grain; matte finish with light scuffing and a slight central sheen, no visible hardware, and the left edge of the door is slightly cropped by the image border. Estimated distance from camera ~1.2 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 33,
+      "candidate_instance_id": "place:place_00005:cluster_033",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        232
+      ],
+      "member_observation_ids": [
+        "obs_000232"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "sink"
+      ],
+      "member_descriptions": [
+        "polished stainless rectangular sink edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Polished stainless-steel rectangular sink basin with a reflective interior showing distorted reflections, partially cropped at the right/foreground edges and set into a beige-brown stone countertop; a faucet spout is visible at the top-right edge and the basin shows small water residue \u2014 photograph appears to be a close-up from about 0.6 m."
+      ],
+      "label_histogram": {
+        "sink": 1
+      },
+      "representative_object_id": 232,
+      "representative_label": "sink",
+      "representative_description": "Polished stainless-steel rectangular sink basin with a reflective interior showing distorted reflections, partially cropped at the right/foreground edges and set into a beige-brown stone countertop; a faucet spout is visible at the top-right edge and the basin shows small water residue \u2014 photograph appears to be a close-up from about 0.6 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 34,
+      "candidate_instance_id": "place:place_00005:cluster_034",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        233
+      ],
+      "member_observation_ids": [
+        "obs_000233"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Frontal view of a dark brown wooden cabinet door with a raised rectangular center panel, matte finish and subtle surface wear; the top rail and a narrow gap are visible and the right edge appears slightly cropped \u2014 estimated distance from camera ~0.8 m."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 233,
+      "representative_label": "cabinet",
+      "representative_description": "Frontal view of a dark brown wooden cabinet door with a raised rectangular center panel, matte finish and subtle surface wear; the top rail and a narrow gap are visible and the right edge appears slightly cropped \u2014 estimated distance from camera ~0.8 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 35,
+      "candidate_instance_id": "place:place_00005:cluster_035",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        234
+      ],
+      "member_observation_ids": [
+        "obs_000234"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark mahogany cabinet edge crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark mahogany wooden cabinet front showing an upper drawer with a metal knob and carved lower panel, glossy finish with visible scuffs and wear; appears close to the camera (\u22480.8 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 234,
+      "representative_label": "cabinet",
+      "representative_description": "Partial, edge-cropped dark mahogany wooden cabinet front showing an upper drawer with a metal knob and carved lower panel, glossy finish with visible scuffs and wear; appears close to the camera (\u22480.8 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 36,
+      "candidate_instance_id": "place:place_00005:cluster_036",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        235
+      ],
+      "member_observation_ids": [
+        "obs_000235"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "toaster"
+      ],
+      "member_descriptions": [
+        "cropped glossy black toaster front"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped glossy black toaster front with a highly reflective curved/rounded metallic surface showing blurred reflections and specular highlights; appears close to the camera (approximately 0.5 m) and lower/side portions are cut off."
+      ],
+      "label_histogram": {
+        "toaster": 1
+      },
+      "representative_object_id": 235,
+      "representative_label": "toaster",
+      "representative_description": "Partial, edge-cropped glossy black toaster front with a highly reflective curved/rounded metallic surface showing blurred reflections and specular highlights; appears close to the camera (approximately 0.5 m) and lower/side portions are cut off.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 37,
+      "candidate_instance_id": "place:place_00005:cluster_037",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        236
+      ],
+      "member_observation_ids": [
+        "obs_000236"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "toaster"
+      ],
+      "member_descriptions": [
+        "stainless steel toaster partial crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, front-facing stainless steel two-slot toaster with reflective metal body and visible top slots and control area; edge-cropped in the image and slightly blurred\u2014appears countertop-sized roughly 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "toaster": 1
+      },
+      "representative_object_id": 236,
+      "representative_label": "toaster",
+      "representative_description": "Partial, front-facing stainless steel two-slot toaster with reflective metal body and visible top slots and control area; edge-cropped in the image and slightly blurred\u2014appears countertop-sized roughly 0.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 38,
+      "candidate_instance_id": "place:place_00005:cluster_038",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        237
+      ],
+      "member_observation_ids": [
+        "obs_000237"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown recessed cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a full-height dark brown wooden cabinet door with a single recessed rectangular central panel and narrow outer frame; vertical wood grain is visible, finish is low-sheen with minor scuffs and light reflections along the edges, photographed at roughly 1.0 m distance."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 237,
+      "representative_label": "cabinet",
+      "representative_description": "Close-up of a full-height dark brown wooden cabinet door with a single recessed rectangular central panel and narrow outer frame; vertical wood grain is visible, finish is low-sheen with minor scuffs and light reflections along the edges, photographed at roughly 1.0 m distance.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 39,
+      "candidate_instance_id": "place:place_00005:cluster_039",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        238
+      ],
+      "member_observation_ids": [
+        "obs_000238"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown cabinet door edge"
+      ],
+      "member_long_descriptions": [
+        "Partial view of a dark brown stained wooden cabinet door with raised rectangular panels and visible wood grain, cut off at the right edge of the crop and sitting adjacent to a light granite countertop; appears close to the camera (approx. 0.6 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 238,
+      "representative_label": "cabinet",
+      "representative_description": "Partial view of a dark brown stained wooden cabinet door with raised rectangular panels and visible wood grain, cut off at the right edge of the crop and sitting adjacent to a light granite countertop; appears close to the camera (approx. 0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 40,
+      "candidate_instance_id": "place:place_00005:cluster_040",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        417
+      ],
+      "member_observation_ids": [
+        "obs_000417"
+      ],
+      "member_view_ids": [
+        "view_00048"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark brown leather couch arm crop"
+      ],
+      "member_long_descriptions": [
+        "Partial close-up of a dark brown glossy leather recliner couch showing a padded headrest, visible stitched seams and a wide padded armrest with a rectangular inset (possible control or cupholder); the seat and arm are edge-cropped and show creasing/wear in the leather \u2014 appears roughly 1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 417,
+      "representative_label": "couch",
+      "representative_description": "Partial close-up of a dark brown glossy leather recliner couch showing a padded headrest, visible stitched seams and a wide padded armrest with a rectangular inset (possible control or cupholder); the seat and arm are edge-cropped and show creasing/wear in the leather \u2014 appears roughly 1.0 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 41,
+      "candidate_instance_id": "place:place_00005:cluster_041",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        419
+      ],
+      "member_observation_ids": [
+        "obs_000419"
+      ],
+      "member_view_ids": [
+        "view_00048"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table, lower shelf"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden side table with a turned central leg and a visible lower shelf holding stacked items; top surface with magazines is visible at the left, the right side of the table is edge-cropped in the image, and the object appears relatively close to the camera (approx. 1.2 m)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 419,
+      "representative_label": "side table",
+      "representative_description": "Dark brown wooden side table with a turned central leg and a visible lower shelf holding stacked items; top surface with magazines is visible at the left, the right side of the table is edge-cropped in the image, and the object appears relatively close to the camera (approx. 1.2 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 42,
+      "candidate_instance_id": "place:place_00005:cluster_042",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        421
+      ],
+      "member_observation_ids": [
+        "obs_000421"
+      ],
+      "member_view_ids": [
+        "view_00048"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table edge"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a dark-stained wooden side table showing the apron and a turned leg; the object is partial and edge-cropped in the frame with visible wood grain and scuffed/worn finish on the corner, estimated about 0.6\u20130.8 meters from the camera."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 421,
+      "representative_label": "side table",
+      "representative_description": "Close-up of a dark-stained wooden side table showing the apron and a turned leg; the object is partial and edge-cropped in the frame with visible wood grain and scuffed/worn finish on the corner, estimated about 0.6\u20130.8 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 43,
+      "candidate_instance_id": "place:place_00005:cluster_043",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        422
+      ],
+      "member_observation_ids": [
+        "obs_000422"
+      ],
+      "member_view_ids": [
+        "view_00048"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden side table edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark brown wooden side table seen close-up with a rectangular top visible at the upper left, two vertical square legs and a lower shelf cluttered with papers/boxes; surface appears worn and the piece is occluded by items (approx. 0.7 m from camera)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 422,
+      "representative_label": "side table",
+      "representative_description": "Partial, edge-cropped dark brown wooden side table seen close-up with a rectangular top visible at the upper left, two vertical square legs and a lower shelf cluttered with papers/boxes; surface appears worn and the piece is occluded by items (approx. 0.7 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 44,
+      "candidate_instance_id": "place:place_00005:cluster_044",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        423
+      ],
+      "member_observation_ids": [
+        "obs_000423"
+      ],
+      "member_view_ids": [
+        "view_00048"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark wooden two-tier side table"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden two-tier side table with a rectangular top and lower shelf, holding a potted green plant and a small stack of magazines/papers; surface appears cluttered and the table is partially cut off at the crop edge (approx. 1.0 m from camera)."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 423,
+      "representative_label": "side table",
+      "representative_description": "Dark brown wooden two-tier side table with a rectangular top and lower shelf, holding a potted green plant and a small stack of magazines/papers; surface appears cluttered and the table is partially cut off at the crop edge (approx. 1.0 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 45,
+      "candidate_instance_id": "place:place_00005:cluster_045",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        424
+      ],
+      "member_observation_ids": [
+        "obs_000424"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "dark brown wooden side table edge"
+      ],
+      "member_long_descriptions": [
+        "Partial right-edge crop of a small dark brown polished wooden side table with a rectangular top, carved decorative apron and turned legs, glossy finish and intact condition; tabletop holds a small plate and lamp base \u2014 estimated distance ~0.6 m from camera."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 424,
+      "representative_label": "side table",
+      "representative_description": "Partial right-edge crop of a small dark brown polished wooden side table with a rectangular top, carved decorative apron and turned legs, glossy finish and intact condition; tabletop holds a small plate and lamp base \u2014 estimated distance ~0.6 m from camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 46,
+      "candidate_instance_id": "place:place_00005:cluster_046",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        425
+      ],
+      "member_observation_ids": [
+        "obs_000425"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "light wood rectangular frame"
+      ],
+      "member_long_descriptions": [
+        "Light wood rectangular wall-mounted picture frame with glass and an off-white mat holding a printed document or poster showing blue and black text/graphics; full front view visible (not cropped) with slight reflection on the glass, photographed from approximately 0.8 m away."
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      },
+      "representative_object_id": 425,
+      "representative_label": "picture frame",
+      "representative_description": "Light wood rectangular wall-mounted picture frame with glass and an off-white mat holding a printed document or poster showing blue and black text/graphics; full front view visible (not cropped) with slight reflection on the glass, photographed from approximately 0.8 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 47,
+      "candidate_instance_id": "place:place_00005:cluster_047",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        426
+      ],
+      "member_observation_ids": [
+        "obs_000426"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark brown leather reclining couch"
+      ],
+      "member_long_descriptions": [
+        "Dark brown leather three-seat reclining couch with segmented, heavily padded cushions and visible stitched seams and creasing; right-side arm/edge is slightly cut off by the image border, and the couch appears close to the camera (approximately 1.5 meters away)."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 426,
+      "representative_label": "couch",
+      "representative_description": "Dark brown leather three-seat reclining couch with segmented, heavily padded cushions and visible stitched seams and creasing; right-side arm/edge is slightly cut off by the image border, and the couch appears close to the camera (approximately 1.5 meters away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 48,
+      "candidate_instance_id": "place:place_00005:cluster_048",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        427
+      ],
+      "member_observation_ids": [
+        "obs_000427"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark leather reclining loveseat, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Two-seat dark brown/black leather reclining loveseat with padded, segmented backrests and visible stitched seams; right armrest includes a console/cup-holder, upholstery has a slight glossy sheen, left side is slightly edge-cropped in the image; object appears about 2.0 m from the camera."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 427,
+      "representative_label": "couch",
+      "representative_description": "Two-seat dark brown/black leather reclining loveseat with padded, segmented backrests and visible stitched seams; right armrest includes a console/cup-holder, upholstery has a slight glossy sheen, left side is slightly edge-cropped in the image; object appears about 2.0 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 49,
+      "candidate_instance_id": "place:place_00005:cluster_049",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        428
+      ],
+      "member_observation_ids": [
+        "obs_000428"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "side table"
+      ],
+      "member_descriptions": [
+        "light beige wooden two-tier side table"
+      ],
+      "member_long_descriptions": [
+        "Low, light-beige wooden side table with a rectangular top and a lower shelf (two-tier), varnished surface with slight wear/staining visible; the right side of the table is edge-cropped/partially cut off in the image; appears to be a small, low piece of furniture about 1.2 m from the camera."
+      ],
+      "label_histogram": {
+        "side table": 1
+      },
+      "representative_object_id": 428,
+      "representative_label": "side table",
+      "representative_description": "Low, light-beige wooden side table with a rectangular top and a lower shelf (two-tier), varnished surface with slight wear/staining visible; the right side of the table is edge-cropped/partially cut off in the image; appears to be a small, low piece of furniture about 1.2 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 50,
+      "candidate_instance_id": "place:place_00005:cluster_050",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        429
+      ],
+      "member_observation_ids": [
+        "obs_000429"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "dark glossy rectangular frame, edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Dark, rectangular wall-mounted picture frame with a glossy reflective glass front showing specular glare and reflections; left edge of the frame is partially cut off in the crop and the photo appears taken from about 1.5 meters away."
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      },
+      "representative_object_id": 429,
+      "representative_label": "picture frame",
+      "representative_description": "Dark, rectangular wall-mounted picture frame with a glossy reflective glass front showing specular glare and reflections; left edge of the frame is partially cut off in the crop and the photo appears taken from about 1.5 meters away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 51,
+      "candidate_instance_id": "place:place_00005:cluster_051",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        430
+      ],
+      "member_observation_ids": [
+        "obs_000430"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "fireplace"
+      ],
+      "member_descriptions": [
+        "dark gray fireplace opening, partial"
+      ],
+      "member_long_descriptions": [
+        "Partial view of a dark gray painted fireplace surround with stepped rectangular molding and a deep black, unlit opening; surround appears matte-painted (likely wood or plaster) and is close to the camera (approximately 0.8 m away)."
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      },
+      "representative_object_id": 430,
+      "representative_label": "fireplace",
+      "representative_description": "Partial view of a dark gray painted fireplace surround with stepped rectangular molding and a deep black, unlit opening; surround appears matte-painted (likely wood or plaster) and is close to the camera (approximately 0.8 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 52,
+      "candidate_instance_id": "place:place_00005:cluster_052",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        431
+      ],
+      "member_observation_ids": [
+        "obs_000431"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "dark brown leather couch arm crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped view of a dark brown glossy leather couch showing the armrest and adjacent seat cushion with visible wrinkles, creases and slight sagging; appears worn and close to the camera (approx. 1.0 m)."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 431,
+      "representative_label": "couch",
+      "representative_description": "Partial, edge-cropped view of a dark brown glossy leather couch showing the armrest and adjacent seat cushion with visible wrinkles, creases and slight sagging; appears worn and close to the camera (approx. 1.0 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 53,
+      "candidate_instance_id": "place:place_00005:cluster_053",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        432
+      ],
+      "member_observation_ids": [
+        "obs_000432"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "fireplace"
+      ],
+      "member_descriptions": [
+        "white wooden mantel fireplace, partial"
+      ],
+      "member_long_descriptions": [
+        "White painted wooden mantel with rectangular recessed panels and molded trim framing a black metal firebox insert with a stepped inner surround; hearth interior appears dark/empty, the crop is partially edge\u2011cropped and includes foreground decorative objects \u2014 estimated distance to camera ~1.5 meters."
+      ],
+      "label_histogram": {
+        "fireplace": 1
+      },
+      "representative_object_id": 432,
+      "representative_label": "fireplace",
+      "representative_description": "White painted wooden mantel with rectangular recessed panels and molded trim framing a black metal firebox insert with a stepped inner surround; hearth interior appears dark/empty, the crop is partially edge\u2011cropped and includes foreground decorative objects \u2014 estimated distance to camera ~1.5 meters.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 54,
+      "candidate_instance_id": "place:place_00005:cluster_054",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        433
+      ],
+      "member_observation_ids": [
+        "obs_000433"
+      ],
+      "member_view_ids": [
+        "view_00049"
+      ],
+      "member_labels": [
+        "table lamp"
+      ],
+      "member_descriptions": [
+        "cream scalloped lampshade partial crop"
+      ],
+      "member_long_descriptions": [
+        "Partial crop showing a cream/off-white fabric lampshade with a scalloped rim and decorative trim/fringe; cone-shaped shade sits above a small table-lamp base that is partly visible at the lower right, cut off by the image edge \u2014 appears close to the camera (\u22480.6 m)."
+      ],
+      "label_histogram": {
+        "table lamp": 1
+      },
+      "representative_object_id": 433,
+      "representative_label": "table lamp",
+      "representative_description": "Partial crop showing a cream/off-white fabric lampshade with a scalloped rim and decorative trim/fringe; cone-shaped shade sits above a small table-lamp base that is partly visible at the lower right, cut off by the image edge \u2014 appears close to the camera (\u22480.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 55,
+      "candidate_instance_id": "place:place_00005:cluster_055",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        434
+      ],
+      "member_observation_ids": [
+        "obs_000434"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "microwave"
+      ],
+      "member_descriptions": [
+        "stainless steel front microwave partial"
+      ],
+      "member_long_descriptions": [
+        "Stainless-steel over-the-range microwave with a wide rectangular tinted glass door showing internal metal mesh and two interior lights, vertical right-side control panel with digital display and buttons; brushed metal surface with reflections and slight smudging, seen from about 0.8 meters away (frontal view, minor edge crop at image border)."
+      ],
+      "label_histogram": {
+        "microwave": 1
+      },
+      "representative_object_id": 434,
+      "representative_label": "microwave",
+      "representative_description": "Stainless-steel over-the-range microwave with a wide rectangular tinted glass door showing internal metal mesh and two interior lights, vertical right-side control panel with digital display and buttons; brushed metal surface with reflections and slight smudging, seen from about 0.8 meters away (frontal view, minor edge crop at image border).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 56,
+      "candidate_instance_id": "place:place_00005:cluster_056",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        435
+      ],
+      "member_observation_ids": [
+        "obs_000435"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wood cabinet double doors"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden cabinet showing two recessed-panel doors with a narrow vertical seam at center, visible wood grain and matte finish, small scuffs along the bottom edge, no visible handles; photographed close-up at roughly 1.0 m under low lighting and shown full-height within the crop."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 435,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown wooden cabinet showing two recessed-panel doors with a narrow vertical seam at center, visible wood grain and matte finish, small scuffs along the bottom edge, no visible handles; photographed close-up at roughly 1.0 m under low lighting and shown full-height within the crop.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 57,
+      "candidate_instance_id": "place:place_00005:cluster_057",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        436
+      ],
+      "member_observation_ids": [
+        "obs_000436"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark recessed wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Large dark brown/espresso recessed-panel wooden cabinet door with raised trim and a matte finish, occupying most of the crop; vertically oriented and edge-cropped on the right (adjacent stainless appliance) and slightly on the left, with minor surface smudging and no visible hardware, estimated ~1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 436,
+      "representative_label": "cabinet",
+      "representative_description": "Large dark brown/espresso recessed-panel wooden cabinet door with raised trim and a matte finish, occupying most of the crop; vertically oriented and edge-cropped on the right (adjacent stainless appliance) and slightly on the left, with minor surface smudging and no visible hardware, estimated ~1.0 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 58,
+      "candidate_instance_id": "place:place_00005:cluster_058",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        438
+      ],
+      "member_observation_ids": [
+        "obs_000438"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "couch"
+      ],
+      "member_descriptions": [
+        "brown glossy fabric couch cushion edge crop"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a partial, edge-cropped brown couch cushion or arm with glossy, slightly wrinkled fabric upholstery, visible seam and reflective highlights; lower area appears darker and the object is photographed very close to the camera (approx. 0.5 m)."
+      ],
+      "label_histogram": {
+        "couch": 1
+      },
+      "representative_object_id": 438,
+      "representative_label": "couch",
+      "representative_description": "Close-up of a partial, edge-cropped brown couch cushion or arm with glossy, slightly wrinkled fabric upholstery, visible seam and reflective highlights; lower area appears darker and the object is photographed very close to the camera (approx. 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 59,
+      "candidate_instance_id": "place:place_00005:cluster_059",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        440
+      ],
+      "member_observation_ids": [
+        "obs_000440"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "stove"
+      ],
+      "member_descriptions": [
+        "partial black stove control panel"
+      ],
+      "member_long_descriptions": [
+        "Partial close-up of a black glossy stovetop control panel approximately 0.6 m from the camera, showing three stainless steel round knobs on a reflective metal strip with a beige countertop visible along the bottom; the object is edge-cropped horizontally and shows strong reflections on the surface."
+      ],
+      "label_histogram": {
+        "stove": 1
+      },
+      "representative_object_id": 440,
+      "representative_label": "stove",
+      "representative_description": "Partial close-up of a black glossy stovetop control panel approximately 0.6 m from the camera, showing three stainless steel round knobs on a reflective metal strip with a beige countertop visible along the bottom; the object is edge-cropped horizontally and shows strong reflections on the surface.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 60,
+      "candidate_instance_id": "place:place_00005:cluster_060",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        441
+      ],
+      "member_observation_ids": [
+        "obs_000441"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "sink"
+      ],
+      "member_descriptions": [
+        "white ceramic sink edge crop"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped white glazed ceramic sink rim with a dark triangular basin interior visible toward the upper-left of the crop, sitting against a light speckled beige countertop; object appears close to the camera (approx. 0.5\u20130.7 m)."
+      ],
+      "label_histogram": {
+        "sink": 1
+      },
+      "representative_object_id": 441,
+      "representative_label": "sink",
+      "representative_description": "Partial, edge-cropped white glazed ceramic sink rim with a dark triangular basin interior visible toward the upper-left of the crop, sitting against a light speckled beige countertop; object appears close to the camera (approx. 0.5\u20130.7 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 61,
+      "candidate_instance_id": "place:place_00005:cluster_061",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        442
+      ],
+      "member_observation_ids": [
+        "obs_000442"
+      ],
+      "member_view_ids": [
+        "view_00050"
+      ],
+      "member_labels": [
+        "stove"
+      ],
+      "member_descriptions": [
+        "black stainless gas stove top"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a black enameled gas stove top with stainless-steel back control panel and digital display; four metal burner grates and front-mounted control knobs are visible, surface shows slight glare and mild compression artifacts; camera approximately 0.6 m from the stove."
+      ],
+      "label_histogram": {
+        "stove": 1
+      },
+      "representative_object_id": 442,
+      "representative_label": "stove",
+      "representative_description": "Close-up of a black enameled gas stove top with stainless-steel back control panel and digital display; four metal burner grates and front-mounted control knobs are visible, surface shows slight glare and mild compression artifacts; camera approximately 0.6 m from the stove.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 62,
+      "candidate_instance_id": "place:place_00005:cluster_062",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        443
+      ],
+      "member_observation_ids": [
+        "obs_000443"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "refrigerator"
+      ],
+      "member_descriptions": [
+        "stainless steel side-by-side refrigerator"
+      ],
+      "member_long_descriptions": [
+        "Front-facing stainless steel side-by-side refrigerator with two vertical doors, black vertical handles and a built-in water/ice dispenser on the left door; reflective finish shows horizontal reflection bands and minor surface irregularities, with slight edge cropping at the top/right \u2014 estimated distance about 1.5 m from the camera."
+      ],
+      "label_histogram": {
+        "refrigerator": 1
+      },
+      "representative_object_id": 443,
+      "representative_label": "refrigerator",
+      "representative_description": "Front-facing stainless steel side-by-side refrigerator with two vertical doors, black vertical handles and a built-in water/ice dispenser on the left door; reflective finish shows horizontal reflection bands and minor surface irregularities, with slight edge cropping at the top/right \u2014 estimated distance about 1.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 63,
+      "candidate_instance_id": "place:place_00005:cluster_063",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        444
+      ],
+      "member_observation_ids": [
+        "obs_000444"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wood cabinet door, edge crop"
+      ],
+      "member_long_descriptions": [
+        "Tall, narrow dark-brown stained wooden cabinet door with a recessed central panel and flat matte finish, shown mostly front-on but slightly edge-cropped at the left/top; no handles visible \u2014 appears to be approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 444,
+      "representative_label": "cabinet",
+      "representative_description": "Tall, narrow dark-brown stained wooden cabinet door with a recessed central panel and flat matte finish, shown mostly front-on but slightly edge-cropped at the left/top; no handles visible \u2014 appears to be approximately 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 64,
+      "candidate_instance_id": "place:place_00005:cluster_064",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        445
+      ],
+      "member_observation_ids": [
+        "obs_000445"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark stained wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Dark brown stained wooden cabinet door with a recessed central panel, vertical wood grain and a glossy finish that shows a circular light reflection near the upper-left; the door is mostly visible in the crop with a slight top-edge crop and no visible handle, approximately 1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 445,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown stained wooden cabinet door with a recessed central panel, vertical wood grain and a glossy finish that shows a circular light reflection near the upper-left; the door is mostly visible in the crop with a slight top-edge crop and no visible handle, approximately 1.0 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 65,
+      "candidate_instance_id": "place:place_00005:cluster_065",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        446
+      ],
+      "member_observation_ids": [
+        "obs_000446"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wooden tall cabinet edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Tall dark-brown wooden cabinet with a recessed rectangular door panel and a narrow vertical seam/handle; matte finish with a small surface blemish, appears partial and cut off at the right edge of the crop, photographed from approximately 1.0 m away."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 446,
+      "representative_label": "cabinet",
+      "representative_description": "Tall dark-brown wooden cabinet with a recessed rectangular door panel and a narrow vertical seam/handle; matte finish with a small surface blemish, appears partial and cut off at the right edge of the crop, photographed from approximately 1.0 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 66,
+      "candidate_instance_id": "place:place_00005:cluster_066",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        447
+      ],
+      "member_observation_ids": [
+        "obs_000447"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "medium brown cabinet door edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial/edge-cropped medium-brown stained wooden cabinet door with visible wood grain and a recessed raised-panel profile, small round metal knob near the upper right, glossy finish with light wear; appears to be a lower kitchen cabinet under a countertop and is photographed from close range (approx. 0.8 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 447,
+      "representative_label": "cabinet",
+      "representative_description": "Partial/edge-cropped medium-brown stained wooden cabinet door with visible wood grain and a recessed raised-panel profile, small round metal knob near the upper right, glossy finish with light wear; appears to be a lower kitchen cabinet under a countertop and is photographed from close range (approx. 0.8 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 67,
+      "candidate_instance_id": "place:place_00005:cluster_067",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        448
+      ],
+      "member_observation_ids": [
+        "obs_000448"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "tall dark wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Tall, narrow dark-stained wooden cabinet door with a single recessed central panel and simple molded border; surface has a low-gloss sheen with minor scuffs and wear, and the top and bottom are slightly cropped in the image; appears to be about 0.7 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 448,
+      "representative_label": "cabinet",
+      "representative_description": "Tall, narrow dark-stained wooden cabinet door with a single recessed central panel and simple molded border; surface has a low-gloss sheen with minor scuffs and wear, and the top and bottom are slightly cropped in the image; appears to be about 0.7 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 68,
+      "candidate_instance_id": "place:place_00005:cluster_068",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        449
+      ],
+      "member_observation_ids": [
+        "obs_000449"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown recessed-panel cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Dark brown wooden recessed-panel cabinet door with a raised frame and visible wood grain; matte, slightly worn finish with no obvious handle and a small darker recess at the top; image shows the door photographed from close range and appears slightly edge-cropped on the right (approx. 0.6 m away)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 449,
+      "representative_label": "cabinet",
+      "representative_description": "Dark brown wooden recessed-panel cabinet door with a raised frame and visible wood grain; matte, slightly worn finish with no obvious handle and a small darker recess at the top; image shows the door photographed from close range and appears slightly edge-cropped on the right (approx. 0.6 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 69,
+      "candidate_instance_id": "place:place_00005:cluster_069",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        450
+      ],
+      "member_observation_ids": [
+        "obs_000450"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "coffee maker"
+      ],
+      "member_descriptions": [
+        "silver metal coffee maker, partial"
+      ],
+      "member_long_descriptions": [
+        "Silver/gray metal drip-style coffee maker with a black base and a visible glass carafe; object is slightly blurred, edge-cropped on the left, and appears to be a small countertop unit approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      },
+      "representative_object_id": 450,
+      "representative_label": "coffee maker",
+      "representative_description": "Silver/gray metal drip-style coffee maker with a black base and a visible glass carafe; object is slightly blurred, edge-cropped on the left, and appears to be a small countertop unit approximately 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 70,
+      "candidate_instance_id": "place:place_00005:cluster_070",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        451
+      ],
+      "member_observation_ids": [
+        "obs_000451"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wooden cabinet edge crop"
+      ],
+      "member_long_descriptions": [
+        "Partial close-up of a dark brown wooden base cabinet with recessed vertical paneling and a slightly worn top edge under a countertop with a visible stainless-steel sink; image is edge-cropped and appears taken at close range (~0.6 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 451,
+      "representative_label": "cabinet",
+      "representative_description": "Partial close-up of a dark brown wooden base cabinet with recessed vertical paneling and a slightly worn top edge under a countertop with a visible stainless-steel sink; image is edge-cropped and appears taken at close range (~0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 71,
+      "candidate_instance_id": "place:place_00005:cluster_071",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        452
+      ],
+      "member_observation_ids": [
+        "obs_000452"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "tall dark wood cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Tall, narrow dark-stained wooden cabinet door with a single recessed rectangular center panel, visible vertical wood grain and low sheen; the full door is visible (not cropped) in the image, and the camera appears to be approximately 1.5 m away."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 452,
+      "representative_label": "cabinet",
+      "representative_description": "Tall, narrow dark-stained wooden cabinet door with a single recessed rectangular center panel, visible vertical wood grain and low sheen; the full door is visible (not cropped) in the image, and the camera appears to be approximately 1.5 m away.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 72,
+      "candidate_instance_id": "place:place_00005:cluster_072",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        453
+      ],
+      "member_observation_ids": [
+        "obs_000453"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark stained wooden cabinet door"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a dark brown stained wooden base cabinet door with a recessed rectangular center panel and a narrow top drawer lip; matte finish with slight scuffing near the bottom edge, no visible hardware, and the door fills most of the crop (approx. 0.6 m from camera)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 453,
+      "representative_label": "cabinet",
+      "representative_description": "Close-up of a dark brown stained wooden base cabinet door with a recessed rectangular center panel and a narrow top drawer lip; matte finish with slight scuffing near the bottom edge, no visible hardware, and the door fills most of the crop (approx. 0.6 m from camera).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 73,
+      "candidate_instance_id": "place:place_00005:cluster_073",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        454
+      ],
+      "member_observation_ids": [
+        "obs_000454"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown wooden base cabinet edge"
+      ],
+      "member_long_descriptions": [
+        "Partial view of a dark brown stained wooden base cabinet door with a recessed central panel and rectangular molding; edge-cropped by the image on the right and sitting next to a light speckled granite countertop, appearing close to the camera (approximately 0.5 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 454,
+      "representative_label": "cabinet",
+      "representative_description": "Partial view of a dark brown stained wooden base cabinet door with a recessed central panel and rectangular molding; edge-cropped by the image on the right and sitting next to a light speckled granite countertop, appearing close to the camera (approximately 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 74,
+      "candidate_instance_id": "place:place_00005:cluster_074",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        455
+      ],
+      "member_observation_ids": [
+        "obs_000455"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "coffee maker"
+      ],
+      "member_descriptions": [
+        "black glossy single-serve brewer"
+      ],
+      "member_long_descriptions": [
+        "Small black glossy single-serve coffee maker (pod-style) with a vertical blue translucent water reservoir/window, top hinged lid and silver accents; the base is partly cropped at the bottom of the image and the unit appears to be a compact countertop appliance approximately 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      },
+      "representative_object_id": 455,
+      "representative_label": "coffee maker",
+      "representative_description": "Small black glossy single-serve coffee maker (pod-style) with a vertical blue translucent water reservoir/window, top hinged lid and silver accents; the base is partly cropped at the bottom of the image and the unit appears to be a compact countertop appliance approximately 0.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 75,
+      "candidate_instance_id": "place:place_00005:cluster_075",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        456
+      ],
+      "member_observation_ids": [
+        "obs_000456"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark brown wooden cabinet front cropped"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a dark brown wooden cabinet front or drawer panel showing horizontal wood grain and a slightly glossy, worn finish; top and bottom edges are cropped in the image, estimated ~0.6 m from the camera."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 456,
+      "representative_label": "cabinet",
+      "representative_description": "Close-up of a dark brown wooden cabinet front or drawer panel showing horizontal wood grain and a slightly glossy, worn finish; top and bottom edges are cropped in the image, estimated ~0.6 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 76,
+      "candidate_instance_id": "place:place_00005:cluster_076",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        457
+      ],
+      "member_observation_ids": [
+        "obs_000457"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark reddish-brown wooden cabinet edge"
+      ],
+      "member_long_descriptions": [
+        "Partial vertical crop of a dark reddish-brown wooden cabinet with glossy finish, raised carved panels and molding, a small upper drawer with a round metal knob and a decorative base plinth; object is edge-cropped and photographed from close range (\u22480.8 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 457,
+      "representative_label": "cabinet",
+      "representative_description": "Partial vertical crop of a dark reddish-brown wooden cabinet with glossy finish, raised carved panels and molding, a small upper drawer with a round metal knob and a decorative base plinth; object is edge-cropped and photographed from close range (\u22480.8 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 77,
+      "candidate_instance_id": "place:place_00005:cluster_077",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        458
+      ],
+      "member_observation_ids": [
+        "obs_000458"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "sink"
+      ],
+      "member_descriptions": [
+        "rectangular stainless steel sink, partial"
+      ],
+      "member_long_descriptions": [
+        "Partial rectangular stainless-steel inset sink with a reflective, slightly wet basin showing blue-white reflections; set into a mottled brown stone countertop and cropped by the image edges, photographed at close range (approx. 0.6 m)."
+      ],
+      "label_histogram": {
+        "sink": 1
+      },
+      "representative_object_id": 458,
+      "representative_label": "sink",
+      "representative_description": "Partial rectangular stainless-steel inset sink with a reflective, slightly wet basin showing blue-white reflections; set into a mottled brown stone countertop and cropped by the image edges, photographed at close range (approx. 0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 78,
+      "candidate_instance_id": "place:place_00005:cluster_078",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        459
+      ],
+      "member_observation_ids": [
+        "obs_000459"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "toaster"
+      ],
+      "member_descriptions": [
+        "stainless-steel two-slot toaster (partial)"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a small stainless-steel two-slot tabletop toaster with reflective chrome finish and visible top slot openings; the appliance is partially cut off by the crop edge, shows surface reflections and slight smudging, and appears photographed at close range (~0.6 meters)."
+      ],
+      "label_histogram": {
+        "toaster": 1
+      },
+      "representative_object_id": 459,
+      "representative_label": "toaster",
+      "representative_description": "Close-up of a small stainless-steel two-slot tabletop toaster with reflective chrome finish and visible top slot openings; the appliance is partially cut off by the crop edge, shows surface reflections and slight smudging, and appears photographed at close range (~0.6 meters).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 79,
+      "candidate_instance_id": "place:place_00005:cluster_079",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        460
+      ],
+      "member_observation_ids": [
+        "obs_000460"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "toaster"
+      ],
+      "member_descriptions": [
+        "curved black chrome toaster top (partial)"
+      ],
+      "member_long_descriptions": [
+        "Partial close-up of a curved, glossy black/chrome toaster top with strong specular highlights and blurry environmental reflections; rounded metal surface appears edge-cropped in the frame and is approximately 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "toaster": 1
+      },
+      "representative_object_id": 460,
+      "representative_label": "toaster",
+      "representative_description": "Partial close-up of a curved, glossy black/chrome toaster top with strong specular highlights and blurry environmental reflections; rounded metal surface appears edge-cropped in the frame and is approximately 0.5 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 80,
+      "candidate_instance_id": "place:place_00005:cluster_080",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        461
+      ],
+      "member_observation_ids": [
+        "obs_000461"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "cabinet"
+      ],
+      "member_descriptions": [
+        "dark wood cabinet door edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped view of a dark-stained wooden cabinet door with vertical recessed panels and visible wood grain and a slightly glossy finish; lower section near the floor is visible and the door shows minor wear\u2014appears close to the camera (approx. 0.6 m)."
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      },
+      "representative_object_id": 461,
+      "representative_label": "cabinet",
+      "representative_description": "Partial, edge-cropped view of a dark-stained wooden cabinet door with vertical recessed panels and visible wood grain and a slightly glossy finish; lower section near the floor is visible and the door shows minor wear\u2014appears close to the camera (approx. 0.6 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 81,
+      "candidate_instance_id": "place:place_00005:cluster_081",
+      "group_id": "place_00005",
+      "group_type": "place",
+      "num_members": 1,
+      "member_object_ids": [
+        462
+      ],
+      "member_observation_ids": [
+        "obs_000462"
+      ],
+      "member_view_ids": [
+        "view_00051"
+      ],
+      "member_labels": [
+        "chair"
+      ],
+      "member_descriptions": [
+        "partial green upholstered chair seat edge"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped green upholstered chair seat visible at the bottom of the crop with fabric texture and a curved front edge; backrest is not visible, object appears close to the camera (approx. 0.5 m)."
+      ],
+      "label_histogram": {
+        "chair": 1
+      },
+      "representative_object_id": 462,
+      "representative_label": "chair",
+      "representative_description": "Partial, edge-cropped green upholstered chair seat visible at the bottom of the crop with fabric texture and a curved front edge; backrest is not visible, object appears close to the camera (approx. 0.5 m).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "group_id": "place_00018",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 755,
+      "observation_id": "obs_000755",
+      "view_id": "view_00096",
+      "entry_id": 96,
+      "label": "dresser",
+      "description": "dark wooden dresser corner with knob"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 756,
+      "observation_id": "obs_000756",
+      "view_id": "view_00096",
+      "entry_id": 96,
+      "label": "wall switch",
+      "description": "white plastic dual rocker switch"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 757,
+      "observation_id": "obs_000757",
+      "view_id": "view_00097",
+      "entry_id": 97,
+      "label": "picture frame",
+      "description": "dark wooden gold-edged frame"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 758,
+      "observation_id": "obs_000758",
+      "view_id": "view_00097",
+      "entry_id": 97,
+      "label": "picture frame",
+      "description": "gold-framed beige-matted picture frame"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 759,
+      "observation_id": "obs_000759",
+      "view_id": "view_00097",
+      "entry_id": 97,
+      "label": "chair",
+      "description": "dark wooden chair edge crop"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 760,
+      "observation_id": "obs_000760",
+      "view_id": "view_00097",
+      "entry_id": 97,
+      "label": "picture frame",
+      "description": "white rectangular picture frame edge-crop"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 761,
+      "observation_id": "obs_000761",
+      "view_id": "view_00098",
+      "entry_id": 98,
+      "label": "picture frame",
+      "description": "dark wooden frame, left edge crop"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 762,
+      "observation_id": "obs_000762",
+      "view_id": "view_00098",
+      "entry_id": 98,
+      "label": "door",
+      "description": "white paneled interior door with handle"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 763,
+      "observation_id": "obs_000763",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "dining table",
+      "description": "reddish-brown wooden table top"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 764,
+      "observation_id": "obs_000764",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "cabinet",
+      "description": "dark mahogany cabinet, partial crop"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 765,
+      "observation_id": "obs_000765",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "chair",
+      "description": "dark glossy wooden chair backs"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 766,
+      "observation_id": "obs_000766",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "chair",
+      "description": "dark wooden chair, beige seat approx 1m"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 767,
+      "observation_id": "obs_000767",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "chair",
+      "description": "dark carved wooden chair back"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 768,
+      "observation_id": "obs_000768",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "window",
+      "description": "arched-top white window with blinds"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 769,
+      "observation_id": "obs_000769",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "bench",
+      "description": "cream upholstered bench, edge-cropped"
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 770,
+      "observation_id": "obs_000770",
+      "view_id": "view_00099",
+      "entry_id": 99,
+      "label": "chair",
+      "description": "dark wooden slatted chair back (partial)"
+    }
+  ]
+}

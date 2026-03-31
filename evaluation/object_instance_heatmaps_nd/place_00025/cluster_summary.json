@@ -1,0 +1,648 @@
+{
+  "group_id": "place_00025",
+  "group_type": "place",
+  "n_objects": 48,
+  "n_clusters": 12,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00025:cluster_000",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 5,
+      "member_object_ids": [
+        956,
+        957,
+        1032,
+        1033,
+        1034
+      ],
+      "member_observation_ids": [
+        "obs_000956",
+        "obs_000957",
+        "obs_001032",
+        "obs_001033",
+        "obs_001034"
+      ],
+      "member_view_ids": [
+        "view_00136",
+        "view_00136",
+        "view_00152",
+        "view_00152",
+        "view_00152"
+      ],
+      "member_labels": [
+        "door",
+        "door",
+        "door",
+        "other",
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white painted trim, vertical rectangular jamb, partial view (cut off by image edge) | anchor: x=-2.5, z=-7.5 | nearby: door jamb trim (left)@(-2.5,-7.5), floor/baseboard@(-2.5,-8.0)",
+        "object: door | attrs: white painted trim, vertical rectangular jamb, partial view at image edge | anchor: x=-1.5, z=-7.5 | nearby: door jamb trim (right)@(-1.5,-7.5), floor/baseboard@(-1.5,-8.0)",
+        "object: door | attrs: white painted, wood or MDF trim, narrow reveal with slight shadow | anchor: x=-2.5, z=-7.5 | nearby: baseboard@(-2.5,-7.5), center alcove wall@(-2.0,-9.0)",
+        "object: other | attrs: light gray painted wall, white baseboard trim, smooth finish | anchor: x=-2.0, z=-9.0 | nearby: baseboard@(-2.0,-9.0), left door jamb@(-2.5,-7.5)",
+        "object: door | attrs: white painted, wood or MDF trim | anchor: x=-1.5, z=-7.5 | nearby: baseboard@(-1.5,-7.5), center alcove wall@(-2.0,-9.0)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white painted trim, vertical rectangular jamb, partial view (cut off by image edge) | camera_relation: distance=0.6, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-2.5, z=-7.5 | surroundings: door jamb trim (left) | relation=same object (trim detail) | primary_dist=0.1 | global=(-2.5,-7.5); floor/baseboard | relation=below/attached_to | primary_dist=0.5 | global=(-2.5,-8.0); recessed alcove wall (center) | relation=to the right of | primary_dist=0.8 | global=(-2.0,-8.5); right doorway/trim | relation=across from | primary_dist=1.2 | global=(-1.0,-8.0) | scene_context: floor_pattern=tile; scene_attributes=light gray painted walls, white baseboard trim along floor, two door/doorway openings left and right framing a recessed alcove, empty recessed alcove (no furniture), smooth painted drywall finish; wall_color=light gray",
+        "object: door | attributes: white painted trim, vertical rectangular jamb, partial view at image edge | camera_relation: distance=0.7, bearing=35.0, laterality=right, verticality=middle | global_anchor: x=-1.5, z=-7.5 | surroundings: door jamb trim (right) | relation=same object (trim detail) | primary_dist=0.1 | global=(-1.5,-7.5); floor/baseboard | relation=below/attached_to | primary_dist=0.5 | global=(-1.5,-8.0); recessed alcove wall (center) | relation=to the left of | primary_dist=0.8 | global=(-2.0,-8.5); left doorway/trim | relation=across from | primary_dist=1.2 | global=(-3.0,-8.0) | scene_context: floor_pattern=tile; scene_attributes=light gray painted walls, white baseboard trim along floor, two door/doorway openings left and right framing a recessed alcove, empty recessed alcove (no furniture), smooth painted drywall finish; wall_color=light gray",
+        "object: door | attributes: white painted, wood or MDF trim, narrow reveal with slight shadow | camera_relation: distance=0.6, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-2.5, z=-7.5 | surroundings: baseboard | relation=meets at bottom (adjacent) | primary_dist=0.2 | global=(-2.5,-7.5); center alcove wall | relation=left of | primary_dist=0.8 | global=(-2.0,-9.0); right door jamb | relation=across opening | primary_dist=1.2 | global=(-1.5,-7.5) | scene_context: floor_pattern=tile; scene_attributes=painted light gray walls, white glossy baseboard trim along floor, small recessed alcove or niche straight ahead, door jambs visible at left and right image edges, image edges show black/missing background (cropped); wall_color=light gray",
+        "object: other | attributes: light gray painted wall, white baseboard trim, smooth finish | camera_relation: distance=2.0, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-2.0, z=-9.0 | surroundings: baseboard | relation=at base (attached) | primary_dist=0.0 | global=(-2.0,-9.0); left door jamb | relation=left of | primary_dist=0.8 | global=(-2.5,-7.5); right door jamb | relation=right of | primary_dist=0.8 | global=(-1.5,-7.5) | scene_context: floor_pattern=tile; scene_attributes=painted light gray walls, white glossy baseboard trim along floor, small recessed alcove or niche straight ahead, door jambs visible at left and right image edges, image edges show black/missing background (cropped); wall_color=light gray",
+        "object: door | attributes: white painted, wood or MDF trim | camera_relation: distance=0.6, bearing=40.0, laterality=right, verticality=middle | global_anchor: x=-1.5, z=-7.5 | surroundings: baseboard | relation=meets at bottom (adjacent) | primary_dist=0.2 | global=(-1.5,-7.5); center alcove wall | relation=right of | primary_dist=0.8 | global=(-2.0,-9.0); left door jamb | relation=across opening | primary_dist=1.2 | global=(-2.5,-7.5) | scene_context: floor_pattern=tile; scene_attributes=painted light gray walls, white glossy baseboard trim along floor, small recessed alcove or niche straight ahead, door jambs visible at left and right image edges, image edges show black/missing background (cropped); wall_color=light gray"
+      ],
+      "label_histogram": {
+        "door": 4,
+        "other": 1
+      },
+      "representative_object_id": 1032,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white painted, wood or MDF trim, narrow reveal with slight shadow | camera_relation: distance=0.6, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-2.5, z=-7.5 | surroundings: baseboard | relation=meets at bottom (adjacent) | primary_dist=0.2 | global=(-2.5,-7.5); center alcove wall | relation=left of | primary_dist=0.8 | global=(-2.0,-9.0); right door jamb | relation=across opening | primary_dist=1.2 | global=(-1.5,-7.5) | scene_context: floor_pattern=tile; scene_attributes=painted light gray walls, white glossy baseboard trim along floor, small recessed alcove or niche straight ahead, door jambs visible at left and right image edges, image edges show black/missing background (cropped); wall_color=light gray",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00136",
+        "view_00152"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00025:cluster_001",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 4,
+      "member_object_ids": [
+        958,
+        969,
+        970,
+        1035
+      ],
+      "member_observation_ids": [
+        "obs_000958",
+        "obs_000969",
+        "obs_000970",
+        "obs_001035"
+      ],
+      "member_view_ids": [
+        "view_00137",
+        "view_00138",
+        "view_00138",
+        "view_00153"
+      ],
+      "member_labels": [
+        "shoes",
+        "faucet",
+        "faucet",
+        "shoes"
+      ],
+      "member_descriptions": [
+        "dark brown leather shoe edge-crop",
+        "chrome faucet spout partial crop",
+        "chrome faucet partial close-up",
+        "brown leather shoe toe, partial"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped dark brown leather shoe (toe and upper) visible in low light; rounded toe with scuffed, worn surface and warm brown tones, photographed close-up \u2014 approximately 0.6 m from the camera.",
+        "Polished chrome faucet spout and part of its base visible in a close-up, edge-cropped image; curved metallic surface with strong reflections and slight blur, approximately 0.5 m from the camera.",
+        "Partial edge-cropped close-up of a chrome/metallic faucet showing the upper rounded cylindrical spout and reflective surface; the crop is slightly blurred and low-resolution, showing only part of the fixture roughly 0.4 m from the camera.",
+        "Partial, edge-cropped close-up of a brown leather-like shoe toe with a rounded shape and visible scuffing along the upper and darker sole; image is low-resolution and slightly blurred, photographed at close range (approximately 0.3 m from the camera)."
+      ],
+      "label_histogram": {
+        "faucet": 2,
+        "shoes": 2
+      },
+      "representative_object_id": 1035,
+      "representative_label": "shoes",
+      "representative_description": "Partial, edge-cropped close-up of a brown leather-like shoe toe with a rounded shape and visible scuffing along the upper and darker sole; image is low-resolution and slightly blurred, photographed at close range (approximately 0.3 m from the camera).",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00138"
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00025:cluster_002",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 5,
+      "member_object_ids": [
+        959,
+        965,
+        1036,
+        1040,
+        1043
+      ],
+      "member_observation_ids": [
+        "obs_000959",
+        "obs_000965",
+        "obs_001036",
+        "obs_001040",
+        "obs_001043"
+      ],
+      "member_view_ids": [
+        "view_00138",
+        "view_00138",
+        "view_00154",
+        "view_00154",
+        "view_00154"
+      ],
+      "member_labels": [
+        "mirror",
+        "mirror",
+        "mirror",
+        "mirror",
+        "mirror"
+      ],
+      "member_descriptions": [
+        "large frameless rectangular mirror",
+        "partial silver-framed wall mirror",
+        "large frameless wall mirror",
+        "rectangular frameless wall mirror, partial",
+        "partial silver-framed rectangular mirror"
+      ],
+      "member_long_descriptions": [
+        "Wall-mounted rectangular glass mirror with a frameless appearance, roughly 1.0\u20131.2 m wide, mounted above a sink; mirror surface is reflective and shows a white interior door, a tripod-mounted camera and a bedside lamp in the reflection. A small round magnifying mirror is attached to the upper-right of the glass; the left and top/right edges show cropping and visual artifacts/warping (digital reconstruction noise) rather than clean trim. Appears about 1.5 m from the camera.",
+        "Vertical, rectangular silver-framed wall mirror shown partially cropped at the edges, with a reflective surface that displays a tripod and nearby wall; surface appears warped and contains digital reconstruction artifacts; estimated ~2.0 m from camera.",
+        "Large rectangular frameless wall-mounted mirror with a silvered reflective surface showing a door and tripod in reflection; appears slightly warped with visible rendering/artifacting and is edge-cropped at the top and sides \u2014 mounted above a sink about 1.5 m from the camera.",
+        "Wall-mounted rectangular frameless mirror with a glossy reflective surface, vertically oriented and partially cropped by the image edges; it reflects a tripod and a door, shows noticeable digital reconstruction/warping artifacts, and appears roughly 2.0 meters from the camera.",
+        "Partial wall-mounted rectangular mirror with a thin silver/chrome frame and reflective glass; mirror is edge-cropped in the crop and shows a tripod and a blurred person in its reflection, appears vertical and medium-sized, with some visual distortion \u2014 estimated ~1.5 m from the camera."
+      ],
+      "label_histogram": {
+        "mirror": 5
+      },
+      "representative_object_id": 1040,
+      "representative_label": "mirror",
+      "representative_description": "Wall-mounted rectangular frameless mirror with a glossy reflective surface, vertically oriented and partially cropped by the image edges; it reflects a tripod and a door, shows noticeable digital reconstruction/warping artifacts, and appears roughly 2.0 meters from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00138",
+        "view_00154"
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00025:cluster_003",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 6,
+      "member_object_ids": [
+        960,
+        961,
+        962,
+        963,
+        1037,
+        1038
+      ],
+      "member_observation_ids": [
+        "obs_000960",
+        "obs_000961",
+        "obs_000962",
+        "obs_000963",
+        "obs_001037",
+        "obs_001038"
+      ],
+      "member_view_ids": [
+        "view_00138",
+        "view_00138",
+        "view_00138",
+        "view_00138",
+        "view_00154",
+        "view_00154"
+      ],
+      "member_labels": [
+        "faucet",
+        "faucet",
+        "sink",
+        "sink",
+        "faucet",
+        "faucet"
+      ],
+      "member_descriptions": [
+        "curved chrome faucet spout, partial",
+        "chrome curved faucet, partial crop",
+        "white ceramic sink rim (edge-cropped)",
+        "white ceramic sink rim crop",
+        "chrome curved faucet spout (edge crop)",
+        "chrome sink faucet edge-cropped"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a curved chrome/gooseneck faucet spout with a tubular shape, slight surface discoloration and light reflection; the object is partially edge-cropped and slightly blurred in the crop, approximately 0.3 m from the camera.",
+        "Small chrome faucet with a curved reflective spout and adjacent knob-like shapes, heavily blurred and partially edge-cropped in the frame; appears metallic and close to the camera (approx. 0.5 m).",
+        "Close-up of a white glazed ceramic sink showing the curved oval rim and top of the basin with a smooth glossy surface and slight shadowing; the basin is edge-cropped at the bottom of the image and appears to be about 0.4 m from the camera.",
+        "Partial, edge-cropped white ceramic sink rim and shallow basin with a glossy finish, faint beige discoloration and a small dark drain/fixture visible near the center-top of the crop; slightly blurred and photographed at approximately 0.5 m from the camera.",
+        "Partial close-up of a curved chrome/brushed-metal faucet spout, edge-cropped and slightly blurred with a smooth reflective surface; estimated distance from camera ~0.4 m.",
+        "Small chrome sink faucet assembly with a curved spout and two rounded handles, reflective metallic finish; image is blurred/low-resolution and the object is partially cut off by the crop, approximately 0.6 meters from the camera."
+      ],
+      "label_histogram": {
+        "faucet": 4,
+        "sink": 2
+      },
+      "representative_object_id": 1037,
+      "representative_label": "faucet",
+      "representative_description": "Partial close-up of a curved chrome/brushed-metal faucet spout, edge-cropped and slightly blurred with a smooth reflective surface; estimated distance from camera ~0.4 m.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00138",
+        "view_00154"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00025:cluster_004",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 5,
+      "member_object_ids": [
+        964,
+        967,
+        971,
+        1039,
+        1044
+      ],
+      "member_observation_ids": [
+        "obs_000964",
+        "obs_000967",
+        "obs_000971",
+        "obs_001039",
+        "obs_001044"
+      ],
+      "member_view_ids": [
+        "view_00138",
+        "view_00138",
+        "view_00138",
+        "view_00154",
+        "view_00154"
+      ],
+      "member_labels": [
+        "bottle",
+        "cup",
+        "bottle",
+        "bottle",
+        "cup"
+      ],
+      "member_descriptions": [
+        "white plastic bottle with blue label",
+        "transparent plastic cup with blue rim",
+        "clear plastic bottle with label",
+        "white plastic bottle with blue label",
+        "clear plastic cup with blue rim"
+      ],
+      "member_long_descriptions": [
+        "Upright white plastic lotion/shampoo bottle with a rectangular blue lower label and blurred dark printed text, narrow neck with a darker cap visible; image is low-resolution and slightly blurry so some text/detail is indistinct \u2014 estimated ~0.5 m from camera.",
+        "Transparent disposable plastic cup (tall, tapered cylindrical shape) with a blue rim or lid visible at the top; upright and slightly edge-cropped at the bottom, with faint vertical dark markings on the side; image is low-resolution and slightly blurred, appears close to the camera (~0.4 m).",
+        "Short squat clear plastic bottle with a white/pale label showing faint red printing; translucent body and visible screw-top rim, upright but slightly blurred and partially edge-cropped in the image (approx. 0.4 m from camera).",
+        "Tall white plastic personal-care bottle with a blue rectangular label on the mid-to-lower body and smaller dark printed logo/text near the shoulder; upright, slightly blurred and low-resolution, mostly visible but with a minor top-edge crop, photographed at close range (approximately 0.6 m).",
+        "Close-up (~0.4 m) of a tall transparent plastic cup with a blue rim or lid and vertical dark printed markings on the side; tapered cylindrical shape, slightly blurred/low-resolution, and the object is partially cropped by the image edge."
+      ],
+      "label_histogram": {
+        "bottle": 3,
+        "cup": 2
+      },
+      "representative_object_id": 967,
+      "representative_label": "cup",
+      "representative_description": "Transparent disposable plastic cup (tall, tapered cylindrical shape) with a blue rim or lid visible at the top; upright and slightly edge-cropped at the bottom, with faint vertical dark markings on the side; image is low-resolution and slightly blurred, appears close to the camera (~0.4 m).",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00138",
+        "view_00154"
+      ]
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00025:cluster_005",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 6,
+      "member_object_ids": [
+        966,
+        968,
+        977,
+        1041,
+        1045,
+        1051
+      ],
+      "member_observation_ids": [
+        "obs_000966",
+        "obs_000968",
+        "obs_000977",
+        "obs_001041",
+        "obs_001045",
+        "obs_001051"
+      ],
+      "member_view_ids": [
+        "view_00138",
+        "view_00138",
+        "view_00139",
+        "view_00154",
+        "view_00154",
+        "view_00155"
+      ],
+      "member_labels": [
+        "outlet",
+        "outlet",
+        "outlet",
+        "outlet",
+        "outlet",
+        "outlet"
+      ],
+      "member_descriptions": [
+        "white rectangular wall outlet plate",
+        "white plastic outlet faceplate vertical",
+        "white rectangular wall outlet partial",
+        "white plastic rectangular outlet plate",
+        "white rectangular outlet faceplate, blurred",
+        "white plastic GFCI-style outlet"
+      ],
+      "member_long_descriptions": [
+        "White plastic rectangular wall-mounted outlet faceplate, mostly visible but slightly blurred and low-resolution with faint colored markings and possible duplex/GFCI features; appears slightly edge-cropped and photographed from about 1.0 m away.",
+        "White plastic rectangular duplex outlet faceplate shown vertically in the crop; image is blurry and low-resolution with a faint greenish color cast, and two socket openings are only faintly visible \u2014 appears photographed from close range (approx. 0.8 m).",
+        "Close-up of a white plastic rectangular wall-mounted duplex outlet faceplate, vertically oriented and partially edge-cropped in the image; the crop is low-resolution and slightly blurred, photographed from roughly 0.5 m away.",
+        "Wall-mounted white plastic rectangular outlet plate, vertically oriented and centered in the crop, appearing blurred and low-resolution; plate and socket details are visible but soft/fuzzy (approx. 1.3 m from camera).",
+        "Blurry white plastic rectangular duplex outlet faceplate visible near center of the crop; low-contrast and slightly green-tinted, with two plug openings and a faint central screw visible \u2014 appears out of focus and somewhat washed-out, likely about 0.8 meters from the camera.",
+        "Blurry, low-resolution close-up of a vertical white plastic electrical outlet/faceplate resembling a GFCI module with a centered rectangular receptacle and small printed buttons/text; plate is wall-mounted, appears slightly edge-cropped on the left, and is approximately 0.5 m from the camera."
+      ],
+      "label_histogram": {
+        "outlet": 6
+      },
+      "representative_object_id": 968,
+      "representative_label": "outlet",
+      "representative_description": "White plastic rectangular duplex outlet faceplate shown vertically in the crop; image is blurry and low-resolution with a faint greenish color cast, and two socket openings are only faintly visible \u2014 appears photographed from close range (approx. 0.8 m).",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00138",
+        "view_00154"
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00025:cluster_006",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        972,
+        1046
+      ],
+      "member_observation_ids": [
+        "obs_000972",
+        "obs_001046"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00155"
+      ],
+      "member_labels": [
+        "fan",
+        "fan"
+      ],
+      "member_descriptions": [
+        "wood-tone ceiling fan with globe",
+        "dark brown-blade ceiling fan, lit"
+      ],
+      "member_long_descriptions": [
+        "Ceiling-mounted fan with wood-tone blades (four visible) radiating from a dark/brass motor housing and a frosted glass light globe that is illuminated; fan is slightly edge-cropped at the right and appears about 3.0 meters from the camera.",
+        "Ceiling-mounted fan with a lit frosted glass globe light and five dark brown/bronze blades; metal motor housing visible; blades extend toward image edges and are partially cropped at the left, indicating an edge-cropped view; appears mid-size (roughly 1.0\u20131.2 m diameter) and about 2.5 m from the camera."
+      ],
+      "label_histogram": {
+        "fan": 2
+      },
+      "representative_object_id": 972,
+      "representative_label": "fan",
+      "representative_description": "Ceiling-mounted fan with wood-tone blades (four visible) radiating from a dark/brass motor housing and a frosted glass light globe that is illuminated; fan is slightly edge-cropped at the right and appears about 3.0 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 7,
+      "candidate_instance_id": "place:place_00025:cluster_007",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 4,
+      "member_object_ids": [
+        973,
+        976,
+        1047,
+        1050
+      ],
+      "member_observation_ids": [
+        "obs_000973",
+        "obs_000976",
+        "obs_001047",
+        "obs_001050"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00139",
+        "view_00155",
+        "view_00155"
+      ],
+      "member_labels": [
+        "bed",
+        "bed",
+        "bed",
+        "bed"
+      ],
+      "member_descriptions": [
+        "white-gray striped bed front crop",
+        "striped beige bed on dark wood",
+        "white-gray striped bedspread, dark footboard",
+        "white-striped bed with dark footboard"
+      ],
+      "member_long_descriptions": [
+        "Large bed (appears king-size) with a white-and-gray horizontal striped duvet and matching pillows, dark wooden footboard visible in the foreground; the bed fills most of the lower half of the crop and is slightly cropped at the left/right edges, camera approximately 1.8 meters from the footboard.",
+        "Partial view of a large bed with a striped beige/white/gray quilted bedspread draped over a dark wooden footboard; left side is slightly edge-cropped and a pillow is partially visible at the upper left \u2014 approximate camera distance ~1.5 m.",
+        "Large bed with white and gray striped bedspread and matching pillows, set on a dark-stained wooden footboard; bed occupies most of the crop, sides are slightly edge-cropped and the top of the mattress and pillows are visible from a frontal viewpoint \u2014 approximate distance ~1.8 m from camera.",
+        "Partial crop showing the front/foot of a bed with a white-and-gray vertically striped quilt or comforter draped over the mattress, hanging over a dark brown wooden footboard; left side is edge-cropped and the camera is approximately 1.0 m from the bed."
+      ],
+      "label_histogram": {
+        "bed": 4
+      },
+      "representative_object_id": 976,
+      "representative_label": "bed",
+      "representative_description": "Partial view of a large bed with a striped beige/white/gray quilted bedspread draped over a dark wooden footboard; left side is slightly edge-cropped and a pillow is partially visible at the upper left \u2014 approximate camera distance ~1.5 m.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00139",
+        "view_00155"
+      ]
+    },
+    {
+      "cluster_id": 8,
+      "candidate_instance_id": "place:place_00025:cluster_008",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        974,
+        1048
+      ],
+      "member_observation_ids": [
+        "obs_000974",
+        "obs_001048"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00155"
+      ],
+      "member_labels": [
+        "table lamp",
+        "table lamp"
+      ],
+      "member_descriptions": [
+        "beige pleated lampshade table lamp",
+        "beige pleated shade table lamp"
+      ],
+      "member_long_descriptions": [
+        "Lit table lamp with a beige, pleated fabric shade (scalloped lower edge) producing a warm yellow glow; dark rounded pedestal base (wood or ceramic) visible below the shade but partially cropped at the right edge of the crop; image is low-resolution and slightly blurred. Approximate distance from camera ~0.8 m.",
+        "Beige/cream pleated fabric lampshade with scalloped lower rim over a turned dark-brown base (appears to be wood or ceramic); lamp is lit with a warm yellow glow and the lower/side of the base is partially cropped by the image border \u2014 approximately 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "table lamp": 2
+      },
+      "representative_object_id": 974,
+      "representative_label": "table lamp",
+      "representative_description": "Lit table lamp with a beige, pleated fabric shade (scalloped lower edge) producing a warm yellow glow; dark rounded pedestal base (wood or ceramic) visible below the shade but partially cropped at the right edge of the crop; image is low-resolution and slightly blurred. Approximate distance from camera ~0.8 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 9,
+      "candidate_instance_id": "place:place_00025:cluster_009",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 5,
+      "member_object_ids": [
+        975,
+        980,
+        1042,
+        1049,
+        1054
+      ],
+      "member_observation_ids": [
+        "obs_000975",
+        "obs_000980",
+        "obs_001042",
+        "obs_001049",
+        "obs_001054"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00139",
+        "view_00154",
+        "view_00155",
+        "view_00155"
+      ],
+      "member_labels": [
+        "pillow",
+        "pillow",
+        "lamp",
+        "pillow",
+        "pillow"
+      ],
+      "member_descriptions": [
+        "striped beige pillow edge-cropped",
+        "light gray pillow edge crop",
+        "white layered petal lampshade crop",
+        "beige striped fabric pillow edge-cropped",
+        "light beige rectangular pillow edge"
+      ],
+      "member_long_descriptions": [
+        "Partial, edge-cropped close-up of a rectangular beige pillow with horizontal light-beige to tan stripes, woven fabric texture and visible seam lines; pillow appears soft and slightly compressed and is likely photographed at about 0.6 m distance.",
+        "Partial crop of a light gray rectangular pillow showing an edge with a visible seam and subtle woven/linen-like texture and soft wrinkles; pillow is cut off by the image border and appears close to the camera (\u22480.6 m).",
+        "Close-up view of a white, layered petal-like lampshade composed of overlapping thin fabric or paper panels with soft curved edges and a slightly translucent, high-key surface; the object is partially edge-cropped in the frame and appears close to the camera (approximately 0.8 m).",
+        "Plump rectangular beige-and-light-brown horizontally striped fabric pillow with a woven texture, slightly rumpled and pressed flat at the front; the pillow is partially edge-cropped in the image and appears in the foreground at approximately 0.6 meters from the camera.",
+        "Partial, edge-cropped light beige rectangular fabric pillow with visible seam/piping and soft stuffed form, showing subtle horizontal shading and slight wrinkles; appears to be a close-up shot (approximately 0.5 m from the camera)."
+      ],
+      "label_histogram": {
+        "lamp": 1,
+        "pillow": 4
+      },
+      "representative_object_id": 975,
+      "representative_label": "pillow",
+      "representative_description": "Partial, edge-cropped close-up of a rectangular beige pillow with horizontal light-beige to tan stripes, woven fabric texture and visible seam lines; pillow appears soft and slightly compressed and is likely photographed at about 0.6 m distance.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00139",
+        "view_00155"
+      ]
+    },
+    {
+      "cluster_id": 10,
+      "candidate_instance_id": "place:place_00025:cluster_010",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        978,
+        1052
+      ],
+      "member_observation_ids": [
+        "obs_000978",
+        "obs_001052"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00155"
+      ],
+      "member_labels": [
+        "nightstand",
+        "nightstand"
+      ],
+      "member_descriptions": [
+        "dark wooden nightstand front crop",
+        "dark wooden nightstand, top-front crop"
+      ],
+      "member_long_descriptions": [
+        "Partial edge-cropped view of a dark brown wooden nightstand showing a varnished glossy top edge and carved decorative molding on the drawer front with visible surface wear and scuffs; appears roughly 1.2 meters from the camera.",
+        "Dark brown wooden nightstand showing carved decorative molding and two visible drawer fronts with round metal knobs; glossy finish with some surface wear, viewed in a partial/edge-cropped close-up (approximately 1.0 m from camera)."
+      ],
+      "label_histogram": {
+        "nightstand": 2
+      },
+      "representative_object_id": 978,
+      "representative_label": "nightstand",
+      "representative_description": "Partial edge-cropped view of a dark brown wooden nightstand showing a varnished glossy top edge and carved decorative molding on the drawer front with visible surface wear and scuffs; appears roughly 1.2 meters from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 11,
+      "candidate_instance_id": "place:place_00025:cluster_011",
+      "group_id": "place_00025",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        979,
+        1053
+      ],
+      "member_observation_ids": [
+        "obs_000979",
+        "obs_001053"
+      ],
+      "member_view_ids": [
+        "view_00139",
+        "view_00155"
+      ],
+      "member_labels": [
+        "window",
+        "window"
+      ],
+      "member_descriptions": [
+        "white window with horizontal blinds",
+        "window with white horizontal blinds"
+      ],
+      "member_long_descriptions": [
+        "Rectangular interior window occupying most of the crop, fitted with closed white horizontal vinyl/blind slats and framed by dark side curtains; top valance and a small portion of a wooden sill are visible, no exterior view seen, approximate distance from camera ~2.0 m.",
+        "Rectangular interior window filling most of the crop with lowered white horizontal blinds (plastic/metal slats) that are mostly closed, framed by dark black fabric curtains on both sides; faint daylight filters through small slat gaps. Window appears fully visible (not edge-cropped) and mounted in a light-colored frame; estimated distance from camera ~2.5 meters."
+      ],
+      "label_histogram": {
+        "window": 2
+      },
+      "representative_object_id": 979,
+      "representative_label": "window",
+      "representative_description": "Rectangular interior window occupying most of the crop, fitted with closed white horizontal vinyl/blind slats and framed by dark side curtains; top valance and a small portion of a wooden sill are visible, no exterior view seen, approximate distance from camera ~2.0 m.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

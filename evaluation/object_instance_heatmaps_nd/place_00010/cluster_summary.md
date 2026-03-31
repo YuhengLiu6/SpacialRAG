@@ -1,0 +1,89 @@
+# Cluster Summary: place_00010
+
+- group_type: place
+- n_objects: 40
+- n_clusters: 6
+
+## Cluster 0
+- candidate_instance_id: place:place_00010:cluster_000
+- num_members: 29
+- representative_label: cabinet
+- representative_description: Dark brown wooden cabinet door with a recessed rectangular center panel and visible vertical wood grain; matte finish with minor surface wear and small scuffs, no visible handle; mostly centered in the crop but slightly edge-cropped at the top-right, occupying most of the frame which suggests the camera was about 0.6 m away.
+- same_view_collision: True
+- offending_view_ids: view_00060, view_00061, view_00062, view_00063
+- member: object_id=540 view_id=view_00060 label=other description=object: other | attrs: white paper, black text, cropped | anchor: x=-5.5, z=-3.5 | nearby: image frame edge@(-5.5,-3.5), background surface@(-5.5,-3.5)
+- member: object_id=541 view_id=view_00060 label=shoes description=object: shoes | attrs: dark brown to black leather, glossy reflections, partially cropped | anchor: x=-5.5, z=-3.5 | nearby: image frame edge@(-5.5,-3.5), background surface@(-5.5,-3.5)
+- member: object_id=544 view_id=view_00061 label=fireplace description=dark metal fireplace opening, edge-cropped
+- member: object_id=545 view_id=view_00061 label=table lamp description=off-white scalloped shade table lamp
+- member: object_id=547 view_id=view_00061 label=fireplace description=black metal fireplace partial view
+- member: object_id=551 view_id=view_00062 label=cabinet description=dark wood cabinet doors, edge-cropped
+- member: object_id=552 view_id=view_00062 label=cabinet description=tall dark wooden cabinet right edge-cropped
+- member: object_id=553 view_id=view_00062 label=cabinet description=dark brown recessed cabinet door
+- member: object_id=554 view_id=view_00062 label=cabinet description=dark brown wooden cabinet door edge
+- member: object_id=555 view_id=view_00062 label=cabinet description=dark varnished wood cabinet top
+- member: object_id=556 view_id=view_00062 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=557 view_id=view_00062 label=cabinet description=tall dark wood cabinet edge
+- member: object_id=558 view_id=view_00062 label=cabinet description=dark wooden cabinet door edge-crop
+- member: object_id=559 view_id=view_00062 label=coffee maker description=black drip coffee maker, partial crop
+- member: object_id=560 view_id=view_00062 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=561 view_id=view_00062 label=cabinet description=dark brown wooden cabinet top edge
+- member: object_id=562 view_id=view_00062 label=cabinet description=edge-cropped dark brown cabinet door
+- member: object_id=564 view_id=view_00062 label=faucet description=chrome curved faucet spout edge-crop
+- member: object_id=565 view_id=view_00062 label=cabinet description=dark wood cabinet corner, top edge
+- member: object_id=566 view_id=view_00062 label=oven description=stainless steel oven handle and door (partial)
+- member: object_id=568 view_id=view_00062 label=cabinet description=edge-cropped dark wooden cabinet door
+- member: object_id=569 view_id=view_00062 label=cabinet description=dark brown wooden cabinet front
+- member: object_id=570 view_id=view_00062 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=571 view_id=view_00062 label=table description=beige speckled stone countertop edge crop
+- member: object_id=573 view_id=view_00063 label=chair description=dark carved wooden chair back, partial
+- member: object_id=576 view_id=view_00063 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=577 view_id=view_00063 label=cabinet description=tall dark wood cabinet door
+- member: object_id=578 view_id=view_00063 label=cabinet description=dark brown paneled cabinet door
+- member: object_id=579 view_id=view_00063 label=chair description=partial brown padded chair seat
+
+## Cluster 1
+- candidate_instance_id: place:place_00010:cluster_001
+- num_members: 2
+- representative_label: couch
+- representative_description: Black leather (or leatherette) three-seat recliner-style couch with segmented, heavily padded back cushions, stitched seam paneling and visible seat divisions; padded armrests and a slight glossy surface; nearly fully visible in the crop and roughly 2.0 m from the camera (couch width ~2.0–2.2 m estimated).
+- same_view_collision: False
+- member: object_id=542 view_id=view_00061 label=couch description=black leather three-seat couch
+- member: object_id=549 view_id=view_00062 label=chair description=dark brown leather recliner, left profile
+
+## Cluster 2
+- candidate_instance_id: place:place_00010:cluster_002
+- num_members: 2
+- representative_label: couch
+- representative_description: Dark brown, leather-like tufted couch with channeled back and seat cushions; near end of the sofa is visible and the piece is partially cropped by the image edge, positioned against the right wall — appears about 1.2 meters from the camera.
+- same_view_collision: False
+- member: object_id=543 view_id=view_00061 label=couch description=dark brown tufted couch cropped
+- member: object_id=575 view_id=view_00063 label=chair description=dark striped upholstered chair back
+
+## Cluster 3
+- candidate_instance_id: place:place_00010:cluster_003
+- num_members: 2
+- representative_label: fireplace
+- representative_description: Close-up of a white painted wooden fireplace surround with rectangular panel moldings, a black metal firebox insert and a dark slate or tile hearth; the right side of the surround is edge-cropped and a nearby fabric curtain or column is visible — approximately 1.5 m from the camera.
+- same_view_collision: False
+- member: object_id=546 view_id=view_00061 label=fireplace description=white painted wooden fireplace surround
+- member: object_id=563 view_id=view_00062 label=cabinet description=white wooden mantel cabinet edge-cropped
+
+## Cluster 4
+- candidate_instance_id: place:place_00010:cluster_004
+- num_members: 2
+- representative_label: side table
+- representative_description: Partial/cropped view of a small dark reddish-brown carved wooden side table with a glossy finish, ornate curved/cabriole legs and molded apron, rectangular top holding a doily and small dish; appears adjacent to upholstered furniture and roughly 0.8 m from the camera.
+- same_view_collision: False
+- member: object_id=548 view_id=view_00062 label=side table description=dark carved wooden side table (partial)
+- member: object_id=574 view_id=view_00063 label=dining table description=partial reddish-brown wooden dining table
+
+## Cluster 5
+- candidate_instance_id: place:place_00010:cluster_005
+- num_members: 3
+- representative_label: oven
+- representative_description: Partial stainless-steel oven front with a closed door and a horizontal handle draped by two white patterned kitchen towels; lower right area is partly occluded by a nearby speckled countertop and the crop is edge-cut, photographed from roughly 1.2 m away.
+- same_view_collision: True
+- offending_view_ids: view_00062
+- member: object_id=550 view_id=view_00062 label=oven description=stainless-steel oven with towels
+- member: object_id=567 view_id=view_00062 label=microwave description=black-glass microwave door, bottom crop
+- member: object_id=572 view_id=view_00063 label=refrigerator description=stainless steel side-by-side fridge

@@ -1,0 +1,359 @@
+{
+  "views": [
+    {
+      "view_id": "view_00064",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o000_000064.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00011/view_annotations/view_00064_annotated.jpg",
+      "source_file_name": "images/pose_00016_o000_000064.jpg",
+      "num_objects": 7,
+      "objects": [
+        {
+          "object_global_id": 580,
+          "label": "wall switch",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 581,
+          "label": "door",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 582,
+          "label": "towel",
+          "cluster_id": 2,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 583,
+          "label": "art",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 584,
+          "label": "mirror",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 585,
+          "label": "rug",
+          "cluster_id": 5,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 586,
+          "label": "shelf",
+          "cluster_id": 6,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00065",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o090_000065.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00011/view_annotations/view_00065_annotated.jpg",
+      "source_file_name": "images/pose_00016_o090_000065.jpg",
+      "num_objects": 9,
+      "objects": [
+        {
+          "object_global_id": 587,
+          "label": "side table",
+          "cluster_id": 7,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 588,
+          "label": "couch",
+          "cluster_id": 8,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 589,
+          "label": "clock",
+          "cluster_id": 9,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 590,
+          "label": "side table",
+          "cluster_id": 10,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 591,
+          "label": "table lamp",
+          "cluster_id": 11,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 592,
+          "label": "couch",
+          "cluster_id": 12,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 593,
+          "label": "chair",
+          "cluster_id": 12,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 594,
+          "label": "fireplace",
+          "cluster_id": 13,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 595,
+          "label": "fireplace",
+          "cluster_id": 14,
+          "laterality": "left",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00066",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o180_000066.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00011/view_annotations/view_00066_annotated.jpg",
+      "source_file_name": "images/pose_00016_o180_000066.jpg",
+      "num_objects": 23,
+      "objects": [
+        {
+          "object_global_id": 596,
+          "label": "refrigerator",
+          "cluster_id": 15,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 597,
+          "label": "cabinet",
+          "cluster_id": 16,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 598,
+          "label": "cabinet",
+          "cluster_id": 17,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 599,
+          "label": "oven",
+          "cluster_id": 9,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 600,
+          "label": "cabinet",
+          "cluster_id": 18,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 601,
+          "label": "cabinet",
+          "cluster_id": 19,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 602,
+          "label": "cabinet",
+          "cluster_id": 20,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 603,
+          "label": "coffee maker",
+          "cluster_id": 21,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 604,
+          "label": "rug",
+          "cluster_id": 22,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 605,
+          "label": "cabinet",
+          "cluster_id": 23,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 606,
+          "label": "cabinet",
+          "cluster_id": 12,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 607,
+          "label": "sink",
+          "cluster_id": 24,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 608,
+          "label": "cabinet",
+          "cluster_id": 25,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 609,
+          "label": "cabinet",
+          "cluster_id": 26,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 610,
+          "label": "cabinet",
+          "cluster_id": 27,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 611,
+          "label": "cabinet",
+          "cluster_id": 28,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 612,
+          "label": "faucet",
+          "cluster_id": 29,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 613,
+          "label": "cabinet",
+          "cluster_id": 30,
+          "laterality": "left",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 614,
+          "label": "sink",
+          "cluster_id": 31,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 615,
+          "label": "cabinet",
+          "cluster_id": 32,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 616,
+          "label": "oven",
+          "cluster_id": 33,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 617,
+          "label": "sink",
+          "cluster_id": 34,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 618,
+          "label": "cabinet",
+          "cluster_id": 35,
+          "laterality": "left",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00067",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00016_o270_000067.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00011/view_annotations/view_00067_annotated.jpg",
+      "source_file_name": "images/pose_00016_o270_000067.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 619,
+          "label": "chair",
+          "cluster_id": 36,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 620,
+          "label": "chair",
+          "cluster_id": 37,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 621,
+          "label": "chair",
+          "cluster_id": 12,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 622,
+          "label": "dining table",
+          "cluster_id": 38,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 623,
+          "label": "chair",
+          "cluster_id": 39,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 624,
+          "label": "window",
+          "cluster_id": 40,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

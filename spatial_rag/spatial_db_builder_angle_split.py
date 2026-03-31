@@ -87,6 +87,12 @@ def main() -> None:
         help="Whether to capture scan at start position in random tour",
     )
     parser.add_argument(
+        "--run_polar_surrounding_postprocess",
+        type=_str_to_bool,
+        default=False,
+        help="Whether to rebuild polar surrounding context after DB build",
+    )
+    parser.add_argument(
         "--angle_split_enable",
         type=_str_to_bool,
         default=VLM_ANGLE_SPLIT_ENABLE,
@@ -118,6 +124,7 @@ def main() -> None:
         random_seed=args.random_seed,
         random_max_attempts_per_step=args.random_max_attempts_per_step,
         random_include_start_scan=args.random_include_start_scan,
+        run_polar_surrounding_postprocess=args.run_polar_surrounding_postprocess,
         angle_split_enable=args.angle_split_enable,
         angle_step=args.angle_step,
     )

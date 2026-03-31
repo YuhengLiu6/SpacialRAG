@@ -1,0 +1,171 @@
+{
+  "group_id": "place_00015",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 705,
+      "observation_id": "obs_000705",
+      "view_id": "view_00084",
+      "entry_id": 84,
+      "label": "other",
+      "description": "object: other | attrs: white painted, wood trim | anchor: x=-1.0, z=-1.5 | nearby: hardwood floor@(-1.0,-1.5), textured wall (foreground)@(-0.5,-1.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 706,
+      "observation_id": "obs_000706",
+      "view_id": "view_00084",
+      "entry_id": 84,
+      "label": "art",
+      "description": "object: art | attrs: red-white-blue, rectangular, vertical orientation, fabric | anchor: x=-2.0, z=-3.0 | nearby: hook/nail@(-2.0,-3.0), light switch plate@(-2.0,-3.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 707,
+      "observation_id": "obs_000707",
+      "view_id": "view_00084",
+      "entry_id": 84,
+      "label": "wall switch",
+      "description": "object: wall switch | attrs: white plastic, single-gang, flush mounted | anchor: x=-2.0, z=-3.0 | nearby: flag (American)@(-2.0,-3.0), baseboard (floor trim)@(-2.0,-3.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 708,
+      "observation_id": "obs_000708",
+      "view_id": "view_00085",
+      "entry_id": 85,
+      "label": "picture frame",
+      "description": "dark gilded wooden picture frame"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 709,
+      "observation_id": "obs_000709",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "door",
+      "description": "object: door | attrs: white painted wood, paneled, visible hinges | anchor: x=0.0, z=-0.5 | nearby: thermostat@(-1.0,0.5), right door / door frame@(-1.0,-0.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 710,
+      "observation_id": "obs_000710",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "other",
+      "description": "object: other | attrs: beige/tan fabric, arched shape, mounted above blinds | anchor: x=-0.5, z=1.5 | nearby: blinds@(-0.5,1.0), window sill@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 711,
+      "observation_id": "obs_000711",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "blinds",
+      "description": "object: blinds | attrs: white, horizontal slats, closed, slats mildly warped/damaged | anchor: x=-0.5, z=1.0 | nearby: valance (fabric arch)@(-0.5,1.5), window sill@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 712,
+      "observation_id": "obs_000712",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "other",
+      "description": "object: other | attrs: white painted wood, narrow sill, scuffed minorly | anchor: x=-0.5, z=1.0 | nearby: blinds@(-0.5,1.0), valance (fabric arch)@(-0.5,1.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 713,
+      "observation_id": "obs_000713",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "other",
+      "description": "object: other | attrs: white trim, metal knob visible | anchor: x=-1.0, z=-0.5 | nearby: thermostat@(-1.0,0.5), window (with blinds)@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 714,
+      "observation_id": "obs_000714",
+      "view_id": "view_00086",
+      "entry_id": 86,
+      "label": "other",
+      "description": "object: other | attrs: white plastic housing, digital display area (off/blank in image), two round control buttons visible | anchor: x=-1.0, z=0.5 | nearby: window (with blinds)@(-0.5,1.0), right door / door frame@(-1.0,-0.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 715,
+      "observation_id": "obs_000715",
+      "view_id": "view_00087",
+      "entry_id": 87,
+      "label": "other",
+      "description": "object: other | attrs: light gray / off-white, textured or patterned finish (possible wallpaper or textured paint) | anchor: x=0.0, z=-1.0 | nearby: door jamb / trim@(0.0,-0.5), door@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 716,
+      "observation_id": "obs_000716",
+      "view_id": "view_00087",
+      "entry_id": 87,
+      "label": "door",
+      "description": "object: door | attrs: white paint, rectangular recessed panels, interior door | anchor: x=0.0, z=-0.5 | nearby: door jamb / trim@(0.0,-0.5), door knob / lock hardware@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 717,
+      "observation_id": "obs_000717",
+      "view_id": "view_00087",
+      "entry_id": 87,
+      "label": "other",
+      "description": "object: other | attrs: white trim, vertical narrow light gap | anchor: x=0.0, z=-0.5 | nearby: door@(0.0,-0.5), left wall (textured)@(0.0,-1.0)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 718,
+      "observation_id": "obs_000718",
+      "view_id": "view_00087",
+      "entry_id": 87,
+      "label": "other",
+      "description": "object: other | attrs: small circular opening, dark interior | anchor: x=0.0, z=-0.5 | nearby: door@(0.0,-0.5), door knob / lock hardware@(0.0,-0.5)"
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 719,
+      "observation_id": "obs_000719",
+      "view_id": "view_00087",
+      "entry_id": 87,
+      "label": "other",
+      "description": "object: other | attrs: chrome finish, two-piece (deadbolt above, lever below) | anchor: x=0.0, z=-0.5 | nearby: door@(0.0,-0.5), door jamb / trim@(0.0,-0.5)"
+    }
+  ]
+}

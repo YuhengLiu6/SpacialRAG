@@ -1,0 +1,135 @@
+{
+  "views": [
+    {
+      "view_id": "view_00100",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00025_o000_000100.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00019/view_annotations/view_00100_annotated.jpg",
+      "source_file_name": "images/pose_00025_o000_000100.jpg",
+      "num_objects": 3,
+      "objects": [
+        {
+          "object_global_id": 771,
+          "label": "door",
+          "cluster_id": 0,
+          "laterality": "left",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 772,
+          "label": "door",
+          "cluster_id": 1,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 773,
+          "label": "other",
+          "cluster_id": 2,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00101",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00025_o090_000101.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00019/view_annotations/view_00101_annotated.jpg",
+      "source_file_name": "images/pose_00025_o090_000101.jpg",
+      "num_objects": 2,
+      "objects": [
+        {
+          "object_global_id": 774,
+          "label": "dining table",
+          "cluster_id": 3,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 775,
+          "label": "chair",
+          "cluster_id": 4,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00102",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00025_o180_000102.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00019/view_annotations/view_00102_annotated.jpg",
+      "source_file_name": "images/pose_00025_o180_000102.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 776,
+          "label": "picture frame",
+          "cluster_id": 5,
+          "laterality": "right",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00103",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00025_o270_000103.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00019/view_annotations/view_00103_annotated.jpg",
+      "source_file_name": "images/pose_00025_o270_000103.jpg",
+      "num_objects": 7,
+      "objects": [
+        {
+          "object_global_id": 777,
+          "label": "dining table",
+          "cluster_id": 6,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 778,
+          "label": "chair",
+          "cluster_id": 4,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 779,
+          "label": "dining table",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 780,
+          "label": "cabinet",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 781,
+          "label": "chair",
+          "cluster_id": 7,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 782,
+          "label": "picture frame",
+          "cluster_id": 5,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 783,
+          "label": "chair",
+          "cluster_id": 0,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

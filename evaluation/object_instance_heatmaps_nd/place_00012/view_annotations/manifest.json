@@ -1,0 +1,205 @@
+{
+  "views": [
+    {
+      "view_id": "view_00068",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00017_o000_000068.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00012/view_annotations/view_00068_annotated.jpg",
+      "source_file_name": "images/pose_00017_o000_000068.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 625,
+          "label": "other",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 626,
+          "label": "other",
+          "cluster_id": 1,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 627,
+          "label": "wall switch",
+          "cluster_id": 2,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 628,
+          "label": "door",
+          "cluster_id": 3,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 629,
+          "label": "other",
+          "cluster_id": 4,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 630,
+          "label": "bed",
+          "cluster_id": 5,
+          "laterality": "right",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00069",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00017_o090_000069.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00012/view_annotations/view_00069_annotated.jpg",
+      "source_file_name": "images/pose_00017_o090_000069.jpg",
+      "num_objects": 5,
+      "objects": [
+        {
+          "object_global_id": 631,
+          "label": "chair",
+          "cluster_id": 6,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 632,
+          "label": "picture frame",
+          "cluster_id": 7,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 633,
+          "label": "couch",
+          "cluster_id": 6,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 634,
+          "label": "clock",
+          "cluster_id": 8,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 635,
+          "label": "side table",
+          "cluster_id": 6,
+          "laterality": "center",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00070",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00017_o180_000070.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00012/view_annotations/view_00070_annotated.jpg",
+      "source_file_name": "images/pose_00017_o180_000070.jpg",
+      "num_objects": 2,
+      "objects": [
+        {
+          "object_global_id": 636,
+          "label": "rug",
+          "cluster_id": 9,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 637,
+          "label": "rug",
+          "cluster_id": 10,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00071",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00017_o270_000071.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00012/view_annotations/view_00071_annotated.jpg",
+      "source_file_name": "images/pose_00017_o270_000071.jpg",
+      "num_objects": 10,
+      "objects": [
+        {
+          "object_global_id": 638,
+          "label": "rug",
+          "cluster_id": 10,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 639,
+          "label": "chair",
+          "cluster_id": 11,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 640,
+          "label": "chair",
+          "cluster_id": 12,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 641,
+          "label": "dining table",
+          "cluster_id": 13,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 642,
+          "label": "chair",
+          "cluster_id": 14,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 643,
+          "label": "chair",
+          "cluster_id": 15,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 644,
+          "label": "cabinet",
+          "cluster_id": 16,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 645,
+          "label": "chair",
+          "cluster_id": 17,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 646,
+          "label": "cabinet",
+          "cluster_id": 18,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 647,
+          "label": "chair",
+          "cluster_id": 19,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

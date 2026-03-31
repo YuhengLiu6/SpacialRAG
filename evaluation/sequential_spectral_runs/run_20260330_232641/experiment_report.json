@@ -1,0 +1,1066 @@
+{
+  "db_dir": "spatial_db_nd",
+  "output_dir": "evaluation/sequential_spectral_runs/run_20260330_232641",
+  "selected_view_ids": [
+    "view_00015",
+    "view_00019",
+    "view_00023",
+    "view_00027"
+  ],
+  "views": [
+    {
+      "view_id": "view_00015",
+      "entry_id": 15,
+      "file_name": "images/pose_00003_o270_000015.jpg",
+      "num_objects": 24,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00015_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00019",
+      "entry_id": 19,
+      "file_name": "images/pose_00004_o270_000019.jpg",
+      "num_objects": 20,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00019_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "file_name": "images/pose_00005_o270_000023.jpg",
+      "num_objects": 15,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00023_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    },
+    {
+      "view_id": "view_00027",
+      "entry_id": 27,
+      "file_name": "images/pose_00006_o270_000027.jpg",
+      "num_objects": 18,
+      "stored_image_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027.jpg",
+      "image_status": "copied",
+      "stored_detection_overlay_path": "evaluation/sequential_spectral_runs/run_20260330_232641/selected_view_images/view_00027_yolo_overlay.jpg",
+      "detection_overlay_status": "copied"
+    }
+  ],
+  "view_object_counts": {
+    "view_00015": 24,
+    "view_00019": 20,
+    "view_00023": 15,
+    "view_00027": 18
+  },
+  "weights": {
+    "text": 0.7,
+    "global_geo": 0.2,
+    "polar": 0.1,
+    "normalized": {
+      "text": 0.7000000000000001,
+      "global_geo": 0.20000000000000004,
+      "polar": 0.10000000000000002
+    }
+  },
+  "global_sigma_m": 2.0,
+  "min_cross_affinity": 0.35,
+  "current_only_reattach_min_affinity": 0.75,
+  "step_summaries": [
+    {
+      "step_index": 1,
+      "view_id": "view_00019",
+      "num_current_objects": 20,
+      "num_existing_clusters": 24,
+      "num_appended": 15,
+      "num_current_only_reattached": 14,
+      "num_merged_clusters": 0,
+      "num_same_view_blocked_components": 0,
+      "num_new_tail_clusters": 5,
+      "cross_affinity_shape": [
+        20,
+        24
+      ]
+    },
+    {
+      "step_index": 2,
+      "view_id": "view_00023",
+      "num_current_objects": 15,
+      "num_existing_clusters": 29,
+      "num_appended": 13,
+      "num_current_only_reattached": 12,
+      "num_merged_clusters": 0,
+      "num_same_view_blocked_components": 0,
+      "num_new_tail_clusters": 2,
+      "cross_affinity_shape": [
+        15,
+        29
+      ]
+    },
+    {
+      "step_index": 3,
+      "view_id": "view_00027",
+      "num_current_objects": 18,
+      "num_existing_clusters": 31,
+      "num_appended": 8,
+      "num_current_only_reattached": 7,
+      "num_merged_clusters": 0,
+      "num_same_view_blocked_components": 0,
+      "num_new_tail_clusters": 10,
+      "cross_affinity_shape": [
+        18,
+        31
+      ]
+    }
+  ],
+  "final_cluster_count": 41,
+  "cluster_size_histogram": {
+    "1": 27,
+    "2": 7,
+    "3": 3,
+    "4": 2,
+    "9": 1,
+    "10": 1
+  },
+  "label_jitter_examples": [
+    {
+      "cluster_id": 6,
+      "dominant_label": "chair",
+      "dominant_label_count": 3,
+      "purity": 0.75,
+      "label_histogram": {
+        "chair": 3,
+        "dining table": 1
+      },
+      "member_object_ids": [
+        90,
+        132,
+        185,
+        194
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023",
+        "view_00023"
+      ]
+    }
+  ],
+  "final_clusters": [
+    {
+      "cluster_id": 0,
+      "members": [
+        "towel (84)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "towel": 1
+      }
+    },
+    {
+      "cluster_id": 1,
+      "members": [
+        "oven (85)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "oven": 1
+      }
+    },
+    {
+      "cluster_id": 2,
+      "members": [
+        "lamp (86)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "lamp": 1
+      }
+    },
+    {
+      "cluster_id": 3,
+      "members": [
+        "cabinet (87)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 4,
+      "members": [
+        "cabinet (88)",
+        "cabinet (135)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 2
+      }
+    },
+    {
+      "cluster_id": 5,
+      "members": [
+        "dining table (89)",
+        "dining table (133)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "dining table": 2
+      }
+    },
+    {
+      "cluster_id": 6,
+      "members": [
+        "chair (90)",
+        "chair (132)",
+        "chair (185)",
+        "dining table (194)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "chair": 3,
+        "dining table": 1
+      }
+    },
+    {
+      "cluster_id": 7,
+      "members": [
+        "chair (91)",
+        "chair (131)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "chair": 2
+      }
+    },
+    {
+      "cluster_id": 8,
+      "members": [
+        "refrigerator (92)",
+        "refrigerator (128)",
+        "refrigerator (184)",
+        "refrigerator (221)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "refrigerator": 4
+      }
+    },
+    {
+      "cluster_id": 9,
+      "members": [
+        "cabinet (93)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 10,
+      "members": [
+        "cabinet (94)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 11,
+      "members": [
+        "rug (95)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "rug": 1
+      }
+    },
+    {
+      "cluster_id": 12,
+      "members": [
+        "cabinet (96)",
+        "cabinet (130)",
+        "cabinet (143)",
+        "cabinet (145)",
+        "cabinet (188)",
+        "cabinet (192)",
+        "cabinet (193)",
+        "cabinet (198)",
+        "cabinet (222)",
+        "cabinet (229)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00027",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 10
+      }
+    },
+    {
+      "cluster_id": 13,
+      "members": [
+        "cabinet (97)",
+        "cabinet (134)",
+        "cabinet (147)",
+        "cabinet (189)",
+        "cabinet (195)",
+        "cabinet (196)",
+        "cabinet (227)",
+        "cabinet (231)",
+        "cabinet (237)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00027",
+        "view_00027",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 9
+      }
+    },
+    {
+      "cluster_id": 14,
+      "members": [
+        "cabinet (98)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 15,
+      "members": [
+        "cabinet (99)",
+        "cabinet (140)",
+        "cabinet (146)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 3
+      }
+    },
+    {
+      "cluster_id": 16,
+      "members": [
+        "cabinet (100)",
+        "cabinet (136)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 2
+      }
+    },
+    {
+      "cluster_id": 17,
+      "members": [
+        "cabinet (101)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 18,
+      "members": [
+        "chair (102)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "chair": 1
+      }
+    },
+    {
+      "cluster_id": 19,
+      "members": [
+        "cabinet (103)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 20,
+      "members": [
+        "cabinet (104)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 21,
+      "members": [
+        "coffee maker (105)",
+        "coffee maker (138)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "coffee maker": 2
+      }
+    },
+    {
+      "cluster_id": 22,
+      "members": [
+        "cabinet (106)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 23,
+      "members": [
+        "chair (107)",
+        "chair (139)",
+        "chair (197)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "chair": 3
+      }
+    },
+    {
+      "cluster_id": 24,
+      "members": [
+        "picture frame (129)"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      }
+    },
+    {
+      "cluster_id": 25,
+      "members": [
+        "clock (137)",
+        "clock (190)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "clock": 2
+      }
+    },
+    {
+      "cluster_id": 26,
+      "members": [
+        "cabinet (141)",
+        "cabinet (191)",
+        "cabinet (223)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00023",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 3
+      }
+    },
+    {
+      "cluster_id": 27,
+      "members": [
+        "coffee maker (142)",
+        "coffee maker (224)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00027"
+      ],
+      "label_histogram": {
+        "coffee maker": 2
+      }
+    },
+    {
+      "cluster_id": 28,
+      "members": [
+        "outlet (144)"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "label_histogram": {
+        "outlet": 1
+      }
+    },
+    {
+      "cluster_id": 29,
+      "members": [
+        "clock (186)"
+      ],
+      "member_view_ids": [
+        "view_00023"
+      ],
+      "label_histogram": {
+        "clock": 1
+      }
+    },
+    {
+      "cluster_id": 30,
+      "members": [
+        "dining table (187)"
+      ],
+      "member_view_ids": [
+        "view_00023"
+      ],
+      "label_histogram": {
+        "dining table": 1
+      }
+    },
+    {
+      "cluster_id": 31,
+      "members": [
+        "cabinet (225)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 32,
+      "members": [
+        "cabinet (226)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 33,
+      "members": [
+        "table (228)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "table": 1
+      }
+    },
+    {
+      "cluster_id": 34,
+      "members": [
+        "coffee maker (230)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      }
+    },
+    {
+      "cluster_id": 35,
+      "members": [
+        "sink (232)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "sink": 1
+      }
+    },
+    {
+      "cluster_id": 36,
+      "members": [
+        "cabinet (233)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 37,
+      "members": [
+        "cabinet (234)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 38,
+      "members": [
+        "toaster (235)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "toaster": 1
+      }
+    },
+    {
+      "cluster_id": 39,
+      "members": [
+        "toaster (236)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "toaster": 1
+      }
+    },
+    {
+      "cluster_id": 40,
+      "members": [
+        "cabinet (238)"
+      ],
+      "member_view_ids": [
+        "view_00027"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    }
+  ],
+  "total_appended": 36,
+  "total_current_only_reattached": 33,
+  "total_new_tail_clusters": 17,
+  "total_merged_clusters": 0,
+  "total_same_view_blocked_components": 0,
+  "append_case_examples": [
+    {
+      "step_index": 1,
+      "cluster_id": 12,
+      "appended_object_id": 130,
+      "view_id": "view_00019",
+      "reason": "component_best_append",
+      "score": 0.8733603045550301,
+      "detail": {
+        "combined_similarity": 0.8733603045550301,
+        "text_similarity": 0.903206467628479,
+        "global_geo_similarity": 0.876814005964118,
+        "polar_similarity": 0.6575297602227123,
+        "global_geo_distance_m": 0.7251493334770203,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 8,
+      "appended_object_id": 128,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.911626171038926,
+      "detail": {
+        "combined_similarity": 0.911626171038926,
+        "text_similarity": 0.9288151860237122,
+        "global_geo_similarity": 0.8850701173407981,
+        "polar_similarity": 0.8444151735416787,
+        "global_geo_distance_m": 0.6988230347633362,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 7,
+      "appended_object_id": 131,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8063215973112077,
+      "detail": {
+        "combined_similarity": 0.8063215973112077,
+        "text_similarity": 0.7757654190063477,
+        "global_geo_similarity": 0.9308664329097494,
+        "polar_similarity": 0.771125174248145,
+        "global_geo_distance_m": 0.5353110432624817,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 6,
+      "appended_object_id": 132,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8419031471566351,
+      "detail": {
+        "combined_similarity": 0.8419031471566351,
+        "text_similarity": 0.8474377393722534,
+        "global_geo_similarity": 0.7754799415482727,
+        "polar_similarity": 0.9360074128640318,
+        "global_geo_distance_m": 1.0085101127624512,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 5,
+      "appended_object_id": 133,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7500571172277365,
+      "detail": {
+        "combined_similarity": 0.7500571172277365,
+        "text_similarity": 0.6984413862228394,
+        "global_geo_similarity": 0.9261456611002115,
+        "polar_similarity": 0.7591901465170672,
+        "global_geo_distance_m": 0.5539810657501221,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 13,
+      "appended_object_id": 134,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.826932077886031,
+      "detail": {
+        "combined_similarity": 0.826932077886031,
+        "text_similarity": 0.8040833473205566,
+        "global_geo_similarity": 0.9228509377427504,
+        "polar_similarity": 0.7950354721309133,
+        "global_geo_distance_m": 0.5667011737823486,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 4,
+      "appended_object_id": 135,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8855563053967425,
+      "detail": {
+        "combined_similarity": 0.8855563053967425,
+        "text_similarity": 0.8911986351013184,
+        "global_geo_similarity": 0.9430660926035553,
+        "polar_similarity": 0.7310404230510866,
+        "global_geo_distance_m": 0.48422685265541077,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 16,
+      "appended_object_id": 136,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7807466717387582,
+      "detail": {
+        "combined_similarity": 0.7807466717387582,
+        "text_similarity": 0.7474268078804016,
+        "global_geo_similarity": 0.9573715955201589,
+        "polar_similarity": 0.6607358711844534,
+        "global_geo_distance_m": 0.41743823885917664,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 21,
+      "appended_object_id": 138,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8208735741741329,
+      "detail": {
+        "combined_similarity": 0.8208735741741329,
+        "text_similarity": 0.7950707077980042,
+        "global_geo_similarity": 0.9539727546836585,
+        "polar_similarity": 0.7352952777879823,
+        "global_geo_distance_m": 0.434143602848053,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 23,
+      "appended_object_id": 139,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7881064787882901,
+      "detail": {
+        "combined_similarity": 0.7881064787882901,
+        "text_similarity": 0.7645156383514404,
+        "global_geo_similarity": 0.8073386393266876,
+        "polar_similarity": 0.9147780407694444,
+        "global_geo_distance_m": 0.9252287745475769,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 15,
+      "appended_object_id": 140,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8048586752378832,
+      "detail": {
+        "combined_similarity": 0.8048586752378832,
+        "text_similarity": 0.785015344619751,
+        "global_geo_similarity": 0.8824012266489549,
+        "polar_similarity": 0.7886768867426666,
+        "global_geo_distance_m": 0.707413375377655,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 1,
+      "cluster_id": 12,
+      "appended_object_id": 143,
+      "view_id": "view_00019",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8998116375015288,
+      "detail": {
+        "combined_similarity": 0.8998116375015288,
+        "text_similarity": 0.8764951229095459,
+        "global_geo_similarity": 0.9634034122715444,
+        "polar_similarity": 0.9358436901053783,
+        "global_geo_distance_m": 0.38617634773254395,
+        "used_3d_global_geo": true
+      }
+    }
+  ],
+  "same_view_block_case_examples": [],
+  "tail_spawn_case_examples": [
+    {
+      "step_index": 1,
+      "new_cluster_id": 24,
+      "reason": "current_only_component",
+      "object_ids": [
+        129
+      ],
+      "view_ids": [
+        "view_00019"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 1,
+      "new_cluster_id": 25,
+      "reason": "current_only_component",
+      "object_ids": [
+        137
+      ],
+      "view_ids": [
+        "view_00019"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 1,
+      "new_cluster_id": 26,
+      "reason": "current_only_component",
+      "object_ids": [
+        141
+      ],
+      "view_ids": [
+        "view_00019"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 1,
+      "new_cluster_id": 27,
+      "reason": "current_only_component",
+      "object_ids": [
+        142
+      ],
+      "view_ids": [
+        "view_00019"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 1,
+      "new_cluster_id": 28,
+      "reason": "current_only_component",
+      "object_ids": [
+        144
+      ],
+      "view_ids": [
+        "view_00019"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 29,
+      "reason": "current_only_component",
+      "object_ids": [
+        186
+      ],
+      "view_ids": [
+        "view_00023"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 30,
+      "reason": "current_only_component",
+      "object_ids": [
+        187
+      ],
+      "view_ids": [
+        "view_00023"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 3,
+      "new_cluster_id": 31,
+      "reason": "current_only_component",
+      "object_ids": [
+        225
+      ],
+      "view_ids": [
+        "view_00027"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 3,
+      "new_cluster_id": 32,
+      "reason": "current_only_component",
+      "object_ids": [
+        226
+      ],
+      "view_ids": [
+        "view_00027"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 3,
+      "new_cluster_id": 33,
+      "reason": "current_only_component",
+      "object_ids": [
+        228
+      ],
+      "view_ids": [
+        "view_00027"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 3,
+      "new_cluster_id": 34,
+      "reason": "current_only_component",
+      "object_ids": [
+        230
+      ],
+      "view_ids": [
+        "view_00027"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 3,
+      "new_cluster_id": 35,
+      "reason": "current_only_component",
+      "object_ids": [
+        232
+      ],
+      "view_ids": [
+        "view_00027"
+      ],
+      "detail": null
+    }
+  ],
+  "cumulative_cluster_progression_manifest": "evaluation/sequential_spectral_runs/run_20260330_232641/cumulative_cluster_progression_manifest.json",
+  "cumulative_cluster_progression_overview": "evaluation/sequential_spectral_runs/run_20260330_232641/cumulative_cluster_progression_overview.png"
+}

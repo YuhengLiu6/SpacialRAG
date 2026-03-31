@@ -1,0 +1,259 @@
+{
+  "group_id": "place_00012",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 625,
+      "observation_id": "obs_000625",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "other",
+      "description": "object: other | attrs: metal, mounted high on wall | anchor: x=-2.5, z=-4.5 | nearby: flag@(-3.0,-4.5), light switch plate@(-2.5,-4.0)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 626,
+      "observation_id": "obs_000626",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "other",
+      "description": "object: other | attrs: red white and blue, fabric, vertical orientation, star field upper-left | anchor: x=-3.0, z=-4.5 | nearby: wall hook/nail@(-2.5,-4.5), light switch plate@(-2.5,-4.0)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 627,
+      "observation_id": "obs_000627",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "wall switch",
+      "description": "object: wall switch | attrs: white plastic, two rocker switches, rectangular plate | anchor: x=-2.5, z=-4.0 | nearby: flag@(-3.0,-4.5), wall hook/nail@(-2.5,-4.5)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 628,
+      "observation_id": "obs_000628",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "door",
+      "description": "object: door | attrs: white frame, ornate molding, open to right | anchor: x=-1.0, z=-4.5 | nearby: torn wall / damaged plaster near jamb@(-1.0,-4.5), bed (visible through doorway)@(-0.5,-5.0)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 629,
+      "observation_id": "obs_000629",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "other",
+      "description": "object: other | attrs: peeling paper/plaster, irregular torn edges, exposed darker cavity | anchor: x=-1.0, z=-4.5 | nearby: doorway (bedroom)@(-1.0,-4.5), bed (visible through doorway)@(-0.5,-5.5)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 630,
+      "observation_id": "obs_000630",
+      "view_id": "view_00068",
+      "entry_id": 68,
+      "label": "bed",
+      "description": "object: bed | attrs: dark wood headboard, beige/cream bedding | anchor: x=-0.5, z=-5.5 | nearby: doorway (bedroom)@(-1.0,-4.5), torn wall / damaged plaster near jamb@(-1.0,-4.5)"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 631,
+      "observation_id": "obs_000631",
+      "view_id": "view_00069",
+      "entry_id": 69,
+      "label": "chair",
+      "description": "dark glossy wooden chair edge-crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 7,
+      "object_global_id": 632,
+      "observation_id": "obs_000632",
+      "view_id": "view_00069",
+      "entry_id": 69,
+      "label": "picture frame",
+      "description": "light-brown frame with document"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 633,
+      "observation_id": "obs_000633",
+      "view_id": "view_00069",
+      "entry_id": 69,
+      "label": "couch",
+      "description": "dark leather reclining couch edge"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 8,
+      "object_global_id": 634,
+      "observation_id": "obs_000634",
+      "view_id": "view_00069",
+      "entry_id": 69,
+      "label": "clock",
+      "description": "black fluted wall clock partial"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 635,
+      "observation_id": "obs_000635",
+      "view_id": "view_00069",
+      "entry_id": 69,
+      "label": "side table",
+      "description": "dark carved wooden side table"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 9,
+      "object_global_id": 636,
+      "observation_id": "obs_000636",
+      "view_id": "view_00070",
+      "entry_id": 70,
+      "label": "rug",
+      "description": "multicolored floral rug corner crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 637,
+      "observation_id": "obs_000637",
+      "view_id": "view_00070",
+      "entry_id": 70,
+      "label": "rug",
+      "description": "small beige floral rug corner"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 638,
+      "observation_id": "obs_000638",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "rug",
+      "description": "muted blue-beige patterned rug edge-crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 11,
+      "object_global_id": 639,
+      "observation_id": "obs_000639",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "ornate dark wooden chair back"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 12,
+      "object_global_id": 640,
+      "observation_id": "obs_000640",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "dark glossy wooden chair back edge-crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 13,
+      "object_global_id": 641,
+      "observation_id": "obs_000641",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "dining table",
+      "description": "dark mahogany rectangular dining table"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 14,
+      "object_global_id": 642,
+      "observation_id": "obs_000642",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "dark wooden slatted chair side crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 15,
+      "object_global_id": 643,
+      "observation_id": "obs_000643",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "dark carved wooden chair edge-crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 16,
+      "object_global_id": 644,
+      "observation_id": "obs_000644",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "cabinet",
+      "description": "dark wooden cabinet corner crop"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 17,
+      "object_global_id": 645,
+      "observation_id": "obs_000645",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "dark wooden chair back, edge-cropped"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 18,
+      "object_global_id": 646,
+      "observation_id": "obs_000646",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "cabinet",
+      "description": "dark mahogany wooden cabinet base"
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "cluster_id": 19,
+      "object_global_id": 647,
+      "observation_id": "obs_000647",
+      "view_id": "view_00071",
+      "entry_id": 71,
+      "label": "chair",
+      "description": "dark wooden slatted chair back (partial)"
+    }
+  ]
+}

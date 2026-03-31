@@ -1,0 +1,149 @@
+{
+  "group_id": "place_00028",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 1082,
+      "observation_id": "obs_001082",
+      "view_id": "view_00160",
+      "entry_id": 160,
+      "label": "unknown",
+      "description": "object: unknown | attrs: textured, matte finish, dark gray-brown, grainy / noisy | anchor: x=-0.5, z=-9.0 | nearby: none"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 1083,
+      "observation_id": "obs_001083",
+      "view_id": "view_00161",
+      "entry_id": 161,
+      "label": "none",
+      "description": ""
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 1084,
+      "observation_id": "obs_001084",
+      "view_id": "view_00162",
+      "entry_id": 162,
+      "label": "bed",
+      "description": "beige striped bedspread edge crop"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 1085,
+      "observation_id": "obs_001085",
+      "view_id": "view_00162",
+      "entry_id": 162,
+      "label": "tv",
+      "description": "large reflective black flat-screen TV"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 1086,
+      "observation_id": "obs_001086",
+      "view_id": "view_00162",
+      "entry_id": 162,
+      "label": "basket",
+      "description": "gray woven basket with liner"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 1087,
+      "observation_id": "obs_001087",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "fan",
+      "description": "brown wooden-blade ceiling fan edge crop"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 1088,
+      "observation_id": "obs_001088",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "bed",
+      "description": "striped gray-white bed edge crop"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 1089,
+      "observation_id": "obs_001089",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "nightstand",
+      "description": "dark wooden nightstand, front view"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 1090,
+      "observation_id": "obs_001090",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "dresser",
+      "description": "dark wooden low dresser, edge-cropped"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 7,
+      "object_global_id": 1091,
+      "observation_id": "obs_001091",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "pillow",
+      "description": "off-white rectangular pillow edge-crop"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 1092,
+      "observation_id": "obs_001092",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "basket",
+      "description": "navy fabric storage basket, beige handle"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 8,
+      "object_global_id": 1093,
+      "observation_id": "obs_001093",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "lamp",
+      "description": "cream glass bowl pendant lamp"
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "cluster_id": 9,
+      "object_global_id": 1094,
+      "observation_id": "obs_001094",
+      "view_id": "view_00163",
+      "entry_id": 163,
+      "label": "bed",
+      "description": "light-striped bed surface, partial"
+    }
+  ]
+}

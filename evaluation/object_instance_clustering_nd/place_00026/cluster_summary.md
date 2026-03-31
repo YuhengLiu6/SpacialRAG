@@ -1,0 +1,47 @@
+# Cluster Summary: place_00026
+
+- group_type: place
+- n_objects: 34
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00026:cluster_000
+- num_members: 34
+- representative_label: door
+- representative_description: object: door | attributes: white, partially open, visible door trim | camera_relation: distance=0.4, bearing=-40.0, laterality=left, verticality=middle | global_anchor: x=-4.0, z=-6.5 | surroundings: right hanging clothes row | relation=to the right and deeper | primary_dist=1.1 | global=(-4.5,-7.5); central hanging garments | relation=to the right of door | primary_dist=1.5 | global=(-5.0,-7.0); wire shelf with folded clothes | relation=further into closet | primary_dist=1.8 | global=(-5.5,-7.5) | scene_context: floor_pattern=wood; scene_attributes=walk-in closet with wire shelving, hanging clothes along right wall, folded clothes on upper shelf, beige/light-gray painted walls, white baseboard, hardwood floor; wall_color=light gray / beige
+- same_view_collision: True
+- offending_view_ids: view_00140, view_00141, view_00142, view_00143, view_00148, view_00149, view_00150, view_00151
+- member: object_id=981 view_id=view_00140 label=clothes description=object: clothes | attrs: dark colored clothing, hangers visible | anchor: x=-3.5, z=-7.0 | nearby: doorframe@(-3.5,-7.5), dark opening (doorway)@(-3.5,-8.0)
+- member: object_id=982 view_id=view_00140 label=door description=object: door | attrs: white painted wood, molding/trim visible, vertical, narrow | anchor: x=-3.5, z=-7.5 | nearby: clothes@(-3.5,-7.0), dark opening (doorway)@(-3.5,-8.0)
+- member: object_id=983 view_id=view_00140 label=other description=object: other | attrs: light beige/off-white, triangular shape | anchor: x=-3.5, z=-8.0 | nearby: dark opening (doorway)@(-3.5,-8.0), doorframe@(-3.5,-7.5)
+- member: object_id=984 view_id=view_00140 label=door description=object: door | attrs: unlit, no visible interior detail, rectangular opening | anchor: x=-3.5, z=-8.0 | nearby: doorframe@(-3.5,-7.5), triangular trim/ceiling piece@(-3.5,-8.0)
+- member: object_id=985 view_id=view_00140 label=couch description=object: couch | attrs: gray fabric, white accent or cushion edge, soft upholstered | anchor: x=-3.0, z=-8.0 | nearby: pale wall (right)@(-3.0,-7.5), dark opening (doorway)@(-3.5,-8.0)
+- member: object_id=986 view_id=view_00141 label=door description=object: door | attrs: white, partially open, visible door trim | anchor: x=-4.0, z=-6.5 | nearby: right hanging clothes row@(-4.5,-7.5), central hanging garments@(-5.0,-7.0)
+- member: object_id=987 view_id=view_00141 label=shelf description=object: shelf | attrs: wire metal shelf, folded clothes, items/piles on top | anchor: x=-5.5, z=-7.5 | nearby: pile of folded clothes (right)@(-5.5,-7.5), central hanging garments@(-5.0,-7.0)
+- member: object_id=988 view_id=view_00141 label=chair description=object: chair | attrs: mixed garments, one teal/blue knit visible, hanging | anchor: x=-5.0, z=-7.0 | nearby: suitcase/trunk@(-5.5,-7.5), wire shelf with folded clothes@(-5.5,-7.5)
+- member: object_id=989 view_id=view_00141 label=hanger description=object: hanger | attrs: plastic/metal hangers, some empty | anchor: x=-5.5, z=-7.0 | nearby: wire shelf with folded clothes@(-5.5,-7.5), central hanging garments@(-5.0,-7.0)
+- member: object_id=990 view_id=view_00141 label=chair description=object: chair | attrs: many garments, bright/multicolored, on hangers | anchor: x=-4.5, z=-7.5 | nearby: wire shelf with folded clothes@(-5.5,-7.5), central hanging garments@(-5.0,-7.0)
+- member: object_id=991 view_id=view_00141 label=bench description=object: bench | attrs: dark-colored, hard-sided or trunk-like, closed | anchor: x=-5.5, z=-7.5 | nearby: central hanging garments@(-5.0,-7.0), wire shelf with folded clothes@(-5.5,-7.5)
+- member: object_id=992 view_id=view_00142 label=other description=object: other | attrs: thin, vertical, painted slightly different tone | anchor: x=-3.0, z=-6.5 | nearby: central wall panel@(-3.5,-6.5), door edge / jamb@(-3.5,-6.5)
+- member: object_id=993 view_id=view_00142 label=other description=object: other | attrs: painted, beige / off-white, smooth texture, vertical seam | anchor: x=-3.5, z=-6.5 | nearby: narrow vertical trim / seam@(-3.0,-6.5), door edge / jamb@(-3.5,-6.5)
+- member: object_id=994 view_id=view_00142 label=door description=object: door | attrs: vertical jamb, darker line, painted or wood trim | anchor: x=-3.5, z=-6.5 | nearby: central wall panel@(-3.5,-6.5), narrow vertical trim / seam@(-3.0,-6.5)
+- member: object_id=995 view_id=view_00143 label=window description=white horizontal-blind window, dark frame
+- member: object_id=996 view_id=view_00143 label=fan description=white ceiling fan partial close-up
+- member: object_id=997 view_id=view_00143 label=bed description=beige striped bedspread, dark footboard
+- member: object_id=1015 view_id=view_00148 label=clothes description=object: clothes | attrs: assorted clothing, hung on hangers | anchor: x=-4.0, z=-7.5 | nearby: doorframe@(-3.5,-7.5), open doorway / closet interior@(-3.5,-8.0)
+- member: object_id=1016 view_id=view_00148 label=door description=object: door | attrs: white painted wood, narrow profile, visible molding | anchor: x=-3.5, z=-7.5 | nearby: clothes (hanger)@(-4.0,-7.5), sofa/cushion@(-3.0,-7.5)
+- member: object_id=1017 view_id=view_00148 label=door description=object: door | attrs: open, dark interior (no visible detail) | anchor: x=-3.5, z=-8.5 | nearby: doorframe@(-3.5,-7.5), clothes (hanger)@(-4.0,-7.5)
+- member: object_id=1018 view_id=view_00148 label=wall switch description=object: wall switch | attrs: white painted surface, smooth plaster | anchor: x=-3.0, z=-7.5 | nearby: sofa/cushion@(-3.0,-7.5), open doorway / closet interior@(-3.5,-8.5)
+- member: object_id=1019 view_id=view_00148 label=couch description=object: couch | attrs: gray upholstery, fabric texture, rectangular cushion | anchor: x=-3.0, z=-7.5 | nearby: right wall@(-3.0,-7.5), doorframe@(-3.5,-7.5)
+- member: object_id=1020 view_id=view_00149 label=door description=object: door | attrs: white painted, interior panel door, partially open | anchor: x=-3.5, z=-7.0 | nearby: hanging clothes (right row)@(-4.5,-7.5), hanging clothes (center back)@(-5.0,-6.5)
+- member: object_id=1021 view_id=view_00149 label=clothes description=object: clothes | attrs: teal knit cardigan, white blouse, long garments | anchor: x=-5.0, z=-6.5 | nearby: wire shelf@(-5.5,-7.0), hanging clothes (right row)@(-5.5,-7.5)
+- member: object_id=1022 view_id=view_00149 label=shelf description=object: shelf | attrs: metal wire, mounted high, folded clothing on top | anchor: x=-5.5, z=-7.5 | nearby: folded clothes on shelf@(-5.5,-7.5), hanger(s)@(-5.5,-7.5)
+- member: object_id=1023 view_id=view_00149 label=clothes description=object: clothes | attrs: mixed colors (green, pink, blue, patterned), many hangers, closely packed | anchor: x=-4.0, z=-7.5 | nearby: hanger(s)@(-4.0,-7.5), wire shelf@(-4.5,-7.5)
+- member: object_id=1024 view_id=view_00149 label=hanger description=object: hanger | attrs: plastic and/or metal hangers, some empty | anchor: x=-5.5, z=-7.5 | nearby: wire shelf@(-5.5,-7.5), hanging clothes (right row)@(-5.0,-8.0)
+- member: object_id=1025 view_id=view_00149 label=blanket description=object: blanket | attrs: white or light colored, folded stack, textile | anchor: x=-5.0, z=-8.0 | nearby: suitcase@(-5.0,-8.0), hanging clothes (right row)@(-4.0,-7.5)
+- member: object_id=1026 view_id=view_00149 label=suitcase description=object: suitcase | attrs: dark colored, rectangular, hard-sided or trunk-like | anchor: x=-5.0, z=-8.0 | nearby: stack of folded linens@(-5.0,-8.0), wire shelf@(-5.5,-7.5)
+- member: object_id=1027 view_id=view_00150 label=door description=object: door | attrs: trim/molding, painted lighter beige/white, narrow vertical profile | anchor: x=-3.5, z=-6.5 | nearby: subtle vertical banding in paint@(-3.5,-6.5), right-side door edge@(-3.5,-6.5)
+- member: object_id=1028 view_id=view_00150 label=door description=object: door | attrs: closed, painted, narrow vertical gap, neutral beige paint | anchor: x=-3.5, z=-6.5 | nearby: vertical shadow/lighting band@(-3.5,-6.5), central trim/molding@(-3.5,-6.5)
+- member: object_id=1029 view_id=view_00151 label=window description=white-blind window with dark frame
+- member: object_id=1030 view_id=view_00151 label=fan description=white-and-brown ceiling fan edge-cropped
+- member: object_id=1031 view_id=view_00151 label=bed description=beige striped bed edge crop

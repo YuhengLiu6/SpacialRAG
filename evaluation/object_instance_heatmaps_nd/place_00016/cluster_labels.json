@@ -1,0 +1,215 @@
+{
+  "group_id": "place_00016",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 720,
+      "observation_id": "obs_000720",
+      "view_id": "view_00088",
+      "entry_id": 88,
+      "label": "picture frame",
+      "description": "dark wooden frame, right-edge crop"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 721,
+      "observation_id": "obs_000721",
+      "view_id": "view_00088",
+      "entry_id": 88,
+      "label": "outlet",
+      "description": "white plastic dual-socket outlet"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 722,
+      "observation_id": "obs_000722",
+      "view_id": "view_00088",
+      "entry_id": 88,
+      "label": "picture frame",
+      "description": "off-white frame edge, partial crop"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 723,
+      "observation_id": "obs_000723",
+      "view_id": "view_00088",
+      "entry_id": 88,
+      "label": "outlet",
+      "description": "white dual-gang outlet plate edge-crop"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 724,
+      "observation_id": "obs_000724",
+      "view_id": "view_00089",
+      "entry_id": 89,
+      "label": "picture frame",
+      "description": "dark wooden picture frame left-edge"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 725,
+      "observation_id": "obs_000725",
+      "view_id": "view_00089",
+      "entry_id": 89,
+      "label": "picture frame",
+      "description": "white picture frame with black inset"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 726,
+      "observation_id": "obs_000726",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "other",
+      "description": "object: other | attrs: thin vertical and horizontal frame members, painted or metal finish | anchor: x=0.0, z=1.5 | nearby: window@(0.0,1.5), blinds@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 727,
+      "observation_id": "obs_000727",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "blinds",
+      "description": "object: blinds | attrs: white or very light gray, horizontal slats, closed or mostly closed | anchor: x=-0.5, z=1.0 | nearby: window@(-0.5,1.5), window frame@(-0.5,1.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 728,
+      "observation_id": "obs_000728",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "window",
+      "description": "object: window | attrs: large single pane or multiple panes, reflective, clean/clear | anchor: x=-0.5, z=1.5 | nearby: window frame@(-0.5,1.5), blinds@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 729,
+      "observation_id": "obs_000729",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "other",
+      "description": "object: other | attrs: overcast or bright, light gray | anchor: x=-0.5, z=8.5 | nearby: building facade@(-0.5,6.5), blinds@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 730,
+      "observation_id": "obs_000730",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "other",
+      "description": "object: other | attrs: light colored, cylindrical or rounded rectangular | anchor: x=-1.0, z=1.5 | nearby: window@(-1.0,1.5), blinds@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 731,
+      "observation_id": "obs_000731",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "railing",
+      "description": "object: railing | attrs: metal, horizontal bar pattern | anchor: x=-1.0, z=3.5 | nearby: window@(-0.5,1.5), blinds@(-0.5,1.0)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 732,
+      "observation_id": "obs_000732",
+      "view_id": "view_00090",
+      "entry_id": 90,
+      "label": "other",
+      "description": "object: other | attrs: multi-level balconies, light colored concrete or painted surfaces | anchor: x=-2.0, z=6.5 | nearby: balcony railing@(-1.0,3.5), window@(-0.5,1.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 733,
+      "observation_id": "obs_000733",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "door",
+      "description": "object: door | attrs: white painted wood, six rectangular recessed panels, matte finish, appears slightly scuffed near bottom edge | anchor: x=0.0, z=0.5 | nearby: door trim / jamb@(0.0,0.5), door hinge (visible)@(0.0,0.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 734,
+      "observation_id": "obs_000734",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "other",
+      "description": "object: other | attrs: small dark circular mark, appears drilled or punctured | anchor: x=0.0, z=0.5 | nearby: door@(0.0,0.5), door trim / jamb@(0.0,0.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 735,
+      "observation_id": "obs_000735",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "other",
+      "description": "object: other | attrs: white painted wooden trim, narrow profile, slightly rounded inner edge | anchor: x=0.0, z=0.5 | nearby: door@(0.0,0.5), door hinge (visible)@(0.0,0.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 736,
+      "observation_id": "obs_000736",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "other",
+      "description": "object: other | attrs: dark metal, standard butt-hinge appearance | anchor: x=0.0, z=0.5 | nearby: door trim / jamb@(0.0,0.5), door@(0.0,0.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 737,
+      "observation_id": "obs_000737",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "other",
+      "description": "object: other | attrs: orange-peel texture, light gray / off-white paint, vertical shadowing near trim | anchor: x=0.0, z=0.5 | nearby: door trim / jamb@(0.0,0.5), door@(0.0,0.5)"
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 738,
+      "observation_id": "obs_000738",
+      "view_id": "view_00091",
+      "entry_id": 91,
+      "label": "window",
+      "description": "object: window | attrs: vertical white frame, bright exterior light, exterior siding/planks visible beyond glass | anchor: x=0.5, z=1.5 | nearby: textured wall@(0.0,0.5), door@(0.0,0.5)"
+    }
+  ]
+}

@@ -1,0 +1,890 @@
+{
+  "step_index": 2,
+  "view_id": "view_00023",
+  "num_current_objects": 15,
+  "num_existing_clusters": 29,
+  "num_appended": 13,
+  "num_current_only_reattached": 12,
+  "num_merged_clusters": 0,
+  "num_same_view_blocked_components": 0,
+  "num_new_tail_clusters": 2,
+  "spectral_summary": {
+    "n_clusters": 43,
+    "cluster_count_mode": "eigengap",
+    "backend": "explicit_numpy",
+    "fallback_reason": null,
+    "num_nodes": 44
+  },
+  "num_connected_components_after_spectral": 43,
+  "clusters_after_step": [
+    {
+      "cluster_id": 0,
+      "members": [
+        "towel (84)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "towel": 1
+      }
+    },
+    {
+      "cluster_id": 1,
+      "members": [
+        "oven (85)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "oven": 1
+      }
+    },
+    {
+      "cluster_id": 2,
+      "members": [
+        "lamp (86)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "lamp": 1
+      }
+    },
+    {
+      "cluster_id": 3,
+      "members": [
+        "cabinet (87)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 4,
+      "members": [
+        "cabinet (88)",
+        "cabinet (135)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 2
+      }
+    },
+    {
+      "cluster_id": 5,
+      "members": [
+        "dining table (89)",
+        "dining table (133)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "dining table": 2
+      }
+    },
+    {
+      "cluster_id": 6,
+      "members": [
+        "chair (90)",
+        "chair (132)",
+        "chair (185)",
+        "dining table (194)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "chair": 3,
+        "dining table": 1
+      }
+    },
+    {
+      "cluster_id": 7,
+      "members": [
+        "chair (91)",
+        "chair (131)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "chair": 2
+      }
+    },
+    {
+      "cluster_id": 8,
+      "members": [
+        "refrigerator (92)",
+        "refrigerator (128)",
+        "refrigerator (184)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "refrigerator": 3
+      }
+    },
+    {
+      "cluster_id": 9,
+      "members": [
+        "cabinet (93)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 10,
+      "members": [
+        "cabinet (94)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 11,
+      "members": [
+        "rug (95)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "rug": 1
+      }
+    },
+    {
+      "cluster_id": 12,
+      "members": [
+        "cabinet (96)",
+        "cabinet (130)",
+        "cabinet (143)",
+        "cabinet (145)",
+        "cabinet (188)",
+        "cabinet (192)",
+        "cabinet (193)",
+        "cabinet (198)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019",
+        "view_00019",
+        "view_00023",
+        "view_00023",
+        "view_00023",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "cabinet": 8
+      }
+    },
+    {
+      "cluster_id": 13,
+      "members": [
+        "cabinet (97)",
+        "cabinet (134)",
+        "cabinet (147)",
+        "cabinet (189)",
+        "cabinet (195)",
+        "cabinet (196)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019",
+        "view_00023",
+        "view_00023",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "cabinet": 6
+      }
+    },
+    {
+      "cluster_id": 14,
+      "members": [
+        "cabinet (98)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 15,
+      "members": [
+        "cabinet (99)",
+        "cabinet (140)",
+        "cabinet (146)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 3
+      }
+    },
+    {
+      "cluster_id": 16,
+      "members": [
+        "cabinet (100)",
+        "cabinet (136)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "cabinet": 2
+      }
+    },
+    {
+      "cluster_id": 17,
+      "members": [
+        "cabinet (101)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 18,
+      "members": [
+        "chair (102)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "chair": 1
+      }
+    },
+    {
+      "cluster_id": 19,
+      "members": [
+        "cabinet (103)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 20,
+      "members": [
+        "cabinet (104)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 21,
+      "members": [
+        "coffee maker (105)",
+        "coffee maker (138)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019"
+      ],
+      "label_histogram": {
+        "coffee maker": 2
+      }
+    },
+    {
+      "cluster_id": 22,
+      "members": [
+        "cabinet (106)"
+      ],
+      "member_view_ids": [
+        "view_00015"
+      ],
+      "label_histogram": {
+        "cabinet": 1
+      }
+    },
+    {
+      "cluster_id": 23,
+      "members": [
+        "chair (107)",
+        "chair (139)",
+        "chair (197)"
+      ],
+      "member_view_ids": [
+        "view_00015",
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "chair": 3
+      }
+    },
+    {
+      "cluster_id": 24,
+      "members": [
+        "picture frame (129)"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "label_histogram": {
+        "picture frame": 1
+      }
+    },
+    {
+      "cluster_id": 25,
+      "members": [
+        "clock (137)",
+        "clock (190)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "clock": 2
+      }
+    },
+    {
+      "cluster_id": 26,
+      "members": [
+        "cabinet (141)",
+        "cabinet (191)"
+      ],
+      "member_view_ids": [
+        "view_00019",
+        "view_00023"
+      ],
+      "label_histogram": {
+        "cabinet": 2
+      }
+    },
+    {
+      "cluster_id": 27,
+      "members": [
+        "coffee maker (142)"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "label_histogram": {
+        "coffee maker": 1
+      }
+    },
+    {
+      "cluster_id": 28,
+      "members": [
+        "outlet (144)"
+      ],
+      "member_view_ids": [
+        "view_00019"
+      ],
+      "label_histogram": {
+        "outlet": 1
+      }
+    },
+    {
+      "cluster_id": 29,
+      "members": [
+        "clock (186)"
+      ],
+      "member_view_ids": [
+        "view_00023"
+      ],
+      "label_histogram": {
+        "clock": 1
+      }
+    },
+    {
+      "cluster_id": 30,
+      "members": [
+        "dining table (187)"
+      ],
+      "member_view_ids": [
+        "view_00023"
+      ],
+      "label_histogram": {
+        "dining table": 1
+      }
+    }
+  ],
+  "append_cases": [
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 188,
+      "view_id": "view_00023",
+      "reason": "component_best_append",
+      "score": 0.9159774853999849,
+      "detail": {
+        "combined_similarity": 0.9159774853999849,
+        "text_similarity": 0.955862283706665,
+        "global_geo_similarity": 0.8714251202977944,
+        "polar_similarity": 0.725888627457605,
+        "global_geo_distance_m": 0.7419577836990356,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 8,
+      "appended_object_id": 184,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8844232132068277,
+      "detail": {
+        "combined_similarity": 0.8844232132068277,
+        "text_similarity": 0.933098316192627,
+        "global_geo_similarity": 0.9174316867982354,
+        "polar_similarity": 0.4776805451234194,
+        "global_geo_distance_m": 0.587118923664093,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 6,
+      "appended_object_id": 185,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8016606271430098,
+      "detail": {
+        "combined_similarity": 0.8016606271430098,
+        "text_similarity": 0.8136817812919617,
+        "global_geo_similarity": 0.8944443513085076,
+        "polar_similarity": 0.5319450997693512,
+        "global_geo_distance_m": 0.6679897904396057,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 189,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8490315667160503,
+      "detail": {
+        "combined_similarity": 0.8490315667160503,
+        "text_similarity": 0.8519911170005798,
+        "global_geo_similarity": 0.9331858504026648,
+        "polar_similarity": 0.6600061473511153,
+        "global_geo_distance_m": 0.525931179523468,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 25,
+      "appended_object_id": 190,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8039538335668509,
+      "detail": {
+        "combined_similarity": 0.8039538335668509,
+        "text_similarity": 0.7863532304763794,
+        "global_geo_similarity": 0.975255510447133,
+        "polar_similarity": 0.5845547014395881,
+        "global_geo_distance_m": 0.3165803551673889,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 26,
+      "appended_object_id": 191,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7763854924473507,
+      "detail": {
+        "combined_similarity": 0.7763854924473507,
+        "text_similarity": 0.7377145886421204,
+        "global_geo_similarity": 0.9463703283693604,
+        "polar_similarity": 0.7071121472399431,
+        "global_geo_distance_m": 0.46955859661102295,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 192,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8111336580090237,
+      "detail": {
+        "combined_similarity": 0.8111336580090237,
+        "text_similarity": 0.8547146320343018,
+        "global_geo_similarity": 0.7360853800006736,
+        "polar_similarity": 0.6561633958487791,
+        "global_geo_distance_m": 1.1070847511291504,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 193,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8260960420395046,
+      "detail": {
+        "combined_similarity": 0.8260960420395046,
+        "text_similarity": 0.8383830189704895,
+        "global_geo_similarity": 0.8008418335299929,
+        "polar_similarity": 0.790595620541634,
+        "global_geo_distance_m": 0.9425323605537415,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 6,
+      "appended_object_id": 194,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7894828227721796,
+      "detail": {
+        "combined_similarity": 0.7894828227721796,
+        "text_similarity": 0.7508077621459961,
+        "global_geo_similarity": 0.9819941461845594,
+        "polar_similarity": 0.6751856003307052,
+        "global_geo_distance_m": 0.2695917785167694,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 195,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8940731702487057,
+      "detail": {
+        "combined_similarity": 0.8940731702487057,
+        "text_similarity": 0.9015258550643921,
+        "global_geo_similarity": 0.9773387126673861,
+        "polar_similarity": 0.6753732917015414,
+        "global_geo_distance_m": 0.3028002679347992,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 196,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8454420710472987,
+      "detail": {
+        "combined_similarity": 0.8454420710472987,
+        "text_similarity": 0.8323394656181335,
+        "global_geo_similarity": 0.9761107423568259,
+        "polar_similarity": 0.6758229664324006,
+        "global_geo_distance_m": 0.3109934628009796,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 23,
+      "appended_object_id": 197,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.777524922683767,
+      "detail": {
+        "combined_similarity": 0.777524922683767,
+        "text_similarity": 0.778689980506897,
+        "global_geo_similarity": 0.8973501353133436,
+        "polar_similarity": 0.5297190926627046,
+        "global_geo_distance_m": 0.6582071185112,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 198,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8515922580725916,
+      "detail": {
+        "combined_similarity": 0.8515922580725916,
+        "text_similarity": 0.8391166925430298,
+        "global_geo_similarity": 0.9035875633375837,
+        "polar_similarity": 0.8349306062495427,
+        "global_geo_distance_m": 0.6368116140365601,
+        "used_3d_global_geo": true
+      }
+    }
+  ],
+  "current_only_reattach_cases": [
+    {
+      "step_index": 2,
+      "cluster_id": 8,
+      "appended_object_id": 184,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8844232132068277,
+      "detail": {
+        "combined_similarity": 0.8844232132068277,
+        "text_similarity": 0.933098316192627,
+        "global_geo_similarity": 0.9174316867982354,
+        "polar_similarity": 0.4776805451234194,
+        "global_geo_distance_m": 0.587118923664093,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 6,
+      "appended_object_id": 185,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8016606271430098,
+      "detail": {
+        "combined_similarity": 0.8016606271430098,
+        "text_similarity": 0.8136817812919617,
+        "global_geo_similarity": 0.8944443513085076,
+        "polar_similarity": 0.5319450997693512,
+        "global_geo_distance_m": 0.6679897904396057,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 189,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8490315667160503,
+      "detail": {
+        "combined_similarity": 0.8490315667160503,
+        "text_similarity": 0.8519911170005798,
+        "global_geo_similarity": 0.9331858504026648,
+        "polar_similarity": 0.6600061473511153,
+        "global_geo_distance_m": 0.525931179523468,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 25,
+      "appended_object_id": 190,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8039538335668509,
+      "detail": {
+        "combined_similarity": 0.8039538335668509,
+        "text_similarity": 0.7863532304763794,
+        "global_geo_similarity": 0.975255510447133,
+        "polar_similarity": 0.5845547014395881,
+        "global_geo_distance_m": 0.3165803551673889,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 26,
+      "appended_object_id": 191,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7763854924473507,
+      "detail": {
+        "combined_similarity": 0.7763854924473507,
+        "text_similarity": 0.7377145886421204,
+        "global_geo_similarity": 0.9463703283693604,
+        "polar_similarity": 0.7071121472399431,
+        "global_geo_distance_m": 0.46955859661102295,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 192,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8111336580090237,
+      "detail": {
+        "combined_similarity": 0.8111336580090237,
+        "text_similarity": 0.8547146320343018,
+        "global_geo_similarity": 0.7360853800006736,
+        "polar_similarity": 0.6561633958487791,
+        "global_geo_distance_m": 1.1070847511291504,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 193,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8260960420395046,
+      "detail": {
+        "combined_similarity": 0.8260960420395046,
+        "text_similarity": 0.8383830189704895,
+        "global_geo_similarity": 0.8008418335299929,
+        "polar_similarity": 0.790595620541634,
+        "global_geo_distance_m": 0.9425323605537415,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 6,
+      "appended_object_id": 194,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.7894828227721796,
+      "detail": {
+        "combined_similarity": 0.7894828227721796,
+        "text_similarity": 0.7508077621459961,
+        "global_geo_similarity": 0.9819941461845594,
+        "polar_similarity": 0.6751856003307052,
+        "global_geo_distance_m": 0.2695917785167694,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 195,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8940731702487057,
+      "detail": {
+        "combined_similarity": 0.8940731702487057,
+        "text_similarity": 0.9015258550643921,
+        "global_geo_similarity": 0.9773387126673861,
+        "polar_similarity": 0.6753732917015414,
+        "global_geo_distance_m": 0.3028002679347992,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 13,
+      "appended_object_id": 196,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8454420710472987,
+      "detail": {
+        "combined_similarity": 0.8454420710472987,
+        "text_similarity": 0.8323394656181335,
+        "global_geo_similarity": 0.9761107423568259,
+        "polar_similarity": 0.6758229664324006,
+        "global_geo_distance_m": 0.3109934628009796,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 23,
+      "appended_object_id": 197,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.777524922683767,
+      "detail": {
+        "combined_similarity": 0.777524922683767,
+        "text_similarity": 0.778689980506897,
+        "global_geo_similarity": 0.8973501353133436,
+        "polar_similarity": 0.5297190926627046,
+        "global_geo_distance_m": 0.6582071185112,
+        "used_3d_global_geo": true
+      }
+    },
+    {
+      "step_index": 2,
+      "cluster_id": 12,
+      "appended_object_id": 198,
+      "view_id": "view_00023",
+      "reason": "current_only_high_score_reattach",
+      "score": 0.8515922580725916,
+      "detail": {
+        "combined_similarity": 0.8515922580725916,
+        "text_similarity": 0.8391166925430298,
+        "global_geo_similarity": 0.9035875633375837,
+        "polar_similarity": 0.8349306062495427,
+        "global_geo_distance_m": 0.6368116140365601,
+        "used_3d_global_geo": true
+      }
+    }
+  ],
+  "merge_cases": [],
+  "same_view_block_cases": [],
+  "tail_spawn_cases": [
+    {
+      "step_index": 2,
+      "new_cluster_id": 29,
+      "reason": "current_only_component",
+      "object_ids": [
+        186
+      ],
+      "view_ids": [
+        "view_00023"
+      ],
+      "detail": null
+    },
+    {
+      "step_index": 2,
+      "new_cluster_id": 30,
+      "reason": "current_only_component",
+      "object_ids": [
+        187
+      ],
+      "view_ids": [
+        "view_00023"
+      ],
+      "detail": null
+    }
+  ],
+  "cross_affinity_shape": [
+    15,
+    29
+  ],
+  "cocluster_shape": [
+    44,
+    44
+  ]
+}

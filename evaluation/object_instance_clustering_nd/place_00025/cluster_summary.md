@@ -1,0 +1,61 @@
+# Cluster Summary: place_00025
+
+- group_type: place
+- n_objects: 48
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00025:cluster_000
+- num_members: 48
+- representative_label: faucet
+- representative_description: Partial edge-cropped close-up of a chrome/metallic faucet showing the upper rounded cylindrical spout and reflective surface; the crop is slightly blurred and low-resolution, showing only part of the fixture roughly 0.4 m from the camera.
+- same_view_collision: True
+- offending_view_ids: view_00136, view_00138, view_00139, view_00152, view_00154, view_00155
+- member: object_id=956 view_id=view_00136 label=door description=object: door | attrs: white painted trim, vertical rectangular jamb, partial view (cut off by image edge) | anchor: x=-2.5, z=-7.5 | nearby: door jamb trim (left)@(-2.5,-7.5), floor/baseboard@(-2.5,-8.0)
+- member: object_id=957 view_id=view_00136 label=door description=object: door | attrs: white painted trim, vertical rectangular jamb, partial view at image edge | anchor: x=-1.5, z=-7.5 | nearby: door jamb trim (right)@(-1.5,-7.5), floor/baseboard@(-1.5,-8.0)
+- member: object_id=958 view_id=view_00137 label=shoes description=dark brown leather shoe edge-crop
+- member: object_id=959 view_id=view_00138 label=mirror description=large frameless rectangular mirror
+- member: object_id=960 view_id=view_00138 label=faucet description=curved chrome faucet spout, partial
+- member: object_id=961 view_id=view_00138 label=faucet description=chrome curved faucet, partial crop
+- member: object_id=962 view_id=view_00138 label=sink description=white ceramic sink rim (edge-cropped)
+- member: object_id=963 view_id=view_00138 label=sink description=white ceramic sink rim crop
+- member: object_id=964 view_id=view_00138 label=bottle description=white plastic bottle with blue label
+- member: object_id=965 view_id=view_00138 label=mirror description=partial silver-framed wall mirror
+- member: object_id=966 view_id=view_00138 label=outlet description=white rectangular wall outlet plate
+- member: object_id=967 view_id=view_00138 label=cup description=transparent plastic cup with blue rim
+- member: object_id=968 view_id=view_00138 label=outlet description=white plastic outlet faceplate vertical
+- member: object_id=969 view_id=view_00138 label=faucet description=chrome faucet spout partial crop
+- member: object_id=970 view_id=view_00138 label=faucet description=chrome faucet partial close-up
+- member: object_id=971 view_id=view_00138 label=bottle description=clear plastic bottle with label
+- member: object_id=972 view_id=view_00139 label=fan description=wood-tone ceiling fan with globe
+- member: object_id=973 view_id=view_00139 label=bed description=white-gray striped bed front crop
+- member: object_id=974 view_id=view_00139 label=table lamp description=beige pleated lampshade table lamp
+- member: object_id=975 view_id=view_00139 label=pillow description=striped beige pillow edge-cropped
+- member: object_id=976 view_id=view_00139 label=bed description=striped beige bed on dark wood
+- member: object_id=977 view_id=view_00139 label=outlet description=white rectangular wall outlet partial
+- member: object_id=978 view_id=view_00139 label=nightstand description=dark wooden nightstand front crop
+- member: object_id=979 view_id=view_00139 label=window description=white window with horizontal blinds
+- member: object_id=980 view_id=view_00139 label=pillow description=light gray pillow edge crop
+- member: object_id=1032 view_id=view_00152 label=door description=object: door | attrs: white painted, wood or MDF trim, narrow reveal with slight shadow | anchor: x=-2.5, z=-7.5 | nearby: baseboard@(-2.5,-7.5), center alcove wall@(-2.0,-9.0)
+- member: object_id=1033 view_id=view_00152 label=other description=object: other | attrs: light gray painted wall, white baseboard trim, smooth finish | anchor: x=-2.0, z=-9.0 | nearby: baseboard@(-2.0,-9.0), left door jamb@(-2.5,-7.5)
+- member: object_id=1034 view_id=view_00152 label=door description=object: door | attrs: white painted, wood or MDF trim | anchor: x=-1.5, z=-7.5 | nearby: baseboard@(-1.5,-7.5), center alcove wall@(-2.0,-9.0)
+- member: object_id=1035 view_id=view_00153 label=shoes description=brown leather shoe toe, partial
+- member: object_id=1036 view_id=view_00154 label=mirror description=large frameless wall mirror
+- member: object_id=1037 view_id=view_00154 label=faucet description=chrome curved faucet spout (edge crop)
+- member: object_id=1038 view_id=view_00154 label=faucet description=chrome sink faucet edge-cropped
+- member: object_id=1039 view_id=view_00154 label=bottle description=white plastic bottle with blue label
+- member: object_id=1040 view_id=view_00154 label=mirror description=rectangular frameless wall mirror, partial
+- member: object_id=1041 view_id=view_00154 label=outlet description=white plastic rectangular outlet plate
+- member: object_id=1042 view_id=view_00154 label=lamp description=white layered petal lampshade crop
+- member: object_id=1043 view_id=view_00154 label=mirror description=partial silver-framed rectangular mirror
+- member: object_id=1044 view_id=view_00154 label=cup description=clear plastic cup with blue rim
+- member: object_id=1045 view_id=view_00154 label=outlet description=white rectangular outlet faceplate, blurred
+- member: object_id=1046 view_id=view_00155 label=fan description=dark brown-blade ceiling fan, lit
+- member: object_id=1047 view_id=view_00155 label=bed description=white-gray striped bedspread, dark footboard
+- member: object_id=1048 view_id=view_00155 label=table lamp description=beige pleated shade table lamp
+- member: object_id=1049 view_id=view_00155 label=pillow description=beige striped fabric pillow edge-cropped
+- member: object_id=1050 view_id=view_00155 label=bed description=white-striped bed with dark footboard
+- member: object_id=1051 view_id=view_00155 label=outlet description=white plastic GFCI-style outlet
+- member: object_id=1052 view_id=view_00155 label=nightstand description=dark wooden nightstand, top-front crop
+- member: object_id=1053 view_id=view_00155 label=window description=window with white horizontal blinds
+- member: object_id=1054 view_id=view_00155 label=pillow description=light beige rectangular pillow edge

@@ -1,0 +1,32 @@
+{
+  "entry_id": 15,
+  "view_file": "images/pose_00003_o270_000015.jpg",
+  "selected_object_global_id": 92,
+  "selected_object_label": "refrigerator",
+  "camera_world_x": -9.447001457214355,
+  "camera_world_z": -2.4728803634643555,
+  "camera_pixel": [
+    100,
+    249
+  ],
+  "object_world_x": -3.7944531440734863,
+  "object_world_y": -0.29800358461313725,
+  "object_world_z": -1.7852872535751452,
+  "object_pixel": [
+    288,
+    272
+  ],
+  "planar_distance_m": 5.694215197650928,
+  "metadata_distance_from_camera_m": 5.652548313140869,
+  "camera_orientation_deg": 270,
+  "allocentric_bearing_deg_camera_to_object": 96.93555768708029,
+  "allocentric_bearing_convention": "0=N, 90=E, 180=S, 270=W",
+  "compass_direction": "E",
+  "projection": {
+    "view_min_x": -12.447001457214355,
+    "view_max_x": 4.1296257972717285,
+    "view_min_z": -9.972880363464355,
+    "view_max_z": 1.1548287868499756
+  },
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/entry_00015_refrigerator_floorplan_with_angle.png"
+}

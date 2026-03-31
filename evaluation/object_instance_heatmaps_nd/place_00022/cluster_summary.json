@@ -1,0 +1,441 @@
+{
+  "group_id": "place_00022",
+  "group_type": "place",
+  "n_objects": 37,
+  "n_clusters": 7,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00022:cluster_000",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 11,
+      "member_object_ids": [
+        849,
+        854,
+        855,
+        863,
+        866,
+        888,
+        893,
+        894,
+        902,
+        905,
+        906
+      ],
+      "member_observation_ids": [
+        "obs_000849",
+        "obs_000854",
+        "obs_000855",
+        "obs_000863",
+        "obs_000866",
+        "obs_000888",
+        "obs_000893",
+        "obs_000894",
+        "obs_000902",
+        "obs_000905",
+        "obs_000906"
+      ],
+      "member_view_ids": [
+        "view_00116",
+        "view_00116",
+        "view_00116",
+        "view_00119",
+        "view_00119",
+        "view_00124",
+        "view_00124",
+        "view_00124",
+        "view_00127",
+        "view_00127",
+        "view_00127"
+      ],
+      "member_labels": [
+        "bed",
+        "pillow",
+        "pillow",
+        "bed",
+        "bed",
+        "bed",
+        "pillow",
+        "pillow",
+        "bed",
+        "window",
+        "bed"
+      ],
+      "member_descriptions": [
+        "dark wooden headboard bed with striped bedding",
+        "rectangular beige-blue striped pillow",
+        "beige striped rectangular pillow edge-crop",
+        "light-striped bed corner cropped",
+        "light striped duvet bed corner",
+        "striped beige bed with headboard",
+        "off-white striped rectangular pillow",
+        "beige-gray striped rectangular pillow",
+        "striped bed corner edge crop",
+        "white blind-covered rectangular window",
+        "striped white and gray bed corner"
+      ],
+      "member_long_descriptions": [
+        "Bed with a tall dark wooden headboard and neatly made beige-and-gray horizontal striped bedding with two matching pillows centered against the headboard; mattress and foot area fill the foreground and the lower edge is cropped by the image (camera ~1.5 m away).",
+        "Rectangular bed pillow with a cream/beige base and multiple horizontal gray-blue stripes of varying widths on a woven fabric cover; left-edge fringe is visible and the pillow appears slightly flattened and fills most of the crop, suggesting it is close to the camera (approximately 0.5 m away).",
+        "Rectangular beige/cream pillow cover with multiple horizontal gray-blue stripes and a visible woven cotton/linen-like texture; pillow appears slightly flattened and is edge-cropped in the photo, approximately 0.5 m from the camera.",
+        "Close-up (~0.7 m) of the top corner of a bed covered with a light beige-gray, horizontal-striped fabric bedspread; draped over the mattress edge, slightly wrinkled and partially cut off at the crop (edge-cropped).",
+        "Close-up of the bed corner showing a light striped fabric duvet or comforter in white, pale gray and blue tones with visible stitched seams and small wrinkles; the mattress/bedding edge is partially cropped at the image border and the foreground bed is approximately 0.6 m from the camera.",
+        "Well-made bed with beige-and-gray horizontal striped sheets and two matching pillows, backed by a dark brown wooden paneled headboard; mattress surface fills most of the crop and appears flat and neatly arranged, with nightstands and a lamp visible at the sides. The front of the bed is approximately 1.5 meters from the camera.",
+        "Rectangular off-white/cream pillow with a woven fabric cover and multiple thin horizontal gray-blue stripes, light fringe at the left end and mild surface wrinkles; mostly visible in the crop and appears approximately 0.6 m from the camera.",
+        "Rectangular beige/cream fabric pillow with multiple horizontal gray and dark-blue stripes, slightly wrinkled and plumped; it fills most of the crop and appears roughly 0.6 m from the camera.",
+        "Partial close-up of a bed corner showing a light beige\u2013gray, horizontally striped fabric bedspread over the mattress with a slightly wrinkled texture and rounded corner; the bed is edge-cropped in the frame and the camera appears close (\u22480.7 m).",
+        "Full-height interior rectangular window covered by closed white horizontal venetian blinds; dark brown wooden frame visible at the sides, pull cords and vertical strings visible, and a few slats appear slightly bent or uneven \u2014 camera estimated ~2.0 m away.",
+        "Partial close-up of the bed's lower corner showing white-and-gray striped bedding (cotton-like fabric) pulled over the mattress edge with slight rumpling and a visible stitched hem; crop is edge-cut and appears photographed from about 0.8 m away."
+      ],
+      "label_histogram": {
+        "bed": 6,
+        "pillow": 4,
+        "window": 1
+      },
+      "representative_object_id": 863,
+      "representative_label": "bed",
+      "representative_description": "Close-up (~0.7 m) of the top corner of a bed covered with a light beige-gray, horizontal-striped fabric bedspread; draped over the mattress edge, slightly wrinkled and partially cut off at the crop (edge-cropped).",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00116",
+        "view_00119",
+        "view_00124",
+        "view_00127"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00022:cluster_001",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 6,
+      "member_object_ids": [
+        850,
+        851,
+        864,
+        889,
+        890,
+        903
+      ],
+      "member_observation_ids": [
+        "obs_000850",
+        "obs_000851",
+        "obs_000864",
+        "obs_000889",
+        "obs_000890",
+        "obs_000903"
+      ],
+      "member_view_ids": [
+        "view_00116",
+        "view_00116",
+        "view_00119",
+        "view_00124",
+        "view_00124",
+        "view_00127"
+      ],
+      "member_labels": [
+        "nightstand",
+        "nightstand",
+        "dresser",
+        "nightstand",
+        "nightstand",
+        "dresser"
+      ],
+      "member_descriptions": [
+        "dark mahogany three-drawer nightstand",
+        "dark wooden nightstand edge crop",
+        "dark wooden six-drawer dresser, partial",
+        "dark mahogany three-drawer nightstand",
+        "dark brown wooden nightstand, edge-cropped",
+        "dark wooden six-drawer dresser"
+      ],
+      "member_long_descriptions": [
+        "Dark reddish-brown mahogany three-drawer nightstand with carved drawer fronts, dark metal pull handles and small bracket feet; top surface shows objects and the right side of the piece is slightly cropped \u2014 approximate distance from camera ~0.8 m.",
+        "Partial, edge-cropped dark brown wooden nightstand showing the top corner and one visible drawer front with a small round knob; wood has a slightly glossy finish and is dimly lit and partially occluded by a light-colored diagonal foreground surface; appears approximately 1.0 m from the camera.",
+        "Front-facing dark-stained wooden dresser with six drawers (two columns of three), recessed paneled drawer fronts and curved metal pull handles; lower-left is partially occluded by a bed and the right edge is slightly cropped \u2014 approximately 1.5 meters from camera.",
+        "Dark reddish-brown (mahogany) three-drawer nightstand with ornate/molded drawer fronts and antique-style metal pull handles, rectangular top with small objects, short bracket feet, slight glossy finish; right edge of the piece is partially cropped in the image. Appears approximately 1.0 m from the camera.",
+        "Partial dark brown wooden nightstand with a polished finish, showing a single visible drawer with a round dark knob and a rectangular top with small items; the piece is edge-cropped and partially occluded by the bed in the foreground and appears to be about 1.2 m from the camera.",
+        "Dark brown stained wooden dresser with six drawers, decorative raised drawer fronts and dark metal handles; front is mostly visible but slightly cropped at the top-left edge, with a polished finish and minor surface wear, approximately 1.0 m from the camera."
+      ],
+      "label_histogram": {
+        "dresser": 2,
+        "nightstand": 4
+      },
+      "representative_object_id": 850,
+      "representative_label": "nightstand",
+      "representative_description": "Dark reddish-brown mahogany three-drawer nightstand with carved drawer fronts, dark metal pull handles and small bracket feet; top surface shows objects and the right side of the piece is slightly cropped \u2014 approximate distance from camera ~0.8 m.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00116",
+        "view_00124"
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "candidate_instance_id": "place:place_00022:cluster_002",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 4,
+      "member_object_ids": [
+        852,
+        853,
+        891,
+        892
+      ],
+      "member_observation_ids": [
+        "obs_000852",
+        "obs_000853",
+        "obs_000891",
+        "obs_000892"
+      ],
+      "member_view_ids": [
+        "view_00116",
+        "view_00116",
+        "view_00124",
+        "view_00124"
+      ],
+      "member_labels": [
+        "table lamp",
+        "table lamp",
+        "table lamp",
+        "table lamp"
+      ],
+      "member_descriptions": [
+        "cream tapered lampshade, turned wooden base",
+        "beige tapered fabric table lamp (partial)",
+        "beige tapered shade table lamp",
+        "beige fabric shade table lamp"
+      ],
+      "member_long_descriptions": [
+        "Off-white/tan tapered fabric lampshade with dark top and bottom trim sitting on a carved, turned dark-wood base with a brass/bronze accent; lamp is mostly visible but the lower base is slightly cropped by the image edge \u2014 estimated distance ~0.8 m from the camera.",
+        "Beige tapered fabric lampshade on a turned dark bronze/wooden base, producing a warm yellow glow; left side of the shade is slightly edge-cropped and the lamp appears tabletop-sized, approximately 0.8 m from the camera.",
+        "Lit beige/tan tapered fabric lampshade with darker trim over a turned dark-wood (or wood-look) base and stepped plinth; image is slightly blurred and the lower base is partially cropped at the bottom edge, approximately 0.8 m from the camera.",
+        "Beige fabric shade table lamp emitting warm light with visible vertical stitched seams and a dark turned wood (or bronze) stepped base; lamp is mostly visible in the crop though the lower base is slightly cut off, image appears slightly soft/low-resolution, estimated ~0.8 m from camera."
+      ],
+      "label_histogram": {
+        "table lamp": 4
+      },
+      "representative_object_id": 891,
+      "representative_label": "table lamp",
+      "representative_description": "Lit beige/tan tapered fabric lampshade with darker trim over a turned dark-wood (or wood-look) base and stepped plinth; image is slightly blurred and the lower base is partially cropped at the bottom edge, approximately 0.8 m from the camera.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00116",
+        "view_00124"
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "candidate_instance_id": "place:place_00022:cluster_003",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 6,
+      "member_object_ids": [
+        856,
+        859,
+        861,
+        895,
+        898,
+        899
+      ],
+      "member_observation_ids": [
+        "obs_000856",
+        "obs_000859",
+        "obs_000861",
+        "obs_000895",
+        "obs_000898",
+        "obs_000899"
+      ],
+      "member_view_ids": [
+        "view_00117",
+        "view_00117",
+        "view_00117",
+        "view_00125",
+        "view_00125",
+        "view_00125"
+      ],
+      "member_labels": [
+        "door",
+        "door",
+        "door",
+        "door",
+        "door",
+        "door"
+      ],
+      "member_descriptions": [
+        "object: door | attrs: white painted, raised panel, metal round knob, open toward camera | anchor: x=0.5, z=-5.0 | nearby: door knob@(0.5,-5.0), door frame@(0.5,-5.0)",
+        "object: door | attrs: white painted, raised-panel, double-handle set (appears to have two levers at mid-height), closed | anchor: x=-1.0, z=-5.5 | nearby: hardwood floor@(-1.5,-5.5), right doorway (adjacent room)@(0.5,-6.0)",
+        "object: door | attrs: white painted, raised-panel, partially visible on right image edge | anchor: x=0.5, z=-6.0 | nearby: door frame / trim@(0.5,-6.0), right wall@(0.5,-6.0)",
+        "object: door | attrs: white painted, two-panel molded style, brushed-metal round knob, visible hinge side with door thickness | anchor: x=0.5, z=-5.0 | nearby: wall (left wall)@(1.0,-5.0), right open doorway@(0.0,-6.0)",
+        "object: door | attrs: white painted, two-panel molded style, two matching lever/knob handles (appears as double handles) | anchor: x=-1.0, z=-5.5 | nearby: hardwood floor@(-1.0,-5.5), right open doorway@(-0.5,-6.0)",
+        "object: door | attrs: white painted door visible in opening, white trim, bright light/source in adjacent room | anchor: x=0.5, z=-6.0 | nearby: wall switch panel@(-0.5,-6.0), central closed door@(-1.0,-5.5)"
+      ],
+      "member_long_descriptions": [
+        "object: door | attributes: white painted, raised panel, metal round knob, open toward camera | camera_relation: distance=0.5, bearing=-30.0, laterality=left, verticality=middle | global_anchor: x=0.5, z=-5.0 | surroundings: door knob | relation=on same door | primary_dist=0.1 | global=(0.5,-5.0); door frame | relation=attached to | primary_dist=0.1 | global=(0.5,-5.0); left wall | relation=adjacent | primary_dist=0.1 | global=(0.5,-5.0); hardwood floor | relation=below | primary_dist=0.2 | global=(0.5,-5.5); central door | relation=in front of | primary_dist=1.7 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: door | attributes: white painted, raised-panel, double-handle set (appears to have two levers at mid-height), closed | camera_relation: distance=2.2, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-1.0, z=-5.5 | surroundings: hardwood floor | relation=below front | primary_dist=0.4 | global=(-1.5,-5.5); right doorway (adjacent room) | relation=right side | primary_dist=1.2 | global=(0.5,-6.0); left partially open door | relation=left forward | primary_dist=1.7 | global=(0.5,-5.0); right wall switch | relation=on right wall | primary_dist=1.8 | global=(-0.5,-6.0); thermostat | relation=on right wall above switch | primary_dist=1.9 | global=(-0.5,-6.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: door | attributes: white painted, raised-panel, partially visible on right image edge | camera_relation: distance=1.0, bearing=40.0, laterality=right, verticality=middle | global_anchor: x=0.5, z=-6.0 | surroundings: door frame / trim | relation=attached to | primary_dist=0.1 | global=(0.5,-6.0); right wall | relation=adjacent | primary_dist=0.2 | global=(0.5,-6.0); visible hanging light or cord | relation=inside adjacent room | primary_dist=0.6 | global=(0.0,-6.5); central door | relation=left ahead | primary_dist=1.2 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: door | attributes: white painted, two-panel molded style, brushed-metal round knob, visible hinge side with door thickness | camera_relation: distance=0.5, bearing=-32.0, laterality=left, verticality=middle | global_anchor: x=0.5, z=-5.0 | surroundings: wall (left wall) | relation=adjacent to hinge side | primary_dist=0.2 | global=(1.0,-5.0); right open doorway | relation=across the hall to the right | primary_dist=1.0 | global=(0.0,-6.0); central closed door | relation=ahead and slightly right | primary_dist=1.6 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+        "object: door | attributes: white painted, two-panel molded style, two matching lever/knob handles (appears as double handles) | camera_relation: distance=2.1, bearing=0.0, laterality=center, verticality=middle | global_anchor: x=-1.0, z=-5.5 | surroundings: hardwood floor | relation=beneath | primary_dist=0.6 | global=(-1.0,-5.5); right open doorway | relation=to the right across the short hall | primary_dist=1.0 | global=(-0.5,-6.0); wall switch panel | relation=mounted on right wall nearby | primary_dist=1.0 | global=(-1.0,-6.0); foreground left open door | relation=partially occluded by | primary_dist=1.6 | global=(0.5,-5.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+        "object: door | attributes: white painted door visible in opening, white trim, bright light/source in adjacent room | camera_relation: distance=1.0, bearing=40.0, laterality=right, verticality=middle | global_anchor: x=0.5, z=-6.0 | surroundings: wall switch panel | relation=to the left on the same wall | primary_dist=0.9 | global=(-0.5,-6.0); central closed door | relation=ahead and slightly left | primary_dist=1.0 | global=(-1.0,-5.5); ceiling pendant light (inside right room) | relation=inside the adjacent room beyond | primary_dist=1.2 | global=(-0.5,-7.0) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray"
+      ],
+      "label_histogram": {
+        "door": 6
+      },
+      "representative_object_id": 895,
+      "representative_label": "door",
+      "representative_description": "object: door | attributes: white painted, two-panel molded style, brushed-metal round knob, visible hinge side with door thickness | camera_relation: distance=0.5, bearing=-32.0, laterality=left, verticality=middle | global_anchor: x=0.5, z=-5.0 | surroundings: wall (left wall) | relation=adjacent to hinge side | primary_dist=0.2 | global=(1.0,-5.0); right open doorway | relation=across the hall to the right | primary_dist=1.0 | global=(0.0,-6.0); central closed door | relation=ahead and slightly right | primary_dist=1.6 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00117",
+        "view_00125"
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "candidate_instance_id": "place:place_00022:cluster_004",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 6,
+      "member_object_ids": [
+        857,
+        858,
+        860,
+        896,
+        897,
+        900
+      ],
+      "member_observation_ids": [
+        "obs_000857",
+        "obs_000858",
+        "obs_000860",
+        "obs_000896",
+        "obs_000897",
+        "obs_000900"
+      ],
+      "member_view_ids": [
+        "view_00117",
+        "view_00117",
+        "view_00117",
+        "view_00125",
+        "view_00125",
+        "view_00125"
+      ],
+      "member_labels": [
+        "other",
+        "wall switch",
+        "other",
+        "other",
+        "wall switch",
+        "ceiling light"
+      ],
+      "member_descriptions": [
+        "object: other | attrs: round, white | anchor: x=-0.5, z=-6.0 | nearby: light switch@(-0.5,-6.0), right doorway@(0.5,-6.0)",
+        "object: wall switch | attrs: white plastic, three switches | anchor: x=-0.5, z=-6.0 | nearby: thermostat@(-0.5,-6.0), outlet (lower)@(-1.0,-6.0)",
+        "object: other | attrs: white duplex outlet, near floor | anchor: x=-1.0, z=-6.0 | nearby: hardwood floor@(-1.0,-6.0), light switch@(-0.5,-6.0)",
+        "object: other | attrs: round, white, small | anchor: x=-0.5, z=-6.0 | nearby: wall switch panel@(-0.5,-6.0), right open doorway@(0.0,-6.0)",
+        "object: wall switch | attrs: white plastic plate, three toggles/rockers | anchor: x=-0.5, z=-6.0 | nearby: thermostat (round)@(-0.5,-6.0), right open doorway@(0.0,-6.0)",
+        "object: ceiling light | attrs: pendant style, white/metal, visible cable | anchor: x=-0.5, z=-7.0 | nearby: right open doorway@(0.0,-6.0), central closed door@(-1.0,-5.5)"
+      ],
+      "member_long_descriptions": [
+        "object: other | attributes: round, white | camera_relation: distance=1.5, bearing=12.0, laterality=center, verticality=high | global_anchor: x=-0.5, z=-6.0 | surroundings: light switch | relation=below | primary_dist=0.2 | global=(-0.5,-6.0); right doorway | relation=right | primary_dist=0.9 | global=(0.5,-6.0); central door | relation=in front of | primary_dist=1.9 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: wall switch | attributes: white plastic, three switches | camera_relation: distance=1.5, bearing=12.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-6.0 | surroundings: thermostat | relation=above | primary_dist=0.2 | global=(-0.5,-6.0); outlet (lower) | relation=below | primary_dist=0.9 | global=(-1.0,-6.0); right doorway | relation=right | primary_dist=0.9 | global=(0.5,-6.0); central door | relation=in front of | primary_dist=1.8 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: other | attributes: white duplex outlet, near floor | camera_relation: distance=2.0, bearing=10.0, laterality=center, verticality=low | global_anchor: x=-1.0, z=-6.0 | surroundings: hardwood floor | relation=on | primary_dist=0.1 | global=(-1.0,-6.0); light switch | relation=above | primary_dist=0.9 | global=(-0.5,-6.0); central door | relation=in front of | primary_dist=1.0 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white molded interior doors, white door trim, hardwood floor (reddish finish), single-row light switch and round thermostat on right wall, natural light from adjacent right room; wall_color=gray",
+        "object: other | attributes: round, white, small | camera_relation: distance=1.6, bearing=12.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-6.0 | surroundings: wall switch panel | relation=below | primary_dist=0.5 | global=(-0.5,-6.0); right open doorway | relation=to the right | primary_dist=0.9 | global=(0.0,-6.0); central closed door | relation=ahead | primary_dist=1.0 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+        "object: wall switch | attributes: white plastic plate, three toggles/rockers | camera_relation: distance=1.6, bearing=12.0, laterality=center, verticality=low | global_anchor: x=-0.5, z=-6.0 | surroundings: thermostat (round) | relation=above | primary_dist=0.5 | global=(-0.5,-6.0); right open doorway | relation=to the right | primary_dist=0.9 | global=(0.0,-6.0); central closed door | relation=ahead | primary_dist=1.0 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+        "object: ceiling light | attributes: pendant style, white/metal, visible cable | camera_relation: distance=2.2, bearing=45.0, laterality=right, verticality=high | global_anchor: x=-0.5, z=-7.0 | surroundings: right open doorway | relation=visible beyond | primary_dist=1.2 | global=(0.0,-6.0); central closed door | relation=diagonally ahead | primary_dist=1.6 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray"
+      ],
+      "label_histogram": {
+        "ceiling light": 1,
+        "other": 3,
+        "wall switch": 2
+      },
+      "representative_object_id": 896,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: round, white, small | camera_relation: distance=1.6, bearing=12.0, laterality=center, verticality=middle | global_anchor: x=-0.5, z=-6.0 | surroundings: wall switch panel | relation=below | primary_dist=0.5 | global=(-0.5,-6.0); right open doorway | relation=to the right | primary_dist=0.9 | global=(0.0,-6.0); central closed door | relation=ahead | primary_dist=1.0 | global=(-1.0,-5.5) | scene_context: floor_pattern=wood; scene_attributes=gray painted walls, white door trim and casing, hardwood floor (reddish-brown), baseboard molding, multiple interior paneled doors; wall_color=gray",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00117",
+        "view_00125"
+      ]
+    },
+    {
+      "cluster_id": 5,
+      "candidate_instance_id": "place:place_00022:cluster_005",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        862,
+        901
+      ],
+      "member_observation_ids": [
+        "obs_000862",
+        "obs_000901"
+      ],
+      "member_view_ids": [
+        "view_00118",
+        "view_00126"
+      ],
+      "member_labels": [
+        "tv",
+        "tv"
+      ],
+      "member_descriptions": [
+        "dark glossy TV bottom edge crop",
+        "black flat-screen TV bottom-cropped"
+      ],
+      "member_long_descriptions": [
+        "Lower portion of a dark glossy flat\u2011screen TV showing the bottom bezel and partial stand, with a small white sticker/label at the lower-right; screen surface reflects a lamp on the left, the panel is edge\u2011cropped and appears close to the camera (about 1.0 m away).",
+        "Partial bottom-cropped black flat-screen TV with a glossy, turned-off screen showing a faint lamp reflection at left, thin bezel, and a small pale adhesive or label on the lower-right; cables and dark reflections are visible beneath \u2014 estimated ~1.5 m from camera."
+      ],
+      "label_histogram": {
+        "tv": 2
+      },
+      "representative_object_id": 862,
+      "representative_label": "tv",
+      "representative_description": "Lower portion of a dark glossy flat\u2011screen TV showing the bottom bezel and partial stand, with a small white sticker/label at the lower-right; screen surface reflects a lamp on the left, the panel is edge\u2011cropped and appears close to the camera (about 1.0 m away).",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    },
+    {
+      "cluster_id": 6,
+      "candidate_instance_id": "place:place_00022:cluster_006",
+      "group_id": "place_00022",
+      "group_type": "place",
+      "num_members": 2,
+      "member_object_ids": [
+        865,
+        904
+      ],
+      "member_observation_ids": [
+        "obs_000865",
+        "obs_000904"
+      ],
+      "member_view_ids": [
+        "view_00119",
+        "view_00127"
+      ],
+      "member_labels": [
+        "basket",
+        "basket"
+      ],
+      "member_descriptions": [
+        "blue-gray fabric basket with handle",
+        "dark gray fabric storage basket (partial)"
+      ],
+      "member_long_descriptions": [
+        "Close-up of a rectangular blue-gray fabric storage basket with light tan stitched loop handle and trim; upright but partially edge-cropped on the right, coarse woven texture visible, appears about 0.8 m from the camera.",
+        "Partial/cropped dark bluish-gray rectangular fabric storage basket with a light tan loop handle stitched to the side and a lighter tan trim along the top rim; textured woven or herringbone-like fabric visible, upright and edge-cropped on the right side of the image, appears to be a small-to-medium collapsible storage bin about 0.8 m from the camera."
+      ],
+      "label_histogram": {
+        "basket": 2
+      },
+      "representative_object_id": 865,
+      "representative_label": "basket",
+      "representative_description": "Close-up of a rectangular blue-gray fabric storage basket with light tan stitched loop handle and trim; upright but partially edge-cropped on the right, coarse woven texture visible, appears about 0.8 m from the camera.",
+      "same_view_collision": false,
+      "offending_view_ids": []
+    }
+  ]
+}

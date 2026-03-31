@@ -1,0 +1,149 @@
+{
+  "group_id": "place_00019",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 771,
+      "observation_id": "obs_000771",
+      "view_id": "view_00100",
+      "entry_id": 100,
+      "label": "door",
+      "description": "object: door | attrs: painted white, paneled, closed, hinges visible on right edge | anchor: x=-1.5, z=-4.5 | nearby: right doorway / damaged opening@(-1.0,-4.5), ceiling corner@(-1.5,-5.0)"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 772,
+      "observation_id": "obs_000772",
+      "view_id": "view_00100",
+      "entry_id": 100,
+      "label": "door",
+      "description": "object: door | attrs: white trim, trim largely intact, surrounding drywall/wallpaper torn, exposed dark void | anchor: x=-1.0, z=-4.5 | nearby: torn wall / hole@(-1.0,-5.0), center blank wall@(-1.5,-5.5)"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 773,
+      "observation_id": "obs_000773",
+      "view_id": "view_00100",
+      "entry_id": 100,
+      "label": "other",
+      "description": "object: other | attrs: peeling wallpaper, jagged edges, exposed cavity (dark) | anchor: x=-1.0, z=-5.0 | nearby: right doorway / frame@(-1.0,-4.5), center blank wall@(-1.5,-6.0)"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 774,
+      "observation_id": "obs_000774",
+      "view_id": "view_00101",
+      "entry_id": 101,
+      "label": "dining table",
+      "description": "light-wood dining table corner"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 775,
+      "observation_id": "obs_000775",
+      "view_id": "view_00101",
+      "entry_id": 101,
+      "label": "chair",
+      "description": "dark wooden chair base partial"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 776,
+      "observation_id": "obs_000776",
+      "view_id": "view_00102",
+      "entry_id": 102,
+      "label": "picture frame",
+      "description": "dark wood framed sailboat print"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 777,
+      "observation_id": "obs_000777",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "dining table",
+      "description": "reddish wooden dining table edge"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 778,
+      "observation_id": "obs_000778",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "chair",
+      "description": "dark wooden chair back edge"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 779,
+      "observation_id": "obs_000779",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "dining table",
+      "description": "dark glossy wooden table edge"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 780,
+      "observation_id": "obs_000780",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "cabinet",
+      "description": "dark glossy cabinet top edge"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 781,
+      "observation_id": "obs_000781",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "chair",
+      "description": "dark metal chair back, edge-cropped"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 782,
+      "observation_id": "obs_000782",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "picture frame",
+      "description": "tall dark wood picture frame edge crop"
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 783,
+      "observation_id": "obs_000783",
+      "view_id": "view_00103",
+      "entry_id": 103,
+      "label": "chair",
+      "description": "partial striped chair back"
+    }
+  ]
+}

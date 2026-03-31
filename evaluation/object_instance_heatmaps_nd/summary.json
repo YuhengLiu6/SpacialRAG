@@ -1,0 +1,302 @@
+{
+  "group_mode": "place",
+  "text_mode": "long",
+  "cluster_count_mode": "eigengap",
+  "same_view_policy": "soft_penalty",
+  "same_view_penalty": 0.25,
+  "min_similarity": 0.5,
+  "top_k": null,
+  "num_groups": 29,
+  "groups": [
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "n_objects": 19,
+      "n_clusters": 16,
+      "average_cluster_size": 1.1875,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00001",
+      "group_type": "place",
+      "n_objects": 56,
+      "n_clusters": 12,
+      "average_cluster_size": 4.666666666666667,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00002",
+      "group_type": "place",
+      "n_objects": 33,
+      "n_clusters": 32,
+      "average_cluster_size": 1.03125,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "n_objects": 40,
+      "n_clusters": 11,
+      "average_cluster_size": 3.6363636363636362,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "n_objects": 102,
+      "n_clusters": 9,
+      "average_cluster_size": 11.333333333333334,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "n_objects": 86,
+      "n_clusters": 82,
+      "average_cluster_size": 1.048780487804878,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00006",
+      "group_type": "place",
+      "n_objects": 74,
+      "n_clusters": 13,
+      "average_cluster_size": 5.6923076923076925,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00007",
+      "group_type": "place",
+      "n_objects": 78,
+      "n_clusters": 69,
+      "average_cluster_size": 1.1304347826086956,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "n_objects": 26,
+      "n_clusters": 16,
+      "average_cluster_size": 1.625,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "n_objects": 26,
+      "n_clusters": 22,
+      "average_cluster_size": 1.1818181818181819,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00010",
+      "group_type": "place",
+      "n_objects": 40,
+      "n_clusters": 6,
+      "average_cluster_size": 6.666666666666667,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "n_objects": 45,
+      "n_clusters": 41,
+      "average_cluster_size": 1.0975609756097562,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00012",
+      "group_type": "place",
+      "n_objects": 23,
+      "n_clusters": 20,
+      "average_cluster_size": 1.15,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00013",
+      "group_type": "place",
+      "n_objects": 41,
+      "n_clusters": 7,
+      "average_cluster_size": 5.857142857142857,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00014",
+      "group_type": "place",
+      "n_objects": 16,
+      "n_clusters": 2,
+      "average_cluster_size": 8.0,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00015",
+      "group_type": "place",
+      "n_objects": 15,
+      "n_clusters": 2,
+      "average_cluster_size": 7.5,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00016",
+      "group_type": "place",
+      "n_objects": 19,
+      "n_clusters": 3,
+      "average_cluster_size": 6.333333333333333,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00017",
+      "group_type": "place",
+      "n_objects": 16,
+      "n_clusters": 3,
+      "average_cluster_size": 5.333333333333333,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00018",
+      "group_type": "place",
+      "n_objects": 16,
+      "n_clusters": 8,
+      "average_cluster_size": 2.0,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00019",
+      "group_type": "place",
+      "n_objects": 13,
+      "n_clusters": 8,
+      "average_cluster_size": 1.625,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00020",
+      "group_type": "place",
+      "n_objects": 18,
+      "n_clusters": 16,
+      "average_cluster_size": 1.125,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00021",
+      "group_type": "place",
+      "n_objects": 69,
+      "n_clusters": 8,
+      "average_cluster_size": 8.625,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00022",
+      "group_type": "place",
+      "n_objects": 37,
+      "n_clusters": 7,
+      "average_cluster_size": 5.285714285714286,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00023",
+      "group_type": "place",
+      "n_objects": 21,
+      "n_clusters": 19,
+      "average_cluster_size": 1.105263157894737,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00024",
+      "group_type": "place",
+      "n_objects": 54,
+      "n_clusters": 7,
+      "average_cluster_size": 7.714285714285714,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00025",
+      "group_type": "place",
+      "n_objects": 48,
+      "n_clusters": 12,
+      "average_cluster_size": 4.0,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00026",
+      "group_type": "place",
+      "n_objects": 34,
+      "n_clusters": 32,
+      "average_cluster_size": 1.0625,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00027",
+      "group_type": "place",
+      "n_objects": 17,
+      "n_clusters": 7,
+      "average_cluster_size": 2.4285714285714284,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00028",
+      "group_type": "place",
+      "n_objects": 13,
+      "n_clusters": 10,
+      "average_cluster_size": 1.3,
+      "backend": "sklearn",
+      "fallback_reason": null,
+      "skip_reason": null
+    }
+  ]
+}

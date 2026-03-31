@@ -1,0 +1,48 @@
+{
+  "entry_id": 15,
+  "selected_object_global_id": 93,
+  "selected_object_label": "cabinet",
+  "neighbor_annotations": [
+    {
+      "target_object_global_id": 87,
+      "label": "cabinet",
+      "pixel": [
+        207,
+        331
+      ]
+    },
+    {
+      "target_object_global_id": 103,
+      "label": "cabinet",
+      "pixel": [
+        193,
+        330
+      ]
+    },
+    {
+      "target_object_global_id": 84,
+      "label": "towel",
+      "pixel": [
+        186,
+        317
+      ]
+    },
+    {
+      "target_object_global_id": 100,
+      "label": "cabinet",
+      "pixel": [
+        229,
+        322
+      ]
+    },
+    {
+      "target_object_global_id": 85,
+      "label": "oven",
+      "pixel": [
+        183,
+        318
+      ]
+    }
+  ],
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/entry_00015_cabinet_obj93_neighbors_name_only.png"
+}

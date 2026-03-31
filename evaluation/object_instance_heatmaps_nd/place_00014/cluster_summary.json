@@ -1,0 +1,170 @@
+{
+  "group_id": "place_00014",
+  "group_type": "place",
+  "n_objects": 16,
+  "n_clusters": 2,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "candidate_instance_id": "place:place_00014:cluster_000",
+      "group_id": "place_00014",
+      "group_type": "place",
+      "num_members": 3,
+      "member_object_ids": [
+        689,
+        690,
+        691
+      ],
+      "member_observation_ids": [
+        "obs_000689",
+        "obs_000690",
+        "obs_000691"
+      ],
+      "member_view_ids": [
+        "view_00080",
+        "view_00080",
+        "view_00081"
+      ],
+      "member_labels": [
+        "picture frame",
+        "picture frame",
+        "picture frame"
+      ],
+      "member_descriptions": [
+        "dark-wood picture frame, edge-cropped",
+        "dark brown ornate frame corner",
+        "dark wooden picture frame edge-crop"
+      ],
+      "member_long_descriptions": [
+        "Vertical dark-wood picture frame containing a blue-dominated, heavily textured oil-style painting showing a night sky with stars and yellow lights reflected on water; the frame edges are visible and the crop is slightly edge-cropped at the sides, photo likely taken from about 1.5 meters away.",
+        "Partial, edge-cropped dark brown wooden picture frame with carved/grooved molding and a narrow gilded inner trim; shows the bottom-right corner of a wall-mounted nautical painting (sailboats, muted tones). Frame has a glossy finish with minor wear at the corner; canvas texture and painted water visible. Appears close to camera \u2014 approximately 0.5 m away.",
+        "Partial close-up (approx. 0.6 m) of a dark brown glossy wooden picture frame with beveled molding and a narrow gold braided inner trim; the crop shows the left vertical and bottom horizontal sections only, enclosing a faded seascape print with sailboats; frame exhibits minor wear and a small chip at the bottom inner edge and is edge-cropped in the image."
+      ],
+      "label_histogram": {
+        "picture frame": 3
+      },
+      "representative_object_id": 690,
+      "representative_label": "picture frame",
+      "representative_description": "Partial, edge-cropped dark brown wooden picture frame with carved/grooved molding and a narrow gilded inner trim; shows the bottom-right corner of a wall-mounted nautical painting (sailboats, muted tones). Frame has a glossy finish with minor wear at the corner; canvas texture and painted water visible. Appears close to camera \u2014 approximately 0.5 m away.",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00080"
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "candidate_instance_id": "place:place_00014:cluster_001",
+      "group_id": "place_00014",
+      "group_type": "place",
+      "num_members": 13,
+      "member_object_ids": [
+        692,
+        693,
+        694,
+        695,
+        696,
+        697,
+        698,
+        699,
+        700,
+        701,
+        702,
+        703,
+        704
+      ],
+      "member_observation_ids": [
+        "obs_000692",
+        "obs_000693",
+        "obs_000694",
+        "obs_000695",
+        "obs_000696",
+        "obs_000697",
+        "obs_000698",
+        "obs_000699",
+        "obs_000700",
+        "obs_000701",
+        "obs_000702",
+        "obs_000703",
+        "obs_000704"
+      ],
+      "member_view_ids": [
+        "view_00082",
+        "view_00082",
+        "view_00082",
+        "view_00082",
+        "view_00082",
+        "view_00082",
+        "view_00082",
+        "view_00083",
+        "view_00083",
+        "view_00083",
+        "view_00083",
+        "view_00083",
+        "view_00083"
+      ],
+      "member_labels": [
+        "blinds",
+        "window",
+        "door",
+        "chair",
+        "clock",
+        "mirror",
+        "outlet",
+        "other",
+        "window",
+        "door",
+        "other",
+        "blinds",
+        "other"
+      ],
+      "member_descriptions": [
+        "object: blinds | attrs: horizontal slats, white plastic or painted wood | anchor: x=-1.5, z=0.0 | nearby: window frame@(-1.5,0.0), thermostat@(-1.5,0.0)",
+        "object: window | attrs: arched top, white frame, venetian blinds, visible blind cords | anchor: x=-1.5, z=0.0 | nearby: window sill@(-1.5,0.0), thermostat@(-1.5,0.0)",
+        "object: door | attrs: white painted wood, two-panel molded design, painted casing | anchor: x=-2.0, z=0.0 | nearby: door handle@(-2.0,0.0), wall (right side)@(-2.5,0.0)",
+        "object: chair | attrs: none | anchor: x=na, z=na | nearby: none",
+        "object: clock | attrs: none | anchor: x=na, z=na | nearby: none",
+        "object: mirror | attrs: none | anchor: x=na, z=na | nearby: none",
+        "object: outlet | attrs: none | anchor: x=na, z=na | nearby: none",
+        "object: other | attrs: textured finish, pale paint (light gray / blue-gray) | anchor: x=-1.5, z=-1.5 | nearby: trim (door frame)@(-0.5,-1.0), door@(0.0,-1.0)",
+        "object: window | attrs: rectangular, above door, appears covered or tinted | anchor: x=0.0, z=-1.0 | nearby: ceiling/upper trim@(0.0,-1.0), door@(0.0,-1.0)",
+        "object: door | attrs: white painted, six-panel, peephole, wood core | anchor: x=0.0, z=-1.0 | nearby: doorknob/lockset@(0.0,-1.0), transom window@(0.0,-1.0)",
+        "object: other | attrs: metal, lever handle, deadbolt | anchor: x=0.0, z=-1.0 | nearby: door@(0.0,-1.0), transom window@(0.0,-1.0)",
+        "object: blinds | attrs: white, horizontal slats, covers full window height | anchor: x=0.0, z=0.0 | nearby: baseboard/trim@(0.0,0.0), wall (right)@(0.0,0.0)",
+        "object: other | attrs: white painted, wood, rounded top edge | anchor: x=-0.5, z=-0.5 | nearby: right-side window (blinds)@(0.0,0.0), door@(0.0,-1.0)"
+      ],
+      "member_long_descriptions": [
+        "object: blinds | attributes: horizontal slats, white plastic or painted wood | camera_relation: distance=0.9, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-1.5, z=0.0 | surroundings: window frame | relation=mounted inside | primary_dist=0.1 | global=(-1.5,0.0); thermostat | relation=right of | primary_dist=0.5 | global=(-1.5,0.0) | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: window | attributes: arched top, white frame, venetian blinds, visible blind cords | camera_relation: distance=0.9, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-1.5, z=0.0 | surroundings: window sill | relation=part of | primary_dist=0.1 | global=(-1.5,0.0); thermostat | relation=to the right of | primary_dist=0.5 | global=(-1.5,0.0); door (interior paneled) | relation=to the right-front of | primary_dist=0.9 | global=(-2.0,0.0); door handle | relation=on the nearby door to the right | primary_dist=1.1 | global=(-2.0,0.0) | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: door | attributes: white painted wood, two-panel molded design, painted casing | camera_relation: distance=0.8, bearing=5.0, laterality=center, verticality=middle | global_anchor: x=-2.0, z=0.0 | surroundings: door handle | relation=attached to | primary_dist=0.1 | global=(-2.0,0.0); wall (right side) | relation=adjacent to the right | primary_dist=0.2 | global=(-2.5,0.0); thermostat | relation=to the left on same wall | primary_dist=0.2 | global=(-1.5,0.0); window | relation=to the left | primary_dist=0.9 | global=(-1.5,0.0) | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: chair | attributes: none | camera_relation: distance=na, bearing=na, laterality=center, verticality=middle | global_anchor: x=na, z=na | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: clock | attributes: none | camera_relation: distance=na, bearing=na, laterality=right, verticality=high | global_anchor: x=na, z=na | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: mirror | attributes: none | camera_relation: distance=na, bearing=na, laterality=right, verticality=middle | global_anchor: x=na, z=na | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: outlet | attributes: none | camera_relation: distance=na, bearing=na, laterality=right, verticality=low | global_anchor: x=na, z=na | surroundings: none | scene_context: floor_pattern=unknown; scene_attributes=textured painted walls (orange-beige/light gray), white trim and door casing, arched-top window with horizontal venetian blinds, interior paneled white door with metal lever handle, small wall-mounted thermostat; wall_color=light gray / beige",
+        "object: other | attributes: textured finish, pale paint (light gray / blue-gray) | camera_relation: distance=0.5, bearing=-35.0, laterality=left, verticality=middle | global_anchor: x=-1.5, z=-1.5 | surroundings: trim (door frame) | relation=near junction with | primary_dist=0.8 | global=(-0.5,-1.0); door | relation=to the right of | primary_dist=0.9 | global=(0.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+        "object: window | attributes: rectangular, above door, appears covered or tinted | camera_relation: distance=2.0, bearing=2.0, laterality=center, verticality=high | global_anchor: x=0.0, z=-1.0 | surroundings: ceiling/upper trim | relation=adjacent above | primary_dist=0.3 | global=(0.0,-1.0); door | relation=below | primary_dist=0.6 | global=(0.0,-1.0); doorknob/lockset | relation=above | primary_dist=0.7 | global=(0.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+        "object: door | attributes: white painted, six-panel, peephole, wood core, painted trim | camera_relation: distance=2.0, bearing=2.0, laterality=center, verticality=middle | global_anchor: x=0.0, z=-1.0 | surroundings: doorknob/lockset | relation=on the right face of | primary_dist=0.1 | global=(0.0,-1.0); transom window | relation=above | primary_dist=0.6 | global=(0.0,-1.0); baseboard/trim | relation=along base of | primary_dist=0.9 | global=(0.0,-1.0); left textured wall | relation=to the left of (adjacent to) | primary_dist=0.9 | global=(-0.5,-2.0); right-side window (blinds) | relation=to the right of | primary_dist=0.9 | global=(0.0,0.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+        "object: other | attributes: metal, lever handle, deadbolt | camera_relation: distance=2.0, bearing=5.0, laterality=center, verticality=middle | global_anchor: x=0.0, z=-1.0 | surroundings: door | relation=mounted on | primary_dist=0.1 | global=(0.0,-1.0); transom window | relation=above-right of | primary_dist=0.6 | global=(0.0,-1.0); right-side window (blinds) | relation=to the right of | primary_dist=0.8 | global=(0.0,0.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+        "object: blinds | attributes: white, horizontal slats, covers full window height | camera_relation: distance=2.2, bearing=30.0, laterality=right, verticality=middle | global_anchor: x=0.0, z=0.0 | surroundings: baseboard/trim | relation=below | primary_dist=0.2 | global=(0.0,0.0); wall (right) | relation=adjacent to | primary_dist=0.2 | global=(0.0,0.0); door | relation=to the left of | primary_dist=0.9 | global=(0.0,-2.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+        "object: other | attributes: white painted, wood, rounded top edge | camera_relation: distance=1.8, bearing=20.0, laterality=right, verticality=low | global_anchor: x=-0.5, z=-0.5 | surroundings: right-side window (blinds) | relation=below | primary_dist=0.2 | global=(0.0,0.0); door | relation=adjacent to | primary_dist=0.9 | global=(0.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray"
+      ],
+      "label_histogram": {
+        "blinds": 2,
+        "chair": 1,
+        "clock": 1,
+        "door": 2,
+        "mirror": 1,
+        "other": 3,
+        "outlet": 1,
+        "window": 2
+      },
+      "representative_object_id": 704,
+      "representative_label": "other",
+      "representative_description": "object: other | attributes: white painted, wood, rounded top edge | camera_relation: distance=1.8, bearing=20.0, laterality=right, verticality=low | global_anchor: x=-0.5, z=-0.5 | surroundings: right-side window (blinds) | relation=below | primary_dist=0.2 | global=(0.0,0.0); door | relation=adjacent to | primary_dist=0.9 | global=(0.0,-1.0) | scene_context: floor_pattern=wood; scene_attributes=interior front entry with six-panel door, rectangular transom window above door (appears covered or dark), textured plaster wall on left, white baseboard trim, horizontal blinds on right-side window, natural daylight from right-side window; wall_color=pale blue-gray",
+      "same_view_collision": true,
+      "offending_view_ids": [
+        "view_00082",
+        "view_00083"
+      ]
+    }
+  ]
+}

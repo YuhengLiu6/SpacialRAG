@@ -1,0 +1,32 @@
+{
+  "entry_id": 15,
+  "view_file": "images/pose_00003_o270_000015.jpg",
+  "selected_table_object_global_id": 89,
+  "selected_table_label": "dining table",
+  "camera_world_x": -9.447001457214355,
+  "camera_world_z": -2.4728803634643555,
+  "camera_pixel": [
+    100,
+    249
+  ],
+  "table_world_x": -6.550942659378052,
+  "table_world_y": -0.9285956597342268,
+  "table_world_z": -1.5888869304790543,
+  "table_pixel": [
+    196,
+    278
+  ],
+  "planar_distance_m": 3.0279697736414404,
+  "metadata_distance_from_camera_m": 2.8960587978363037,
+  "camera_orientation_deg": 270,
+  "projection": {
+    "view_min_x": -12.447001457214355,
+    "view_max_x": 4.1296257972717285,
+    "view_min_z": -9.972880363464355,
+    "view_max_z": 1.1548287868499756
+  },
+  "output_image": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/view00015_table_floorplan/entry_00015_dining_table_floorplan_with_angle.png",
+  "allocentric_bearing_deg_camera_to_table": 106.97429377729532,
+  "allocentric_bearing_convention": "0=N, 90=E, 180=S, 270=W",
+  "compass_direction": "ESE"
+}

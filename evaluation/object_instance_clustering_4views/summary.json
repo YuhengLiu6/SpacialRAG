@@ -1,0 +1,58 @@
+{
+  "group_mode": "place",
+  "text_mode": "long",
+  "selected_entry_ids": [
+    19,
+    24,
+    58,
+    65
+  ],
+  "cluster_count_mode": "eigengap",
+  "same_view_policy": "soft_penalty",
+  "same_view_penalty": 0.25,
+  "min_similarity": null,
+  "top_k": null,
+  "num_groups": 4,
+  "groups": [
+    {
+      "group_id": "place_00003",
+      "group_type": "place",
+      "n_objects": 20,
+      "n_clusters": 1,
+      "average_cluster_size": 20.0,
+      "backend": "single_cluster",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00005",
+      "group_type": "place",
+      "n_objects": 7,
+      "n_clusters": 1,
+      "average_cluster_size": 7.0,
+      "backend": "single_cluster",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "n_objects": 15,
+      "n_clusters": 1,
+      "average_cluster_size": 15.0,
+      "backend": "single_cluster",
+      "fallback_reason": null,
+      "skip_reason": null
+    },
+    {
+      "group_id": "place_00011",
+      "group_type": "place",
+      "n_objects": 9,
+      "n_clusters": 1,
+      "average_cluster_size": 9.0,
+      "backend": "single_cluster",
+      "fallback_reason": null,
+      "skip_reason": null
+    }
+  ]
+}

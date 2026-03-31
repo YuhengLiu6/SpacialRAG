@@ -1,0 +1,171 @@
+{
+  "group_id": "place_00009",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 518,
+      "observation_id": "obs_000518",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "chair",
+      "description": "brown leather recliner, right-side"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 519,
+      "observation_id": "obs_000519",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "chair",
+      "description": "red wooden carved chair edge"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 520,
+      "observation_id": "obs_000520",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "microwave",
+      "description": "stainless-steel microwave with glass"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 521,
+      "observation_id": "obs_000521",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "oven",
+      "description": "brown front oven with towel"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 522,
+      "observation_id": "obs_000522",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "side table",
+      "description": "dark wooden side table, edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 523,
+      "observation_id": "obs_000523",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark recessed-panel cabinet door, partial"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 524,
+      "observation_id": "obs_000524",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wood paneled cabinet edge-crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 525,
+      "observation_id": "obs_000525",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark recessed wooden cabinet door edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 526,
+      "observation_id": "obs_000526",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wooden cabinet panels, edge crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 527,
+      "observation_id": "obs_000527",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "cabinet",
+      "description": "dark wooden cabinet edge-crop"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 528,
+      "observation_id": "obs_000528",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "fireplace",
+      "description": "white painted mantel with black firebox"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 529,
+      "observation_id": "obs_000529",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "coffee maker",
+      "description": "black drip coffee maker, partial"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 530,
+      "observation_id": "obs_000530",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "fireplace",
+      "description": "black metal fireplace opening"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 531,
+      "observation_id": "obs_000531",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "coffee maker",
+      "description": "black stainless coffee maker, edge-cropped"
+    },
+    {
+      "group_id": "place_00009",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 532,
+      "observation_id": "obs_000532",
+      "view_id": "view_00058",
+      "entry_id": 58,
+      "label": "side table",
+      "description": "dark charcoal cylindrical side-table column"
+    }
+  ]
+}

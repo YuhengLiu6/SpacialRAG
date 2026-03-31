@@ -1,0 +1,53 @@
+# Cluster Summary: place_00003
+
+- group_type: place
+- n_objects: 40
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00003:cluster_000
+- num_members: 40
+- representative_label: cabinet
+- representative_description: Close-up, edge-cropped view of a dark brown varnished wooden cabinet door front with a rectangular inset panel and simple raised molding; top trim or drawer face is partially visible above, surface has slight gloss and minor scuffs along the upper edge, approximate distance ~0.6 m from camera.
+- same_view_collision: True
+- offending_view_ids: view_00017, view_00018, view_00019
+- member: object_id=108 view_id=view_00016 label=picture frame description=silver metal frame partial crop
+- member: object_id=109 view_id=view_00017 label=couch description=dark brown leather couch, right crop
+- member: object_id=110 view_id=view_00017 label=couch description=dark brown leather three-seat couch
+- member: object_id=111 view_id=view_00017 label=side table description=dark glossy rounded side table edge
+- member: object_id=112 view_id=view_00017 label=side table description=dark leather side table edge crop
+- member: object_id=113 view_id=view_00017 label=side table description=black padded side table (partial)
+- member: object_id=114 view_id=view_00017 label=table lamp description=white scalloped lampshade, partial crop
+- member: object_id=115 view_id=view_00018 label=side table description=dark carved wooden side table
+- member: object_id=116 view_id=view_00018 label=chair description=dark brown leather recliner, partial
+- member: object_id=117 view_id=view_00018 label=oven description=stainless steel oven front with towels
+- member: object_id=118 view_id=view_00018 label=cabinet description=dark brown wooden cabinet doors
+- member: object_id=119 view_id=view_00018 label=microwave description=stainless steel microwave front crop
+- member: object_id=120 view_id=view_00018 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=121 view_id=view_00018 label=cabinet description=tall dark wooden panel cabinet
+- member: object_id=122 view_id=view_00018 label=cabinet description=dark wooden cabinet door, edge-crop
+- member: object_id=123 view_id=view_00018 label=cabinet description=partial dark brown cabinet front
+- member: object_id=124 view_id=view_00018 label=fireplace description=black metal fireplace insert
+- member: object_id=125 view_id=view_00018 label=fireplace description=black metal fireplace opening with log
+- member: object_id=126 view_id=view_00018 label=side table description=dark edge-cropped side table
+- member: object_id=127 view_id=view_00018 label=window description=dark reflective window, partial frame
+- member: object_id=128 view_id=view_00019 label=refrigerator description=stainless-steel double-door fridge center
+- member: object_id=129 view_id=view_00019 label=picture frame description=brown wooden beach picture frame
+- member: object_id=130 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=131 view_id=view_00019 label=chair description=dark red wooden barstool chair with leather seat
+- member: object_id=132 view_id=view_00019 label=chair description=dark red carved wooden chair (cropped)
+- member: object_id=133 view_id=view_00019 label=dining table description=light wood tabletop with dark base
+- member: object_id=134 view_id=view_00019 label=cabinet description=dark brown raised-panel cabinet, edge
+- member: object_id=135 view_id=view_00019 label=cabinet description=dark wood tall cabinet, edge-cropped
+- member: object_id=136 view_id=view_00019 label=cabinet description=dark wooden base cabinet edge
+- member: object_id=137 view_id=view_00019 label=clock description=white-faced wall clock with scalloped rim
+- member: object_id=138 view_id=view_00019 label=coffee maker description=glossy black coffee maker edge-cropped
+- member: object_id=139 view_id=view_00019 label=chair description=dark brown wooden chair, edge-cropped
+- member: object_id=140 view_id=view_00019 label=cabinet description=brown wooden cabinet edge crop
+- member: object_id=141 view_id=view_00019 label=cabinet description=dark mahogany cabinet front edge-cropped
+- member: object_id=142 view_id=view_00019 label=coffee maker description=stainless-steel drip coffee maker, partial crop
+- member: object_id=143 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door
+- member: object_id=144 view_id=view_00019 label=outlet description=white plastic outlet faceplate edge-cropped
+- member: object_id=145 view_id=view_00019 label=cabinet description=dark wooden cabinet door panel
+- member: object_id=146 view_id=view_00019 label=cabinet description=dark wooden cabinet edge crop
+- member: object_id=147 view_id=view_00019 label=cabinet description=dark brown wooden cabinet door edge-cropped

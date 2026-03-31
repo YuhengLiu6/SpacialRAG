@@ -1,0 +1,292 @@
+{
+  "group_id": "place_00008",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 317,
+      "observation_id": "obs_000317",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "side table",
+      "description": "dark wooden side table edge-crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 318,
+      "observation_id": "obs_000318",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "picture frame",
+      "description": "black-framed nautical picture"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 319,
+      "observation_id": "obs_000319",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "picture frame",
+      "description": "black frame with white mat"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 2,
+      "object_global_id": 320,
+      "observation_id": "obs_000320",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "picture frame",
+      "description": "white square picture frame, close"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 321,
+      "observation_id": "obs_000321",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "couch",
+      "description": "black leather three-seat couch (partial)"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 322,
+      "observation_id": "obs_000322",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "book",
+      "description": "yellow cover book, edge cropped"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 3,
+      "object_global_id": 323,
+      "observation_id": "obs_000323",
+      "view_id": "view_00036",
+      "entry_id": 36,
+      "label": "picture frame",
+      "description": "white framed rectangular wall picture"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 324,
+      "observation_id": "obs_000324",
+      "view_id": "view_00037",
+      "entry_id": 37,
+      "label": "pillow",
+      "description": "dark blue pillow edge crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 325,
+      "observation_id": "obs_000325",
+      "view_id": "view_00038",
+      "entry_id": 38,
+      "label": "couch",
+      "description": "black glossy leather couch back"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 326,
+      "observation_id": "obs_000326",
+      "view_id": "view_00038",
+      "entry_id": 38,
+      "label": "tv",
+      "description": "black glossy TV screen, off, partial"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 327,
+      "observation_id": "obs_000327",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "side table",
+      "description": "dark wooden side table edge-crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 6,
+      "object_global_id": 328,
+      "observation_id": "obs_000328",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "side table",
+      "description": "dark wooden side table edge crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 329,
+      "observation_id": "obs_000329",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "chair",
+      "description": "dark brown leather recliner, frontal"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 7,
+      "object_global_id": 330,
+      "observation_id": "obs_000330",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "table lamp",
+      "description": "off-white pleated lampshade edge-crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 331,
+      "observation_id": "obs_000331",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "chair",
+      "description": "dark leather chair edge crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 8,
+      "object_global_id": 332,
+      "observation_id": "obs_000332",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "chair",
+      "description": "dark reddish wooden chair edge-crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 9,
+      "object_global_id": 333,
+      "observation_id": "obs_000333",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "clock",
+      "description": "dark scalloped-frame wall clock"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 10,
+      "object_global_id": 334,
+      "observation_id": "obs_000334",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "cabinet",
+      "description": "white painted cabinet trim edge"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 1,
+      "object_global_id": 335,
+      "observation_id": "obs_000335",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "rug",
+      "description": "beige rectangular rug with red border"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 11,
+      "object_global_id": 336,
+      "observation_id": "obs_000336",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "cabinet",
+      "description": "stainless-steel double-door cabinet"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 12,
+      "object_global_id": 337,
+      "observation_id": "obs_000337",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "side table",
+      "description": "dark wood side table corner"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 13,
+      "object_global_id": 338,
+      "observation_id": "obs_000338",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "cabinet",
+      "description": "dark wooden base cabinet, edge-crop"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 14,
+      "object_global_id": 339,
+      "observation_id": "obs_000339",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "chair",
+      "description": "dark brown leather recliner armchair"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 4,
+      "object_global_id": 340,
+      "observation_id": "obs_000340",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "side table",
+      "description": "dark brown wooden side table edge"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 15,
+      "object_global_id": 341,
+      "observation_id": "obs_000341",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet front"
+    },
+    {
+      "group_id": "place_00008",
+      "group_type": "place",
+      "cluster_id": 5,
+      "object_global_id": 342,
+      "observation_id": "obs_000342",
+      "view_id": "view_00039",
+      "entry_id": 39,
+      "label": "side table",
+      "description": "dark wooden side table, partial"
+    }
+  ]
+}

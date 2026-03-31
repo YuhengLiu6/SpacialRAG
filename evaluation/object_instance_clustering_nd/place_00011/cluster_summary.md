@@ -1,0 +1,58 @@
+# Cluster Summary: place_00011
+
+- group_type: place
+- n_objects: 45
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00011:cluster_000
+- num_members: 45
+- representative_label: cabinet
+- representative_description: Partial view of a dark-stained wooden cabinet door with a recessed rectangular central panel and simple raised molding; vertical orientation with a satin-to-slightly-gloss finish, left edge partially obscured by a bright object and the crop cuts the cabinet edges, no visible hardware; occupies most of the crop and appears fairly close to the camera (approximately 1.0 m).
+- same_view_collision: True
+- offending_view_ids: view_00064, view_00065, view_00066, view_00067
+- member: object_id=580 view_id=view_00064 label=wall switch description=object: wall switch | attrs: white plastic, single rocker, wall-mounted | anchor: x=-4.5, z=-3.5 | nearby: textured beige wall@(-4.5,-3.5), door frame@(-4.5,-3.5)
+- member: object_id=581 view_id=view_00064 label=door description=object: door | attrs: white painted wood, decorative trim | anchor: x=-4.0, z=-3.5 | nearby: light switch@(-4.5,-3.5), shelving with linens@(-3.5,-4.5)
+- member: object_id=582 view_id=view_00064 label=towel description=object: towel | attrs: white, folded over ring, cotton | anchor: x=-4.5, z=-5.5 | nearby: mirror@(-4.0,-6.0), framed painting@(-4.5,-6.0)
+- member: object_id=583 view_id=view_00064 label=art description=object: art | attrs: rectangular, multi-colored image, ornate/light frame | anchor: x=-4.5, z=-6.0 | nearby: mirror@(-4.0,-6.0), towel ring@(-4.5,-6.0)
+- member: object_id=584 view_id=view_00064 label=mirror description=object: mirror | attrs: round, reflective glass, framed or beveled edge (partially visible) | anchor: x=-4.0, z=-6.0 | nearby: framed painting@(-4.5,-6.0), towel ring@(-4.5,-5.5)
+- member: object_id=585 view_id=view_00064 label=rug description=object: rug | attrs: rectangular, light blue/gray color, low pile | anchor: x=-4.0, z=-6.0 | nearby: mirror@(-4.0,-6.5), shelving with linens@(-3.5,-5.0)
+- member: object_id=586 view_id=view_00064 label=shelf description=object: shelf | attrs: white/metal shelving, multiple tiers, folded towels/linens, cluttered | anchor: x=-3.0, z=-4.5 | nearby: door frame@(-4.0,-3.5), floor rug@(-3.5,-5.0)
+- member: object_id=587 view_id=view_00065 label=side table description=dark wooden side table partial
+- member: object_id=588 view_id=view_00065 label=couch description=dark brown leather three-seat couch
+- member: object_id=589 view_id=view_00065 label=clock description=white round clock with Roman numerals
+- member: object_id=590 view_id=view_00065 label=side table description=dark wood side table edge-crop
+- member: object_id=591 view_id=view_00065 label=table lamp description=cream pleated shade table lamp
+- member: object_id=592 view_id=view_00065 label=couch description=dark brown leather recliner, left crop
+- member: object_id=593 view_id=view_00065 label=chair description=dark brown leather recliner edge-crop
+- member: object_id=594 view_id=view_00065 label=fireplace description=dark gray rectangular fireplace opening (partial)
+- member: object_id=595 view_id=view_00065 label=fireplace description=white wooden mantel with black firebox
+- member: object_id=596 view_id=view_00066 label=refrigerator description=stainless steel double-door fridge edge
+- member: object_id=597 view_id=view_00066 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=598 view_id=view_00066 label=cabinet description=dark wood cabinet door edge-crop
+- member: object_id=599 view_id=view_00066 label=oven description=white rectangular oven front, partial
+- member: object_id=600 view_id=view_00066 label=cabinet description=dark wood cabinet back (partial)
+- member: object_id=601 view_id=view_00066 label=cabinet description=dark stained wooden cabinet doors
+- member: object_id=602 view_id=view_00066 label=cabinet description=tall dark wooden cabinet door
+- member: object_id=603 view_id=view_00066 label=coffee maker description=black plastic coffee maker, right panel
+- member: object_id=604 view_id=view_00066 label=rug description=narrow brown low-pile rug (edge-cropped)
+- member: object_id=605 view_id=view_00066 label=cabinet description=dark brown wooden cabinet doors
+- member: object_id=606 view_id=view_00066 label=cabinet description=dark wood cabinet edge crop
+- member: object_id=607 view_id=view_00066 label=sink description=stainless steel sink basin edge
+- member: object_id=608 view_id=view_00066 label=cabinet description=dark brown wooden cabinet top (partial)
+- member: object_id=609 view_id=view_00066 label=cabinet description=dark stained wooden cabinet door
+- member: object_id=610 view_id=view_00066 label=cabinet description=dark stained wood cabinet side
+- member: object_id=611 view_id=view_00066 label=cabinet description=dark wood cabinet door edge-crop
+- member: object_id=612 view_id=view_00066 label=faucet description=brass curved faucet, left-edge crop
+- member: object_id=613 view_id=view_00066 label=cabinet description=dark brown wooden cabinet door cropped
+- member: object_id=614 view_id=view_00066 label=sink description=stainless steel double-basin sink
+- member: object_id=615 view_id=view_00066 label=cabinet description=dark wooden cabinet door, partial
+- member: object_id=616 view_id=view_00066 label=oven description=brushed stainless oven front crop
+- member: object_id=617 view_id=view_00066 label=sink description=partial stainless steel sink rim
+- member: object_id=618 view_id=view_00066 label=cabinet description=dark wooden cabinet door edge
+- member: object_id=619 view_id=view_00067 label=chair description=dark mahogany carved chair back
+- member: object_id=620 view_id=view_00067 label=chair description=dark wooden dining chair edge-crop
+- member: object_id=621 view_id=view_00067 label=chair description=partial dark varnished chair back
+- member: object_id=622 view_id=view_00067 label=dining table description=dark wooden rectangular dining table
+- member: object_id=623 view_id=view_00067 label=chair description=dark wooden dining chair edge-cropped
+- member: object_id=624 view_id=view_00067 label=window description=white arched window with blinds

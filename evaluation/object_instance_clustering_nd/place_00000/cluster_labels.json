@@ -1,0 +1,215 @@
+{
+  "group_id": "place_00000",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 0,
+      "observation_id": "obs_000000",
+      "view_id": "view_00000",
+      "entry_id": 0,
+      "label": "picture frame",
+      "description": "black-framed sailboat print, glazed"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 1,
+      "observation_id": "obs_000001",
+      "view_id": "view_00000",
+      "entry_id": 0,
+      "label": "picture frame",
+      "description": "light-painted picture frame bottom edge"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 2,
+      "observation_id": "obs_000002",
+      "view_id": "view_00000",
+      "entry_id": 0,
+      "label": "picture frame",
+      "description": "narrow gold-tone vertical frame edge-crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 3,
+      "observation_id": "obs_000003",
+      "view_id": "view_00001",
+      "entry_id": 1,
+      "label": "none",
+      "description": ""
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 4,
+      "observation_id": "obs_000004",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "couch",
+      "description": "dark brown leather loveseat, edge cropped"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 5,
+      "observation_id": "obs_000005",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "pillow",
+      "description": "dark leather pillow edge crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 6,
+      "observation_id": "obs_000006",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "rug",
+      "description": "light beige low-pile rug, partial"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 7,
+      "observation_id": "obs_000007",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet corner"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 8,
+      "observation_id": "obs_000008",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "rug",
+      "description": "dark blue rug, partial edge"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 9,
+      "observation_id": "obs_000009",
+      "view_id": "view_00002",
+      "entry_id": 2,
+      "label": "window",
+      "description": "dark reflective window with lamp"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 10,
+      "observation_id": "obs_000010",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "couch",
+      "description": "black leather couch, right-side crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 11,
+      "observation_id": "obs_000011",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "table lamp",
+      "description": "white scalloped fabric shade table lamp"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 12,
+      "observation_id": "obs_000012",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "side table",
+      "description": "dark reddish wood side table edge-crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 13,
+      "observation_id": "obs_000013",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "couch",
+      "description": "dark brown leather couch, front"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 14,
+      "observation_id": "obs_000014",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "microwave",
+      "description": "black stainless steel microwave door"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 15,
+      "observation_id": "obs_000015",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "chair",
+      "description": "dark wooden chair with cushion"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 16,
+      "observation_id": "obs_000016",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "cabinet",
+      "description": "dark wooden cabinet edge crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 17,
+      "observation_id": "obs_000017",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "chair",
+      "description": "dark carved wooden chair, partial crop"
+    },
+    {
+      "group_id": "place_00000",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 18,
+      "observation_id": "obs_000018",
+      "view_id": "view_00003",
+      "entry_id": 3,
+      "label": "chair",
+      "description": "dark reddish wooden chair edge-crop"
+    }
+  ]
+}

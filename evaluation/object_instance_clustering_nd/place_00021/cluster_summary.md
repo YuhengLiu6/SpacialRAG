@@ -1,0 +1,82 @@
+# Cluster Summary: place_00021
+
+- group_type: place
+- n_objects: 69
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: place:place_00021:cluster_000
+- num_members: 69
+- representative_label: pillow
+- representative_description: Centered rectangular pillow with horizontal light-gray and off-white stripes, cotton-like fabric with slight wrinkles and visible seam, mostly visible and partly overlapped by bedding; appears close to the camera (approximately 0.6 m).
+- same_view_collision: True
+- offending_view_ids: view_00108, view_00109, view_00110, view_00111, view_00112, view_00113, view_00114, view_00115, view_00128, view_00129, view_00130, view_00131
+- member: object_id=802 view_id=view_00108 label=bed description=dark wood bed with striped bedding
+- member: object_id=803 view_id=view_00108 label=nightstand description=dark mahogany three-drawer nightstand
+- member: object_id=804 view_id=view_00108 label=table lamp description=beige fabric-shade table lamp
+- member: object_id=805 view_id=view_00108 label=pillow description=beige-and-blue striped rectangular pillow
+- member: object_id=806 view_id=view_00108 label=pillow description=striped beige rectangular pillow edge-crop
+- member: object_id=807 view_id=view_00109 label=door description=object: door | attrs: white paint, raised panels, metal lever handles (brushed finish), two-door set with center seam | anchor: x=-1.0, z=-5.5 | nearby: wall@(-1.5,-5.5), curtain@(-1.5,-6.0)
+- member: object_id=808 view_id=view_00109 label=curtain description=object: curtain | attrs: gray, heavy fabric, full-length | anchor: x=-1.5, z=-6.0 | nearby: door@(-1.0,-5.5), bed@(-2.0,-6.5)
+- member: object_id=809 view_id=view_00109 label=dresser description=object: dresser | attrs: vertical, multiple drawers, wood-toned or muted finish | anchor: x=-2.0, z=-7.0 | nearby: bed@(-2.0,-6.5), curtain@(-1.5,-6.0)
+- member: object_id=810 view_id=view_00109 label=bed description=object: bed | attrs: white bedding, blue patterned cloth visible, low-profile mattress | anchor: x=-2.0, z=-6.5 | nearby: dresser@(-2.0,-7.0), curtain@(-1.5,-6.0)
+- member: object_id=811 view_id=view_00110 label=door description=object: door | attrs: off-white / light cream paint, matte finish, vertical seam down center, plain rectangular panel | anchor: x=-0.5, z=-5.0 | nearby: door trim / molding@(-0.5,-5.0), interior wall (painted)@(0.0,-5.0)
+- member: object_id=812 view_id=view_00110 label=other description=object: other | attrs: painted same color as door, shallow scalloped/profile detail, narrow | anchor: x=-0.5, z=-5.0 | nearby: door@(-0.5,-5.0), interior wall (painted)@(0.0,-5.0)
+- member: object_id=813 view_id=view_00110 label=window description=object: window | attrs: vertical narrow frame, bright / natural light, partial view only | anchor: x=-1.0, z=-5.0 | nearby: door@(0.0,-5.0), door trim / molding@(0.0,-5.0)
+- member: object_id=814 view_id=view_00111 label=bed description=beige-gray striped bed, wooden frame
+- member: object_id=815 view_id=view_00111 label=table lamp description=beige fabric shade table lamp
+- member: object_id=816 view_id=view_00111 label=fan description=wood-blade ceiling fan with light
+- member: object_id=817 view_id=view_00111 label=nightstand description=partial dark wood nightstand top
+- member: object_id=818 view_id=view_00111 label=dresser description=dark wooden dresser, right crop
+- member: object_id=819 view_id=view_00111 label=pillow description=striped gray-blue pillow edge crop
+- member: object_id=820 view_id=view_00111 label=dresser description=dark wooden dresser side crop
+- member: object_id=821 view_id=view_00111 label=window description=white window with horizontal blinds
+- member: object_id=822 view_id=view_00111 label=tv description=dark glossy flat-panel TV edge
+- member: object_id=823 view_id=view_00111 label=pillow description=beige-blue striped pillow edge crop
+- member: object_id=824 view_id=view_00112 label=bed description=dark wooden bed with striped bedding
+- member: object_id=825 view_id=view_00112 label=table lamp description=beige shade lamp with twisted base
+- member: object_id=826 view_id=view_00112 label=nightstand description=dark wood three-drawer nightstand
+- member: object_id=827 view_id=view_00112 label=pillow description=rectangular blue-gray striped pillow edge-cropped
+- member: object_id=828 view_id=view_00112 label=pillow description=beige striped rectangular pillow (cropped)
+- member: object_id=829 view_id=view_00113 label=door description=object: door | attrs: white painted wood, two-panel raised molding, matched pair (left and right leaf), metal lever handles (brushed or polished finish) | anchor: x=-1.5, z=-5.5 | nearby: door trim / frame@(-1.5,-5.5), door handles@(-1.5,-5.5)
+- member: object_id=830 view_id=view_00113 label=other description=object: other | attrs: brushed or polished metal, lever style, paired | anchor: x=-1.5, z=-5.5 | nearby: closet doors@(-1.5,-5.5), door trim@(-1.5,-5.5)
+- member: object_id=831 view_id=view_00113 label=blinds description=object: blinds | attrs: grey, pleated/folded vertical fabric | anchor: x=-1.5, z=-6.0 | nearby: closet doors@(-1.5,-5.5), bed (partial)@(-2.0,-6.5)
+- member: object_id=832 view_id=view_00113 label=dresser description=object: dresser | attrs: vertical stacked drawers or shelves, neutral wood or laminate tones, partially obscured / low-resolution | anchor: x=-2.0, z=-7.5 | nearby: bed (partial)@(-2.5,-7.0), grey curtain / drape@(-2.5,-6.5)
+- member: object_id=833 view_id=view_00113 label=bed description=object: bed | attrs: white sheet, low profile mattress, partially visible head/foot area | anchor: x=-2.0, z=-7.0 | nearby: blue-patterned blanket / bedding@(-2.0,-7.0), grey curtain / drape@(-2.0,-6.5)
+- member: object_id=834 view_id=view_00113 label=blanket description=object: blanket | attrs: blue pattern, fabric, small visible portion | anchor: x=-2.0, z=-7.0 | nearby: bed (partial)@(-2.0,-7.0), grey curtain / drape@(-2.0,-6.5)
+- member: object_id=835 view_id=view_00114 label=wall switch description=object: wall switch | attrs: matte paint, darker gray-beige tone, smooth texture | anchor: x=0.0, z=-4.5 | nearby: center wall panel@(-0.5,-4.5), vertical seam / trim (center-right)@(-0.5,-4.5)
+- member: object_id=836 view_id=view_00114 label=wall switch description=object: wall switch | attrs: matte paint, light beige tone, faint vertical seam | anchor: x=-0.5, z=-5.0 | nearby: vertical seam / trim@(-0.5,-4.5), left wall panel@(0.0,-4.5)
+- member: object_id=837 view_id=view_00114 label=mirror description=object: mirror | attrs: reflective/distorted, thin vertical strip | anchor: x=-0.5, z=-5.5 | nearby: door/window trim@(-0.5,-5.5), central wall panel@(-0.5,-5.0)
+- member: object_id=838 view_id=view_00114 label=other description=object: other | attrs: painted wood, vertical molding, narrow profile | anchor: x=-0.5, z=-5.5 | nearby: central wall panel@(-0.5,-5.0), left wall panel@(0.0,-4.5)
+- member: object_id=839 view_id=view_00115 label=bed description=striped beige bed edge crop
+- member: object_id=840 view_id=view_00115 label=table lamp description=beige fabric shade table lamp
+- member: object_id=841 view_id=view_00115 label=fan description=brown wooden-blade ceiling fan (partial)
+- member: object_id=842 view_id=view_00115 label=nightstand description=dark glossy wooden nightstand top
+- member: object_id=843 view_id=view_00115 label=dresser description=dark wooden dresser, partially occluded
+- member: object_id=844 view_id=view_00115 label=pillow description=edge-cropped striped gray-blue pillow
+- member: object_id=845 view_id=view_00115 label=dresser description=dark wooden dresser side crop
+- member: object_id=846 view_id=view_00115 label=window description=white window with closed blinds
+- member: object_id=847 view_id=view_00115 label=tv description=black glossy flat-screen TV edge
+- member: object_id=848 view_id=view_00115 label=pillow description=blue-gray striped pillow edge crop
+- member: object_id=907 view_id=view_00128 label=bed description=dark wooden bed with striped bedding
+- member: object_id=908 view_id=view_00128 label=nightstand description=dark wood three-drawer nightstand
+- member: object_id=909 view_id=view_00128 label=table lamp description=beige fabric shade table lamp
+- member: object_id=910 view_id=view_00128 label=pillow description=centered white-gray striped pillow
+- member: object_id=911 view_id=view_00128 label=pillow description=beige striped rectangular pillow edge-cropped
+- member: object_id=912 view_id=view_00129 label=door description=object: door | attrs: white painted wood, raised panel design, two matching metal lever handles (bronze/antique finish), visible door trim and hinges | anchor: x=-1.5, z=-5.5 | nearby: curtain@(-1.5,-6.0), bed@(-1.5,-6.5)
+- member: object_id=913 view_id=view_00129 label=blinds description=object: blinds | attrs: gray, textured fabric, full-length, hanging folds | anchor: x=-1.5, z=-6.0 | nearby: door@(-1.5,-5.5), dresser@(-1.5,-7.0)
+- member: object_id=914 view_id=view_00129 label=bed description=object: bed | attrs: white linens, visible mattress edge, low bed height | anchor: x=-1.5, z=-6.5 | nearby: pillow@(-2.0,-7.0), dresser@(-1.5,-7.5)
+- member: object_id=915 view_id=view_00129 label=pillow description=object: pillow | attrs: blue and white pattern, fabric pillow | anchor: x=-2.0, z=-7.0 | nearby: bed@(-1.5,-6.5), curtain@(-1.5,-6.0)
+- member: object_id=916 view_id=view_00129 label=dresser description=object: dresser | attrs: light-colored surface, horizontal stacked lines suggesting drawers | anchor: x=-1.5, z=-7.5 | nearby: curtain@(-1.5,-6.0), bed@(-1.5,-6.5)
+- member: object_id=917 view_id=view_00130 label=door description=object: door | attrs: beige/cream paint, vertical groove/seam, smooth painted surface, interior door | anchor: x=-0.5, z=-5.0 | nearby: right trim/window strip@(-0.5,-5.0), left painted wall area@(-0.5,-5.0)
+- member: object_id=918 view_id=view_00130 label=other description=object: other | attrs: white/light painted trim, vertical molding, possible glass reflections or exterior visible | anchor: x=-0.5, z=-5.0 | nearby: door panel@(-0.5,-5.0), bright glass/exterior glimpses@(-1.0,-5.0)
+- member: object_id=919 view_id=view_00131 label=bed description=striped beige duvet on wooden frame
+- member: object_id=920 view_id=view_00131 label=table lamp description=beige fabric-shade table lamp (partial)
+- member: object_id=921 view_id=view_00131 label=fan description=wood-blade ceiling fan with light
+- member: object_id=922 view_id=view_00131 label=nightstand description=dark wooden nightstand top (edge-crop)
+- member: object_id=923 view_id=view_00131 label=dresser description=dark wooden dresser, right crop
+- member: object_id=924 view_id=view_00131 label=pillow description=light gray striped pillow edge crop
+- member: object_id=925 view_id=view_00131 label=dresser description=dark wooden dresser edge crop
+- member: object_id=926 view_id=view_00131 label=window description=white window with horizontal blinds
+- member: object_id=927 view_id=view_00131 label=tv description=black glossy flat-screen TV edge-crop
+- member: object_id=928 view_id=view_00131 label=pillow description=striped blue-gray pillow edge crop

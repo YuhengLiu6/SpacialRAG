@@ -1,0 +1,363 @@
+[
+  {
+    "cluster_id": 0,
+    "members": [
+      "refrigerator (128)",
+      "picture frame (129)",
+      "coffee maker (138)",
+      "cabinet (130)",
+      "cabinet (134)",
+      "cabinet (143)",
+      "side table (205)",
+      "cabinet (135)",
+      "couch (199)",
+      "cabinet (136)",
+      "chair (139)",
+      "cabinet (140)",
+      "cabinet (141)",
+      "cabinet (146)",
+      "side table (204)",
+      "coffee maker (142)",
+      "outlet (144)",
+      "cabinet (145)",
+      "cabinet (147)",
+      "side table (203)",
+      "cabinet (524)"
+    ],
+    "member_view_ids": [
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00024",
+      "view_00019",
+      "view_00024",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00024",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00024",
+      "view_00058"
+    ],
+    "label_histogram": {
+      "cabinet": 11,
+      "chair": 1,
+      "coffee maker": 2,
+      "couch": 1,
+      "outlet": 1,
+      "picture frame": 1,
+      "refrigerator": 1,
+      "side table": 3
+    }
+  },
+  {
+    "cluster_id": 3,
+    "members": [
+      "chair (131)",
+      "chair (132)",
+      "clock (137)",
+      "chair (519)"
+    ],
+    "member_view_ids": [
+      "view_00019",
+      "view_00019",
+      "view_00019",
+      "view_00058"
+    ],
+    "label_histogram": {
+      "chair": 3,
+      "clock": 1
+    }
+  },
+  {
+    "cluster_id": 5,
+    "members": [
+      "dining table (133)",
+      "side table (201)",
+      "side table (522)",
+      "side table (590)"
+    ],
+    "member_view_ids": [
+      "view_00019",
+      "view_00024",
+      "view_00058",
+      "view_00065"
+    ],
+    "label_histogram": {
+      "dining table": 1,
+      "side table": 3
+    }
+  },
+  {
+    "cluster_id": 20,
+    "members": [
+      "clock (200)"
+    ],
+    "member_view_ids": [
+      "view_00024"
+    ],
+    "label_histogram": {
+      "clock": 1
+    }
+  },
+  {
+    "cluster_id": 22,
+    "members": [
+      "shelf (202)"
+    ],
+    "member_view_ids": [
+      "view_00024"
+    ],
+    "label_histogram": {
+      "shelf": 1
+    }
+  },
+  {
+    "cluster_id": 23,
+    "members": [
+      "cabinet (525)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 24,
+    "members": [
+      "cabinet (523)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 25,
+    "members": [
+      "cabinet (527)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 26,
+    "members": [
+      "cabinet (526)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "cabinet": 1
+    }
+  },
+  {
+    "cluster_id": 27,
+    "members": [
+      "coffee maker (531)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "coffee maker": 1
+    }
+  },
+  {
+    "cluster_id": 28,
+    "members": [
+      "coffee maker (529)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "coffee maker": 1
+    }
+  },
+  {
+    "cluster_id": 29,
+    "members": [
+      "oven (521)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "oven": 1
+    }
+  },
+  {
+    "cluster_id": 30,
+    "members": [
+      "microwave (520)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "microwave": 1
+    }
+  },
+  {
+    "cluster_id": 31,
+    "members": [
+      "side table (532)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "side table": 1
+    }
+  },
+  {
+    "cluster_id": 32,
+    "members": [
+      "chair (518)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "chair": 1
+    }
+  },
+  {
+    "cluster_id": 33,
+    "members": [
+      "fireplace (528)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "fireplace": 1
+    }
+  },
+  {
+    "cluster_id": 34,
+    "members": [
+      "fireplace (530)"
+    ],
+    "member_view_ids": [
+      "view_00058"
+    ],
+    "label_histogram": {
+      "fireplace": 1
+    }
+  },
+  {
+    "cluster_id": 35,
+    "members": [
+      "side table (587)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "side table": 1
+    }
+  },
+  {
+    "cluster_id": 36,
+    "members": [
+      "couch (588)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "couch": 1
+    }
+  },
+  {
+    "cluster_id": 37,
+    "members": [
+      "clock (589)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "clock": 1
+    }
+  },
+  {
+    "cluster_id": 38,
+    "members": [
+      "table lamp (591)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "table lamp": 1
+    }
+  },
+  {
+    "cluster_id": 39,
+    "members": [
+      "couch (592)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "couch": 1
+    }
+  },
+  {
+    "cluster_id": 40,
+    "members": [
+      "chair (593)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "chair": 1
+    }
+  },
+  {
+    "cluster_id": 41,
+    "members": [
+      "fireplace (594)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "fireplace": 1
+    }
+  },
+  {
+    "cluster_id": 42,
+    "members": [
+      "fireplace (595)"
+    ],
+    "member_view_ids": [
+      "view_00065"
+    ],
+    "label_histogram": {
+      "fireplace": 1
+    }
+  }
+]

@@ -1,0 +1,177 @@
+{
+  "views": [
+    {
+      "view_id": "view_00000",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00000_o000_000000.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00000/view_annotations/view_00000_annotated.jpg",
+      "source_file_name": "images/pose_00000_o000_000000.jpg",
+      "num_objects": 3,
+      "objects": [
+        {
+          "object_global_id": 0,
+          "label": "picture frame",
+          "cluster_id": 0,
+          "laterality": "center",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 1,
+          "label": "picture frame",
+          "cluster_id": 1,
+          "laterality": "right",
+          "verticality": "high"
+        },
+        {
+          "object_global_id": 2,
+          "label": "picture frame",
+          "cluster_id": 2,
+          "laterality": "left",
+          "verticality": "low"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00001",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00000_o090_000001.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00000/view_annotations/view_00001_annotated.jpg",
+      "source_file_name": "images/pose_00000_o090_000001.jpg",
+      "num_objects": 1,
+      "objects": [
+        {
+          "object_global_id": 3,
+          "label": "none",
+          "cluster_id": 3,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00002",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00000_o180_000002.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00000/view_annotations/view_00002_annotated.jpg",
+      "source_file_name": "images/pose_00000_o180_000002.jpg",
+      "num_objects": 6,
+      "objects": [
+        {
+          "object_global_id": 4,
+          "label": "couch",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 5,
+          "label": "pillow",
+          "cluster_id": 5,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 6,
+          "label": "rug",
+          "cluster_id": 6,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 7,
+          "label": "cabinet",
+          "cluster_id": 7,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 8,
+          "label": "rug",
+          "cluster_id": 8,
+          "laterality": "left",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 9,
+          "label": "window",
+          "cluster_id": 1,
+          "laterality": "left",
+          "verticality": "high"
+        }
+      ],
+      "status": "ok"
+    },
+    {
+      "view_id": "view_00003",
+      "source_image_path": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd/images/pose_00000_o270_000003.jpg",
+      "annotated_image_path": "/Users/liuyuheng/Desktop/antigravityTest/evaluation/object_instance_heatmaps_nd/place_00000/view_annotations/view_00003_annotated.jpg",
+      "source_file_name": "images/pose_00000_o270_000003.jpg",
+      "num_objects": 9,
+      "objects": [
+        {
+          "object_global_id": 10,
+          "label": "couch",
+          "cluster_id": 4,
+          "laterality": "center",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 11,
+          "label": "table lamp",
+          "cluster_id": 9,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 12,
+          "label": "side table",
+          "cluster_id": 10,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 13,
+          "label": "couch",
+          "cluster_id": 7,
+          "laterality": "right",
+          "verticality": "low"
+        },
+        {
+          "object_global_id": 14,
+          "label": "microwave",
+          "cluster_id": 11,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 15,
+          "label": "chair",
+          "cluster_id": 12,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 16,
+          "label": "cabinet",
+          "cluster_id": 13,
+          "laterality": "right",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 17,
+          "label": "chair",
+          "cluster_id": 14,
+          "laterality": "center",
+          "verticality": "middle"
+        },
+        {
+          "object_global_id": 18,
+          "label": "chair",
+          "cluster_id": 15,
+          "laterality": "center",
+          "verticality": "middle"
+        }
+      ],
+      "status": "ok"
+    }
+  ]
+}

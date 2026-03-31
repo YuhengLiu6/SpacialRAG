@@ -1,0 +1,171 @@
+{
+  "group_id": "place_00004",
+  "group_type": "place",
+  "labels": [
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 184,
+      "observation_id": "obs_000184",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "refrigerator",
+      "description": "stainless-steel side-by-side refrigerator"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 185,
+      "observation_id": "obs_000185",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "chair",
+      "description": "dark carved wooden chair edge crop"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 186,
+      "observation_id": "obs_000186",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "clock",
+      "description": "white clock face with Roman numerals"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 187,
+      "observation_id": "obs_000187",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "dining table",
+      "description": "light wood dining table edge crop"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 188,
+      "observation_id": "obs_000188",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark brown recessed cabinet door"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 189,
+      "observation_id": "obs_000189",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark wooden cabinet door crop"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 190,
+      "observation_id": "obs_000190",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "clock",
+      "description": "white round wall clock, scalloped rim"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 191,
+      "observation_id": "obs_000191",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark brown wooden cabinet front"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 192,
+      "observation_id": "obs_000192",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark wooden cabinet door, partial"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 193,
+      "observation_id": "obs_000193",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark brown recessed-panel cabinet door"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 194,
+      "observation_id": "obs_000194",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "dining table",
+      "description": "dark reddish-brown wooden table edge"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 195,
+      "observation_id": "obs_000195",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark wooden cabinet double doors"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 196,
+      "observation_id": "obs_000196",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark wooden cabinet door edge-cropped"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 197,
+      "observation_id": "obs_000197",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "chair",
+      "description": "reddish wooden chair, edge-cropped"
+    },
+    {
+      "group_id": "place_00004",
+      "group_type": "place",
+      "cluster_id": 0,
+      "object_global_id": 198,
+      "observation_id": "obs_000198",
+      "view_id": "view_00023",
+      "entry_id": 23,
+      "label": "cabinet",
+      "description": "dark wooden cabinet doors cropped"
+    }
+  ]
+}
