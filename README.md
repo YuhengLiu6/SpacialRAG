@@ -702,50 +702,51 @@ Polar 表示：在相机视角坐标里，这个 object 的相对位置形状和
 
 ---
 
-Maintain cluster
+#### 2.4 Maintain cluster
 因为一个 cluster 里可能已经有多个历史 object observations，系统不可能每次都拿新 object 和 cluster 里所有成员逐个比，所以会先把 cluster 压缩成几个代表值，也就是 prototype；prototype 是为了让“一个 cluster”能像“一个可比较的对象”一样参与匹配。
-1.prototype_embedding
+
+**1. `prototype_embedding`**
 表示这个 cluster 的文本语义中心
 
-它是：
+**它是：**
+- cluster 内所有成员的 text embedding
+- 先求平均
+- 再做 L2 normalize
 
-cluster 内所有成员的 text embedding
-先求平均
-再做 L2 normalize
-作用是：
+**作用是：**
 代表这个 cluster 的“语义长相”
 
-后面新 object 来了，就拿它的 embedding 去和这个 prototype_embedding 比，算 text similarity。
+后面新 object 来了，就拿它的 embedding 去和这个 `prototype_embedding` 比，算 text similarity。
 
-2. prototype_xyz
+**2. `prototype_xyz`**
 表示这个 cluster 的全局空间位置代表值
 
-它由成员的：
+**它由成员的：**
+- `estimated_global_x`
+- `estimated_global_y`
+- `estimated_global_z`
 
-estimated_global_x
-estimated_global_y
-estimated_global_z
 聚合得到，当前实现里取的是中位数。
 
-作用是：
+**作用是：**
 代表这个 cluster 在世界坐标里的大致位置
 
-后面新 object 来了，就和这个 prototype_xyz 比，算 geo similarity。
+后面新 object 来了，就和这个 `prototype_xyz` 比，算 geo similarity。
 
-3. prototype_polar
+**3. `prototype_polar`**
 表示这个 cluster 的相机相对几何代表值
 
-它由成员的：
+**它由成员的：**
+- `distance_from_camera_m`
+- `relative_bearing_deg`
+- `relative_height_from_camera_m`
 
-distance_from_camera_m
-relative_bearing_deg
-relative_height_from_camera_m
 聚合得到，当前实现里也是取中位数。
 
-作用是：
+**作用是：**
 代表这个 cluster 在视角坐标里的典型相对位置形态
 
-后面新 object 来了，就和这个 prototype_polar 比，算 polar similarity。
+后面新 object 来了，就和这个 `prototype_polar` 比，算 polar similarity。
 
 
 

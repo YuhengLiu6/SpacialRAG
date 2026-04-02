@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Spatial RAG Pipeline Documentation</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="spatial-rag-pipeline-documentation">Spatial RAG Pipeline Documentation</h1>
+<h2 id="no1-prompt-suite-for-spatial-rag">No.1 Prompt Suite for Spatial RAG</h2>
+<h3 id="1-caption-image-prompt">1. Caption Image Prompt</h3>
+<p><strong>作用：</strong>
+用于对整张图片生成简洁的场景摘要，服务于 spatial retrieval。输出是 2-4 句的事实性场景总结，强调关键物体和大致布局。</p>
+<p><strong>prompt内容：</strong></p>
+<ul>
+<li>
+<p><strong>System:</strong>
+You are an image understanding assistant.
+Write a compact factual summary of this scene for spatial retrieval.</p>
+</li>
+<li>
+<p><strong>User:</strong>
+Summarize the visible scene in 2-4 sentences, including key objects and rough layout cues.</p>
+</li>
+</ul>
+<h3 id="2-object-crop-prompt单个目标裁剪图描述">2. Object Crop Prompt（单个目标裁剪图描述）</h3>
+<p><strong>作用：</strong>
+用于对单个物体 crop 做精细描述。重点是：基于 detector 给出的类别，对 crop 中的主物体生成结构化 JSON，包括 label、short_description、long_description、attributes、distance_from_camera_m。适合构建 object-level database text。</p>
+<p><strong>prompt内容：</strong></p>
+<ul>
+<li>
+<p><strong>System:</strong>
+You are a strict vision parser for object crops.
+Return JSON only, matching the schema exactly.
+Describe only the main visible object in the crop.
+Use the detector-provided class as the object category you must describe.
+Match the style of object descriptions used in a spatial database builder:
+the short description should read like a concise object instance description,
+and the long description should read like a detailed open-form object description.
+Do not return generic placeholders when any visible cue is available.
+If the object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions.</p>
+</li>
+<li>
+<p><strong>User:</strong>
+A detector has identified the object in this crop as &quot;{yolo_label_clean or 'unknown'}&quot;
+(confidence: {yolo_conf_text}).
+Treat this detected class as the object category to describe.
+Describe this specific object instance visible in the cropped image in the same style as the database builder's
+object fields: short_description should correspond to a short precise object description, and long_description
+should correspond to a detailed long-form open description.
+Ignore the wider room and focus on the object itself.
+Return a compact label for that detected category, a short description useful for retrieval,
+a richer long description, a list of notable visual attributes, and an approximate distance
+from the camera in meters when you can infer it. Mention the approximate distance directly
+in the short or long description when possible.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li><code>short_description</code> 必须 3 到 8 个词</li>
+<li>不能只写裸类别名，除非真的什么都看不出来</li>
+<li>必须至少包含一个可见特征，如颜色、材质、形状、状态、crop 中位置、是否部分可见</li>
+<li>倾向使用 noun phrase，如：
+&quot;dark wooden chair edge crop&quot;
+&quot;gold-framed wall picture&quot;</li>
+<li><code>long_description</code> 必须具体，尽量写出颜色、材质、纹理、形状、状态、大小线索、是否被裁切</li>
+<li>如果 crop 是 partial / clipped，要明确写 partial、cropped、edge、cut off</li>
+<li>不确定时也要描述“能看到的内容”，不要拒绝</li>
+<li><code>attributes</code> 应该是简洁的可见属性，不要泛泛而谈</li>
+<li>Output JSON only</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-object-extraction-prompt整张图抽取对象standard--angle_split">3. Object Extraction Prompt（整张图抽取对象，standard / angle_split）</h3>
+<p><strong>作用：</strong>
+用于对整张房间图进行完整的 scene-level + object-level 解析。
+不仅输出整体场景属性，还会抽取多个 concrete objects，并给出每个物体的：</p>
+<ul>
+<li>description</li>
+<li>attributes</li>
+<li>relative_position_laterality / distance / verticality</li>
+<li>distance_from_camera_m</li>
+<li>relative_height_from_camera_m</li>
+<li>relative_bearing_deg</li>
+<li>support_relation</li>
+<li>any_text</li>
+<li>long_form_open_description</li>
+<li>location_relative_to_other_objects</li>
+<li>surrounding_context</li>
+</ul>
+<p>适合做 downstream retrieval、deduplication、空间关系建模。</p>
+<p><strong>prompt内容：</strong></p>
+<ul>
+<li>
+<p><strong>System:</strong>
+You are a strict vision parser for spatial retrieval.
+Return JSON only, matching the schema exactly.
+No markdown, no explanations, no extra keys.</p>
+</li>
+<li>
+<p><strong>User:</strong>
+I am going to show you a photograph taken from a particular node location and orientation on a building.
+Your job is to describe the overall image, and separately extract concrete visible objects from this image
+to provide detailed descriptions and spatial characteristics for downstream retrieval and deduplication.
+Do not output wall feature or floor pattern as standalone objects.
+Put those into scene_attributes or into a nearby concrete object's attributes when relevant.</p>
+<p><strong>[camera_context_block]</strong></p>
+<ul>
+<li>
+<p><strong>如果没有 camera_context：</strong>
+Camera global pose is unavailable for this request.
+Image geometry convention: horizontal FOV is {FOV} degrees.
+Straight ahead is 0 degrees.
+Objects near the left image edge are about -45 degrees.
+Objects near the right image edge are about +45 degrees.
+Negative bearing means left of image center.
+Positive bearing means right of image center.
+Still estimate each object's distance_from_camera_m and relative_bearing_deg from the image alone.</p>
+</li>
+<li>
+<p><strong>如果有 camera_context：</strong>
+Current camera global pose: x=..., z=..., orientation_deg=...
+Use this pose only to reason about spatial consistency.
+Do not return absolute global coordinates.
+Return relative geometry only, and let the downstream program compute global coordinates.
+Image geometry convention 同上。</p>
+</li>
+</ul>
+<p><strong>[仅 angle_split 版本额外加入]</strong>
+For relative_position_laterality, divide the image horizontally into exactly three discrete sectors:
+left, center, and right.
+Assign every object to exactly one of these sectors based on where most of the object appears in the image.
+Do not use laterality vaguely or comparatively; treat it as a strict bucket.
+Use left for objects mainly in the left third, center for the middle third, and right for the right third.</p>
+<p><strong>[共同主体要求]</strong>
+For every object, estimate its approximate distance from the camera in meters whenever possible and fill
+distance_from_camera_m with that estimate.
+Also estimate relative_bearing_deg in the range [-90, 90], where 0 means the object is straight ahead,
+negative means left of image center, and positive means right of image center.
+Also estimate relative_height_from_camera_m, the object's vertical offset relative to the camera center in meters:
+negative means lower than the camera, positive means higher than the camera, and 0 means roughly level with the camera.
+Keep relative_position_distance broadly consistent with the meter estimate.</p>
+<p>For each primary object, list up to {OBJECT_SURROUNDING_MAX} visible surrounding objects in surrounding_context,
+sorted by increasing distance_from_primary_m.
+Each surrounding item must include:</p>
+<ul>
+<li>label</li>
+<li>attributes</li>
+<li>distance_from_primary_m</li>
+<li>distance_from_camera_m</li>
+<li>relative_height_from_camera_m</li>
+<li>relative_bearing_deg</li>
+<li>relation_to_primary</li>
+</ul>
+<p>If a quantity cannot be inferred, return null instead of guessing.
+Do not return absolute global coordinates.</p>
+<p><strong>[输出 JSON 结构要求]</strong>
+<strong>顶层字段包括：</strong></p>
+<ul>
+<li>view_type</li>
+<li>room_function</li>
+<li>style_hint</li>
+<li>clutter_level</li>
+<li>scene_attributes</li>
+<li>visual_feature[]</li>
+<li>floor_pattern</li>
+<li>lighting_ceiling</li>
+<li>wall_color</li>
+<li>additional_notes</li>
+<li>image_summary</li>
+</ul>
+<p><strong>每个 visual_feature 包括：</strong></p>
+<ul>
+<li>type</li>
+<li>description</li>
+<li>attributes</li>
+<li>relative_position_laterality</li>
+<li>relative_position_distance</li>
+<li>relative_position_verticality</li>
+<li>distance_from_camera_m</li>
+<li>relative_height_from_camera_m</li>
+<li>relative_bearing_deg</li>
+<li>support_relation</li>
+<li>any_text</li>
+<li>long_form_open_description</li>
+<li>location_relative_to_other_objects</li>
+<li>surrounding_context[]</li>
+</ul>
+<p><strong>结尾要求：</strong>
+Fill in every JSON field above as completely as possible.
+If something is entirely out of frame or unidentifiable, you can use 'unknown' or null where allowed.
+Return at most {max_objects} items in visual_feature.
+Output JSON only.</p>
+</li>
+</ul>
+<h3 id="4-selector-prompt场景总结--预选-object-categories">4. Selector Prompt（场景总结 + 预选 object categories）</h3>
+<p><strong>作用：</strong>
+用于做 lightweight scene summarization 和 object category pre-selection。
+这一阶段不做 object instance 枚举，也不做逐物体空间几何估计，只是从候选 household object list 中选出“这张图里明显可见、值得 detector/localizer 去找”的类别子集。</p>
+<p><strong>prompt内容：</strong></p>
+<ul>
+<li>
+<p><strong>System:</strong>
+You are a strict vision parser for scene summarization and household category selection.
+Return JSON only, matching the schema exactly.
+Use only categories from the provided candidate list.</p>
+</li>
+<li>
+<p><strong>User:</strong>
+I am going to show you a room image.
+Your job is to do scene summarization and object category pre-selection only.
+Do not enumerate object instances and do not estimate per-object geometry in this step.
+Use the candidate object list provided below as a household pre-list,
+and return only the subset that is clearly visible in the image.
+Prefer categories that are visually present as concrete objects, not inferred from context alone.
+Include an object type only if it is likely visible enough for a detector to localize.
+Exclude categories that are absent, ambiguous, or only suggested by the room type.</p>
+<p>[camera_context_block]
+Candidate object list: {selector_candidate_list_text(COMMON_PRELIST_OBJECT_TYPES)}.
+Return JSON only.</p>
+</li>
+</ul>
+<h3 id="5-camera-context-prompt-block被多个-prompt-复用">5. Camera Context Prompt Block（被多个 prompt 复用）</h3>
+<p><strong>作用：</strong>
+这是一个可复用的 prompt 片段，不是完整独立任务 prompt。
+它负责把 camera pose 和图像几何约定塞进主 prompt，帮助模型更稳定地估计：</p>
+<ul>
+<li>distance_from_camera_m</li>
+<li>relative_bearing_deg</li>
+<li>relative_height_from_camera_m</li>
+</ul>
+<p>并且避免返回 absolute global coordinates。</p>
+<p><strong>prompt内容：</strong></p>
+<ul>
+<li>
+<p><strong>无 camera_context 时：</strong>
+Camera global pose is unavailable for this request.
+Image geometry convention: horizontal FOV is {FOV} degrees.
+Straight ahead is 0 degrees.
+Objects near the left image edge are about -45 degrees.
+Objects near the right image edge are about +45 degrees.
+Negative bearing means left of image center.
+Positive bearing means right of image center.
+Still estimate each object's distance_from_camera_m and relative_bearing_deg from the image alone.</p>
+</li>
+<li>
+<p><strong>有 camera_context 时：</strong>
+Current camera global pose: x={camera_x:.3f}, z={camera_z:.3f}, orientation_deg={camera_orientation_deg:.1f}.
+Use this pose only to reason about spatial consistency.
+Do not return absolute global coordinates.
+Return relative geometry only, and let the downstream program compute global coordinates.
+Image geometry convention: horizontal FOV is {FOV} degrees.
+Straight ahead is 0 degrees.
+Objects near the left image edge are about -45 degrees.
+Objects near the right image edge are about +45 degrees.
+Negative bearing means left of image center.
+Positive bearing means right of image center.</p>
+</li>
+</ul>
+<hr>
+<h2 id="no2-pipeline1vlm---yoloworld---spatial-db">No.2 Pipeline1：VLM -&gt; YOLOworld -&gt; Spatial DB</h2>
+<h3 id="input--output">Input / Output</h3>
+<ol>
+<li><strong>VLM + selector prompt</strong>：提取出图中可能存在的物体类别</li>
+<li>将提取出的物体类别作为 prompt 输入 + image，送入 <strong>YOLOworld</strong> 进行物体检测</li>
+<li><strong>YOLOworld 返回</strong>（本身不输出角度信息）：<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;det_idx&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;couch&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;bbox_xyxy&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">496.889</span><span class="hljs-punctuation">,</span> <span class="hljs-number">640.528</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1056.839</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1080.0</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;confidence&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.8892</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+</li>
+</ol>
+<h3 id="subpipeline-nanosam--depthpro">Subpipeline: NanoSAM + DepthPro</h3>
+<h4 id="1-nanosam-mask">1. NanoSAM mask</h4>
+<ul>
+<li><strong>作用：</strong>
+YOLO-World 只给出一个矩形框，但框里会混进背景。NanoSAM 的作用是把“框里的目标物体像素”从背景里抠出来，得到更精确的 object mask。</li>
+<li><strong>输入：</strong>
+<ul>
+<li><code>image_rgb</code>：整张 RGB 图</li>
+<li><code>bbox_xyxy</code>：YOLO-World 给出的检测框 <code>[x1, y1, x2, y2]</code></li>
+</ul>
+</li>
+<li><strong>输出：</strong>
+是一个和原图同尺寸的布尔 mask：
+<ul>
+<li>shape: <code>(H, W)</code></li>
+<li>类型: <code>bool</code> (True 表示该像素属于目标物体)</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-depthpro-深度估计">2. DepthPro 深度估计</h4>
+<p><strong>步骤 1：Depth map 生成</strong></p>
+<ul>
+<li><strong>输入：</strong> 原始图像 <code>image_path</code></li>
+<li><strong>做法：</strong> 用 <code>DepthProAdapter.predict_depth(...)</code> 对整张图跑一次 DepthPro，生成 dense depth map，也就是每个像素一个深度值。</li>
+<li><strong>输出：</strong> <code>depth_map_m[H, W]</code></li>
+<li><strong>代码位置：</strong>
+<ul>
+<li><code>object_geometry_pipeline.py</code> (line 402)</li>
+<li><code>object_geometry_pipeline.py</code> (line 724)</li>
+</ul>
+</li>
+</ul>
+<p><strong>步骤 2：Object mask extraction</strong></p>
+<ul>
+<li><strong>输入：</strong>
+<ul>
+<li>YOLO-World <code>bbox</code></li>
+<li>原图</li>
+</ul>
+</li>
+<li><strong>做法：</strong> 用 NanoSAM 根据 bbox 生成 object mask，目标是把框里的背景去掉，只保留物体区域。</li>
+<li><strong>输出：</strong> <code>mask[H, W]</code>，布尔前景掩码</li>
+<li><strong>代码位置：</strong>
+<ul>
+<li><code>object_geometry_pipeline.py</code> (line 286)</li>
+<li><code>object_geometry_pipeline.py</code> (line 754)</li>
+</ul>
+</li>
+</ul>
+<p><strong>步骤 3：Masked depth aggregation</strong></p>
+<ul>
+<li><strong>输入：</strong>
+<ul>
+<li><code>depth_map_m</code></li>
+<li><code>object mask</code></li>
+</ul>
+</li>
+<li><strong>做法：</strong>
+<ul>
+<li>只取 mask 内的有效 depth 像素</li>
+<li>去掉无效值和 <code>&lt;= 0</code> 的值</li>
+<li>计算 median、trimmed median、p10、p90</li>
+<li>当前主流程实际使用 <code>trimmed_median_m</code> 作为该 object 的深度</li>
+</ul>
+</li>
+<li><strong>输出：</strong> <code>forward_depth_m</code>，以及辅助统计量 <code>median/p10/p90</code></li>
+<li><strong>代码位置：</strong>
+<ul>
+<li><code>object_geometry_pipeline.py</code> (line 113)</li>
+<li><code>object_geometry_pipeline.py</code> (line 782)</li>
+</ul>
+</li>
+</ul>
+<p><strong>步骤 4：Convert depth into object-level geometry</strong></p>
+<ul>
+<li><strong>输入：</strong>
+<ul>
+<li><code>forward_depth_m</code></li>
+<li>object centroid 对应的 <code>angle</code></li>
+</ul>
+</li>
+<li><strong>做法：</strong> 用 depth 作为物体相机前向深度。再结合水平角和垂直角，推导 <code>projected_planar_distance_m</code> 和 <code>relative_height_from_camera_m</code>。</li>
+<li><strong>输出：</strong>
+对象级几何 metadata：
+<ul>
+<li><code>distance_from_camera_m</code></li>
+<li><code>projected_planar_distance_m</code></li>
+<li><code>relative_height_from_camera_m</code></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>一句话总结</strong>
+DepthPro 的核心不是“对每个 bbox 单独估深”，而是：先对整张图生成 dense depth map，再用 NanoSAM 的 object mask 在目标区域内聚合出稳健的 object depth，最后和角度一起转成 object-level spatial attributes。</p>
+</blockquote>
+<h4 id="3-angle-estimation">3. Angle Estimation</h4>
+<p>相机光轴中心 -&gt; object mask 的 centroid，而不是 bbox center。</p>
+<p><strong>核心概念：</strong>
+<strong>mask centroid</strong> 是由 NanoSAM 输出的 object mask 直接算出来的（分割出来的物体区域的几何中心，即像素均值中心）。</p>
+<ul>
+<li><strong>前景像素：</strong> NanoSAM 认为属于该物体的像素</li>
+<li><strong>物体几何中心：</strong> 这些前景像素坐标的平均值（mask centroid）</li>
+<li><strong>角度计算：</strong> 用“物体几何中心相对图像中心的偏移”结合相机 FOV，按小孔成像公式换算成 <code>relative_bearing_deg</code> 和 <code>vertical_angle_deg</code>。</li>
+</ul>
+<p><strong>计算方式详细步骤：</strong></p>
+<ol>
+<li>
+<p><strong>选物体代表点</strong>
+先不用 bbox center，而是用 NanoSAM mask 的 centroid 作为物体在图像里的代表点：
+<code>x_obj, y_obj = mask centroid</code> (分割出来的前景像素坐标均值)</p>
+</li>
+<li>
+<p><strong>定义相机光轴中心</strong>
+把图像中心当作相机光轴投影点：
+<code>cx = (W - 1) / 2</code>
+<code>cy = (H - 1) / 2</code>
+(这里 <code>W</code> 是图像宽度，<code>H</code> 是图像高度)</p>
+</li>
+<li>
+<p><strong>用 FOV 反推出像素焦距</strong>
+已知水平视场角 <code>HFOV</code>，先算：
+<code>fx = W / (2 * tan(HFOV / 2))</code>
+再根据图像宽高比得到垂直视场角 <code>VFOV</code>，进一步算：
+<code>fy = H / (2 * tan(VFOV / 2))</code></p>
+</li>
+<li>
+<p><strong>把像素偏移变成角度</strong>
+用小孔成像模型，把“物体中心相对图像中心的偏移”转成视线角度：</p>
+<ul>
+<li><strong>水平角 / bearing:</strong>
+<code>relative_bearing_deg = atan((x_obj - cx) / fx)</code></li>
+<li><strong>垂直角:</strong>
+<code>vertical_angle_deg = atan((cy - y_obj) / fy)</code>
+最后再转换成 degree。</li>
+</ul>
+</li>
+<li>
+<p><strong>符号约定</strong></p>
+<ul>
+<li><code>relative_bearing_deg &lt; 0</code>：物体在图像中心左边</li>
+<li><code>relative_bearing_deg &gt; 0</code>：物体在图像中心右边</li>
+<li><code>vertical_angle_deg &gt; 0</code>：物体高于相机中心视线</li>
+<li><code>vertical_angle_deg &lt; 0</code>：物体低于相机中心视线</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>一句话总结</strong>
+这套方法本质上是：把“物体 mask 几何中心”看作视线目标点，再根据它相对图像中心的像素偏移，结合相机 FOV，用小孔成像公式换算成相对水平角和垂直角。</p>
+</blockquote>
+<hr>
+<h3 id="1-object-instance-pipeline">1. Object Instance Pipeline</h3>
+<p><strong>text embedding (with neighbor) -&gt; affinity -&gt; batch multi-view dedup</strong></p>
+<!-- 4 images --> Selector Prompt + Camera Context Prompt + Pre defined object category list --> VLM --> candidate object categories --> YOLO-World --> object crops + bboxes --> NanoSAM + DepthPro + angle estimation --> Metadata: object-level geometry metadata + text description (with neighbor) --> text embedding --> cosine similarity affinity --> batch multi-view deduplication  -->
+<p>+----------------------+
+| 4 input images       |
++----------------------+
+|
+v</p>
+<p>+-----------------------------------------------+
+| Per-image processing                          |
+| image + camera context + predefined categories|
++-----------------------------------------------+
+|
+v</p>
+<p>+------------------------------+
+| Selector Prompt              |
+| (scene summary + preselect)  |
++------------------------------+
+|
+v</p>
+<p>+------------------------------+
+| VLM                          |
++------------------------------+
+|
+v</p>
+<p>+--------------------------------------------------------------+
+| Selector output                                              |
+| - scene-level metadata                                       |
+|   view_type / room_function / style_hint / clutter_level     |
+|   scene_attributes / image_summary                           |
+| - selected_object_types                                      |
++--------------------------------------------------------------+
+|
+v</p>
+<p>+------------------------------+
+| YOLO-World                   |
+| input: selected_object_types |
++------------------------------+
+|
+v</p>
+<p>+----------------------------------------------+
+| Detections                                   |
+| label + bbox_xyxy + confidence               |
++----------------------------------------------+
+|
+v</p>
+<p>+----------------------------------------------+
+| For each detection                           |
+| - crop image from bbox                       |
+| - keep bbox for geometry                     |
++----------------------------------------------+
+|
+v</p>
+<p>+------------------+      +------------------+      +----------------------+
+| NanoSAM          |      | DepthPro         |      | Angle Estimation     |
+| image + bbox     |      | whole image      |      | mask centroid + FOV  |
+| -&gt; object mask   |      | -&gt; depth map     |      | -&gt; bearing / height  |
++------------------+      +------------------+      +----------------------+
+\                    |                             /
+\                   |                            /
+\                  |                           /
+\                 |                          /
+v                v                         v</p>
+<p>+-------------------------------------------------------------------+
+| Geometry merge                                                    |
+| bbox + mask + depth + angle -&gt; object-level geometry metadata     |
+| distance_from_camera_m / relative_bearing_deg /                   |
+| relative_height_from_camera_m / estimated_global_xyz / ...        |
++-------------------------------------------------------------------+
+|
+v</p>
+<p>+------------------------------+
+| Object Crop Prompt           |
+| per-crop VLM description     |
++------------------------------+
+|
+v</p>
+<p>+--------------------------------------------------------------+
+| Crop-level text metadata                                     |
+| label / short_description / long_description / attributes    |
++--------------------------------------------------------------+
+|
+v</p>
+<p>+-----------------------------------------------------------------------+
+| Object-level metadata                                                 |
+| geometry metadata + crop text                                         |
+| (at this point surrounding_context may still be empty)                |
++-----------------------------------------------------------------------+
+|
+v</p>
+<p>+----------------------------------------------+
+| Optional polar surrounding postprocess       |
+| -&gt; surrounding_context / neighbor list       |
++----------------------------------------------+
+|
+v</p>
+<p>+-------------------------------------------------------------+
+| Text embedding                                              |
+| - long: object text only                                    |
+| - long_neighbors: object text + serialized neighbor context |
++-------------------------------------------------------------+
+|
+v</p>
+<p>+------------------------------+
+| Cosine similarity matrix     |
++------------------------------+
+|
+v</p>
+<p>+---------------------------------------------+
+| Affinity adjustment                         |
+| same-view penalty + similarity threshold    |
++---------------------------------------------+
+|
+v</p>
+<p>+----------------------------------------------+
+| Batch multi-view deduplication               |
+| spectral clustering over object observations |
++----------------------------------------------+</p>
+<p>这个 pipeline 的核心思想是：
+先把 object 自身描述和它的邻居信息拼成一段增强文本，再做 embedding，然后只用 text cosine similarity 做 batch multi-view dedup。
+这里的 affinity 只用了文本 embedding 相似度，没有使用 geo 和 polar。</p>
+<h4 id="输入-metadata-是什么样">输入 metadata 是什么样</h4>
+<p>假设当前有一个 object record，主对象是 dining table：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">93</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dining table&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;a wooden dining table with a dark surface in the kitchen&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;surrounding_context&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;chair&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly left, slightly behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.6</span>
+    <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cabinet&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly right, slightly behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.0</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>这里实际参与增强文本构造的关键字段是：</p>
+<ul>
+<li><code>long_form_open_description</code></li>
+<li><code>surrounding_context[i].label</code></li>
+<li><code>surrounding_context[i].relation_to_primary</code></li>
+<li><code>surrounding_context[i].distance_from_primary_m</code></li>
+</ul>
+<h4 id="文本增强后长什么样">文本增强后长什么样</h4>
+<p>原本 object 的 long text：</p>
+<blockquote>
+<p>a wooden dining table with a dark surface in the kitchen</p>
+</blockquote>
+<p>加入 neighbor metadata 之后，真正送去 embedding 的文本变成：</p>
+<blockquote>
+<p>a wooden dining table with a dark surface in the kitchen | neighbors: chair [slightly left, slightly behind, 0.6m]; cabinet [slightly right, slightly behind, 1.0m]</p>
+</blockquote>
+<p>可以理解为：</p>
+<ul>
+<li><strong>主对象文本</strong>描述 object 自身视觉语义</li>
+<li><strong>neighbor list</strong> 提供 object 周边上下文</li>
+</ul>
+<p>两者拼在一起后，更利于区分“长得像但周边环境不同”的对象。</p>
+<h4 id="affinity-怎么算">affinity 怎么算</h4>
+<p>这条 pipeline 里，最终还是普通文本相似度：
+<code>affinity(i, j) = cosine_similarity( embedding(text_i), embedding(text_j) )</code></p>
+<p>也就是说：</p>
+<ul>
+<li>不看 <code>distance_from_camera_m</code></li>
+<li>不看 <code>relative_bearing_deg</code></li>
+<li>不看 <code>relative_height_from_camera_m</code></li>
+<li>不看全局 <code>estimated_global_x/y/z</code>
+只看拼好的文本 embedding 是否相似。</li>
+</ul>
+<h4 id="一个更完整的例子">一个更完整的例子</h4>
+<p><strong>View A 里的 object</strong></p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dining table&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;a wooden dining table with a dark surface in the kitchen&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;surrounding_context&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;chair&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly left, slightly behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.6</span>
+    <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cabinet&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly right, slightly behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.0</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>增强后文本：</p>
+<blockquote>
+<p>a wooden dining table with a dark surface in the kitchen | neighbors: chair [slightly left, slightly behind, 0.6m]; cabinet [slightly right, slightly behind, 1.0m]</p>
+</blockquote>
+<p><strong>View B 里的 object</strong></p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dining table&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;a dark wooden dining table in the kitchen area&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;surrounding_context&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;chair&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;left, slightly behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.7</span>
+    <span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-punctuation">{</span>
+      <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cabinet&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;right, behind&quot;</span><span class="hljs-punctuation">,</span>
+      <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.1</span>
+    <span class="hljs-punctuation">}</span>
+  <span class="hljs-punctuation">]</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>增强后文本：</p>
+<blockquote>
+<p>a dark wooden dining table in the kitchen area | neighbors: chair [left, slightly behind, 0.7m]; cabinet [right, behind, 1.1m]</p>
+</blockquote>
+<p>然后：</p>
+<ol>
+<li>对这两段增强文本分别做 embedding</li>
+<li>用 cosine similarity 算 affinity</li>
+<li>affinity 高，就更可能被 dedup 成同一个 object instance</li>
+</ol>
+<hr>
+<h3 id="2-sequential-pipeline">2. Sequential Pipeline</h3>
+<p><strong>text embedding (no neighbor) + geo + polar -&gt; affinity</strong></p>
+<p>这条 pipeline 和上面不同：</p>
+<ul>
+<li>text embedding 不带 neighbor</li>
+<li>affinity 不只看 text，还会额外加入 geo similarity 和 polar similarity
+所以它更像是一个多模态/多因素的相似度融合。</li>
+</ul>
+<h4 id="21-text-embedding">2.1 Text embedding</h4>
+<p>这里用的是 object 自身文本，不拼 neighbor。
+例如：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dining table&quot;</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;a wooden dining table with a dark surface in the kitchen&quot;</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>送去 embedding 的就是：</p>
+<blockquote>
+<p>a wooden dining table with a dark surface in the kitchen</p>
+</blockquote>
+<p>这一项主要比较的是：这个 object 的语义描述像不像历史 cluster 里的对象。</p>
+<h4 id="22-geo">2.2 Geo</h4>
+<p>Geo 表示：在世界坐标里，这个 object 和 memory cluster 的位置接不接近。
+它用的是 object 的全局坐标，例如：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;estimated_global_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-3.42</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;estimated_global_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.78</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;estimated_global_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5.16</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>历史 memory cluster 也会有一个代表性的 prototype/global position。
+Geo similarity 本质上是在看：</p>
+<ul>
+<li>新对象在房间里是不是出现在差不多的位置</li>
+<li>是否和某个已有 cluster 空间上接近</li>
+</ul>
+<p>你可以把它理解成：<strong>text 像不像是同一种东西，geo 像不像是在同一个地方。</strong></p>
+<h4 id="23-polar">2.3 Polar</h4>
+<p>Polar 表示：在相机视角坐标里，这个 object 的相对位置形状和历史 cluster 像不像。
+这里用到的关键 metadata 是：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.4</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-18.0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.3</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p><strong>这些 polar 字段分别是什么意思</strong></p>
+<ul>
+<li><code>distance_from_camera_m</code>: 物体离相机有多远，单位米。值越大，说明物体越远。
+<ul>
+<li>例如：<code>0.8</code> (离相机比较近)</li>
+<li>例如：<code>3.5</code> (离相机比较远)</li>
+</ul>
+</li>
+<li><code>relative_bearing_deg</code>: 物体相对相机中心视线的水平角度。
+<ul>
+<li>负值：物体在画面左边</li>
+<li>正值：物体在画面右边</li>
+<li>绝对值越大：偏得越明显</li>
+<li>例如：<code>-25 deg</code> (明显在左边)，<code>0 deg</code> (接近画面中心)，<code>+18 deg</code> (偏右)</li>
+</ul>
+</li>
+<li><code>relative_height_from_camera_m</code>: 物体相对相机高度的上下差，单位米。本质上是在说：这个物体比相机高还是低、差多少米。
+<ul>
+<li>例如：<code>+0.6</code> (物体比相机视平线高)</li>
+<li>例如：<code>-0.4</code> (物体比相机低)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Polar similarity 怎么比较</strong>
+假设当前新对象（row）：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.4</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-18.0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.3</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>历史 cluster 的 <code>prototype_polar</code>：</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-10.0</span><span class="hljs-punctuation">,</span>
+  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.1</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p>注意：这里的 cluster_distance / cluster_bearing / cluster_height 不是单个旧对象，而是 memory cluster 的 <code>prototype_polar</code>，也就是历史成员这些 polar 字段的代表值。</p>
+<p><strong>第一步：算归一化差值</strong></p>
+<ul>
+<li>距离差：<code>(row_distance - cluster_distance) / 2.0 = (2.4 - 2.0) / 2.0 = 0.2</code></li>
+<li>水平角差：<code>wrap(row_bearing - cluster_bearing) / 45.0 = wrap(-18 - (-10)) / 45 = -8 / 45 ≈ -0.178</code></li>
+<li>高度差：<code>(row_height - cluster_height) / 1.0 = (0.3 - 0.1) / 1.0 = 0.2</code></li>
+</ul>
+<p>于是得到一个 polar difference vector：
+<code>dims = [0.2, -0.178, 0.2]</code></p>
+<p><strong>第二步：算 L2 norm</strong>
+<code>||dims|| = sqrt(0.2^2 + (-0.178)^2 + 0.2^2)</code>
+这个值越小，表示新的 object 和 cluster 在 polar geometry 上越像。</p>
+<p><strong>第三步：过高斯函数</strong>
+<code>polar_similarity = exp( - ||dims||^2 )</code>
+所以：</p>
+<ul>
+<li>如果三个维度都很接近，<code>||dims||</code> 很小，<code>polar_similarity</code> 接近 1</li>
+<li>如果差别很大，<code>||dims||</code> 变大，<code>polar_similarity</code> 迅速变小</li>
+</ul>
+<p><strong>直观理解</strong>
+这条 sequential pipeline 在比较一个 object 是否属于某个历史 cluster 时，实际上看三件事：</p>
+<ol>
+<li><strong>Text</strong>: 这个 object 的文本描述像不像那个 cluster</li>
+<li><strong>Geo</strong>: 它在世界坐标里的位置是不是也接近那个 cluster</li>
+<li><strong>Polar</strong>: 它在当前相机视角下呈现出的相对距离 / 左右角度 / 高低关系是不是也像那个 cluster</li>
+</ol>
+<hr>
+<h3 id="3-两条-pipeline-的核心区别">3. 两条 pipeline 的核心区别</h3>
+<h4 id="batch-multi-view-dedup">Batch multi-view dedup</h4>
+<p><strong>text only</strong></p>
+<ul>
+<li>text embedding 用了 neighbor-enhanced text</li>
+<li>affinity 只看 text cosine similarity</li>
+<li>不看 geo，不看 polar</li>
+</ul>
+<h4 id="sequential-pipeline">Sequential pipeline</h4>
+<p><strong>text + geometry</strong></p>
+<ul>
+<li>text embedding 不用 neighbor</li>
+<li>affinity 同时结合：text similarity、geo similarity、polar similarity</li>
+</ul>
+<p><strong>概括：</strong></p>
+<ul>
+<li><strong>batch multi-view dedup</strong> 更偏“文本上下文增强后的去重”</li>
+<li><strong>sequential pipeline</strong> 更偏“文本 + 空间几何联合匹配”</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th style="text-align:right">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total images</td>
+<td style="text-align:right">164</td>
+</tr>
+<tr>
+<td>Total objects</td>
+<td style="text-align:right">1095</td>
+</tr>
+<tr>
+<td>Avg objects per image</td>
+<td style="text-align:right">6.68</td>
+</tr>
+<tr>
+<td><code>mask_depth</code> route images</td>
+<td style="text-align:right">120</td>
+</tr>
+<tr>
+<td><code>vlm_fallback</code> route images</td>
+<td style="text-align:right">44</td>
+</tr>
+<tr>
+<td>Avg VLM tokens per image</td>
+<td style="text-align:right">14,186.17</td>
+</tr>
+<tr>
+<td>Avg prompt tokens per image</td>
+<td style="text-align:right">7,461.44</td>
+</tr>
+<tr>
+<td>Avg completion tokens per image</td>
+<td style="text-align:right">6,724.73</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th style="text-align:right">Scope / Calls</th>
+<th style="text-align:right">Time Total (s)</th>
+<th style="text-align:right">Avg Time</th>
+<th style="text-align:right">Prompt Tokens</th>
+<th style="text-align:right">Completion Tokens</th>
+<th style="text-align:right">Total Tokens</th>
+<th style="text-align:right">Avg Total Tokens</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Selector VLM</td>
+<td style="text-align:right">164 image-level calls</td>
+<td style="text-align:right">2389.31</td>
+<td style="text-align:right">14.57 s / call</td>
+<td style="text-align:right">459,364</td>
+<td style="text-align:right">207,700</td>
+<td style="text-align:right">667,064</td>
+<td style="text-align:right">4,067.46 / call</td>
+<td>scene summarization + selected_object_types</td>
+</tr>
+<tr>
+<td>Scene-Objects VLM (fallback parse)</td>
+<td style="text-align:right">44 fallback image calls</td>
+<td style="text-align:right">1965.09</td>
+<td style="text-align:right">44.66 s / call</td>
+<td style="text-align:right">172,260</td>
+<td style="text-align:right">186,003</td>
+<td style="text-align:right">358,263</td>
+<td style="text-align:right">8,142.34 / call</td>
+<td>only used on <code>vlm_fallback</code> route</td>
+</tr>
+<tr>
+<td>Crop VLM Description</td>
+<td style="text-align:right">883 object-crop calls</td>
+<td style="text-align:right">8426.64</td>
+<td style="text-align:right">9.54 s / call</td>
+<td style="text-align:right">592,052</td>
+<td style="text-align:right">709,153</td>
+<td style="text-align:right">1,301,205</td>
+<td style="text-align:right">1,473.62 / call</td>
+<td>dominant cost in <code>mask_depth</code> route</td>
+</tr>
+<tr>
+<td><strong>Total VLM</strong></td>
+<td style="text-align:right"><strong>1091 VLM calls</strong></td>
+<td style="text-align:right"><strong>12781.04</strong></td>
+<td style="text-align:right"><strong>11.72 s / call</strong></td>
+<td style="text-align:right"><strong>1,223,676</strong></td>
+<td style="text-align:right"><strong>1,102,856</strong></td>
+<td style="text-align:right"><strong>2,326,532</strong></td>
+<td style="text-align:right"><strong>2,132.48 / call</strong></td>
+<td>sum of all VLM calls above</td>
+</tr>
+<tr>
+<td>Detector (YOLO-World)</td>
+<td style="text-align:right">164 image-level calls</td>
+<td style="text-align:right">36.51</td>
+<td style="text-align:right">0.22 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>open-vocab detection</td>
+</tr>
+<tr>
+<td>DepthPro</td>
+<td style="text-align:right">120 <code>mask_depth</code> images</td>
+<td style="text-align:right">50.01</td>
+<td style="text-align:right">0.42 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>dense depth estimation</td>
+</tr>
+<tr>
+<td>NanoSAM Mask</td>
+<td style="text-align:right">120 <code>mask_depth</code> images</td>
+<td style="text-align:right">60.81</td>
+<td style="text-align:right">0.51 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>total mask refinement time per image</td>
+</tr>
+<tr>
+<td>Angle Geometry</td>
+<td style="text-align:right">120 <code>mask_depth</code> images</td>
+<td style="text-align:right">9.24</td>
+<td style="text-align:right">0.08 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>centroid + bearing + projection</td>
+</tr>
+<tr>
+<td>View Embedding</td>
+<td style="text-align:right">164 images</td>
+<td style="text-align:right">21.99</td>
+<td style="text-align:right">0.13 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>frame-level embedding</td>
+</tr>
+<tr>
+<td>Object Embedding</td>
+<td style="text-align:right">164 images</td>
+<td style="text-align:right">31.87</td>
+<td style="text-align:right">0.19 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>object text embedding</td>
+</tr>
+<tr>
+<td>Dependency Setup</td>
+<td style="text-align:right">164 images</td>
+<td style="text-align:right">460.12</td>
+<td style="text-align:right">2.81 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>detector / NanoSAM / DepthPro init</td>
+</tr>
+<tr>
+<td>Geometry Pipeline Total</td>
+<td style="text-align:right">164 images</td>
+<td style="text-align:right">11475.60</td>
+<td style="text-align:right">69.97 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>includes detector/depth/mask/crop-VLM or fallback branch</td>
+</tr>
+<tr>
+<td>Frame Total</td>
+<td style="text-align:right">164 images</td>
+<td style="text-align:right">13498.11</td>
+<td style="text-align:right">82.31 s / image</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td>end-to-end per image</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-metadata-format">Appendix: Metadata Format</h2>
+<h3 id="1-metadatajsonl">1. <code>metadata.jsonl</code></h3>
+<p>每条记录表示：一张 frame / view 的视图级 metadata，它更偏“view summary”，不是 object-level 明细。</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame/view 的主 id</span>
+    <span class="hljs-attr">&quot;frame_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// frame 序号</span>
+    <span class="hljs-attr">&quot;x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-11.9470</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view/camera 的世界坐标 x</span>
+    <span class="hljs-attr">&quot;y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-2.9729</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view/camera 的世界坐标 z</span>
+    <span class="hljs-attr">&quot;world_position&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">-11.9470</span><span class="hljs-punctuation">,</span> <span class="hljs-number">-0.2366</span><span class="hljs-punctuation">,</span> <span class="hljs-number">-2.9729</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 相机 3D 世界坐标 [x, y, z]</span>
+    <span class="hljs-attr">&quot;orientation&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的相机朝向</span>
+    <span class="hljs-attr">&quot;file_name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;images/pose_00000_o000_000000.jpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 图像路径</span>
+    <span class="hljs-attr">&quot;text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed | ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的主文本表示</span>
+    <span class="hljs-attr">&quot;frame_text_short&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed | ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的短文本摘要</span>
+    <span class="hljs-attr">&quot;frame_text_long&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center sector | Rectangular black frame ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的长文本摘要</span>
+
+    <span class="hljs-attr">&quot;parse_status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ok&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 解析状态</span>
+    <span class="hljs-attr">&quot;parse_warnings&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 解析警告列表</span>
+
+    <span class="hljs-attr">&quot;raw_vlm_output&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;{\&quot;view_type\&quot;: \&quot;staircase\&quot;, ...}&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 原始 VLM 输出字符串，通常是 JSON 文本</span>
+    <span class="hljs-attr">&quot;raw_api_source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;cache&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该结果来自 API 还是 cache</span>
+
+    <span class="hljs-attr">&quot;text_input_for_clip_short&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed | ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 给 CLIP 的短文本输入</span>
+    <span class="hljs-attr">&quot;text_input_for_clip_long&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center sector | Rectangular black frame ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 给 CLIP 的长文本输入</span>
+
+    <span class="hljs-attr">&quot;object_text_inputs_short&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 内每个对象的短文本列表</span>
+    <span class="hljs-attr">&quot;object_text_inputs_long&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 内每个对象的长文本列表</span>
+
+    <span class="hljs-attr">&quot;builder_variant&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;angle_split&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 构建数据库时使用的 builder 变体</span>
+    <span class="hljs-attr">&quot;object_prompt_variant&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;angle_split&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象抽取时使用的 VLM prompt variant</span>
+    <span class="hljs-attr">&quot;attribute&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>...<span class="hljs-punctuation">}</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的结构化场景属性</span>
+    <span class="hljs-attr">&quot;object_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3</span> <span class="hljs-comment">// 该 frame 内对象数量</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p><strong><code>attribute</code> 子结构如下：</strong></p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;view_type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;staircase&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 房间/视图类型</span>
+    <span class="hljs-attr">&quot;room_function&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;circulation&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 房间功能</span>
+    <span class="hljs-attr">&quot;style_hint&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;traditional&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 风格提示</span>
+    <span class="hljs-attr">&quot;clutter_level&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;low&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 杂乱程度</span>
+    <span class="hljs-attr">&quot;floor_pattern&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;carpet&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 地面材质/纹理</span>
+    <span class="hljs-attr">&quot;lighting_ceiling&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;natural light source&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 照明类型</span>
+    <span class="hljs-attr">&quot;wall_color&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;beige&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 墙面主色</span>
+    <span class="hljs-attr">&quot;scene_attributes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;beige walls&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;carpeted stairs&quot;</span><span class="hljs-punctuation">,</span> ...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 场景级属性</span>
+    <span class="hljs-attr">&quot;additional_notes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Right side shows stair banister/railing...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 附加备注</span>
+    <span class="hljs-attr">&quot;image_summary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Interior view of a beige-walled staircase area ...&quot;</span> <span class="hljs-comment">// 场景总结</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h3 id="2-object_meta_with_polar_surroundingsjsonl">2. <code>object_meta_with_polar_surroundings.jsonl</code></h3>
+<p>每条记录表示：一个 object 的最终对象级 metadata。</p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 全局唯一 object id，用于跨文件引用该对象</span>
+    <span class="hljs-attr">&quot;frame_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 object 所属的 frame 序号</span>
+    <span class="hljs-attr">&quot;entry_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 object 所属的视角/entry id</span>
+    <span class="hljs-attr">&quot;file_name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;images/pose_00000_o000_000000.jpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 原始图像相对路径</span>
+
+    <span class="hljs-attr">&quot;x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-11.9470</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view/camera 的世界坐标 x</span>
+    <span class="hljs-attr">&quot;y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-2.9729</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view/camera 的世界坐标 z；（这个工程里常用 x,y 表示平面位置）</span>
+    <span class="hljs-attr">&quot;world_position&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">-11.9470</span><span class="hljs-punctuation">,</span> <span class="hljs-number">-0.2366</span><span class="hljs-punctuation">,</span> <span class="hljs-number">-2.9729</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 相机的 3D 世界坐标 [x, y, z]</span>
+
+    <span class="hljs-attr">&quot;orientation&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 frame 的相机朝向，单位度</span>
+    <span class="hljs-attr">&quot;frame_orientation&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// frame 级朝向信息，通常与 orientation 一致</span>
+    <span class="hljs-attr">&quot;object_orientation_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">344</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象的最终全局朝向/方向编码，通常由相机朝向和相对 bearing 推得</span>
+
+    <span class="hljs-attr">&quot;angle_bucket&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象落入的离散水平角桶，如 left / center / right</span>
+    <span class="hljs-attr">&quot;angle_split_step_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">30</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 角度离散化使用的步长</span>
+    <span class="hljs-attr">&quot;builder_variant&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;angle_split&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 数据库构建变体；这里表示采用 angle-split 版本</span>
+
+    <span class="hljs-attr">&quot;object_local_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;det_000&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 object 在当前 view 内的局部 id</span>
+    <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象最终 canonical label</span>
+    <span class="hljs-attr">&quot;object_confidence&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.9086</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象主置信度，通常来自 detector</span>
+
+    <span class="hljs-attr">&quot;bbox_xywh_norm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">0.5778</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0.0603</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0.1407</span><span class="hljs-punctuation">,</span> <span class="hljs-number">0.2266</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 归一化 bbox，格式为 [x, y, w, h]</span>
+    <span class="hljs-attr">&quot;bbox_xyxy&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-number">1109.39</span><span class="hljs-punctuation">,</span> <span class="hljs-number">65.16</span><span class="hljs-punctuation">,</span> <span class="hljs-number">1379.45</span><span class="hljs-punctuation">,</span> <span class="hljs-number">309.91</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 像素坐标 bbox，格式为 [x1, y1, x2, y2]</span>
+
+    <span class="hljs-attr">&quot;facing&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;unknown&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象朝向语义标签；当前很多样本里可能未知</span>
+    <span class="hljs-attr">&quot;orientation_confidence&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象朝向估计的置信度</span>
+
+    <span class="hljs-attr">&quot;description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象短描述，用于简洁检索</span>
+    <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Rectangular black frame ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象长描述，用于更丰富的检索和说明</span>
+    <span class="hljs-attr">&quot;attributes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;black frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;white double mat&quot;</span><span class="hljs-punctuation">,</span> ...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象可见属性列表</span>
+
+    <span class="hljs-attr">&quot;laterality&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象在图像中的左右位置</span>
+    <span class="hljs-attr">&quot;distance_bin&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;middle&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象的离散距离分桶</span>
+    <span class="hljs-attr">&quot;verticality&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;high&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象在图像中的垂直位置分桶</span>
+
+    <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.7554</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象距离相机的深度估计，单位米</span>
+    <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.3745</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象相对相机中心的高度偏移，单位米</span>
+    <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">16.4281</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象相对相机光轴的水平角，单位度</span>
+    <span class="hljs-attr">&quot;estimated_global_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-10.8397</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 由 depth + bearing 投影得到的对象全局 x</span>
+    <span class="hljs-attr">&quot;estimated_global_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.1379</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 由 vertical angle / height 推得的对象全局 y</span>
+    <span class="hljs-attr">&quot;estimated_global_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-6.7283</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 由 depth + bearing 投影得到的对象全局 z</span>
+
+    <span class="hljs-attr">&quot;any_text&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象上识别到的文本；没有则为空字符串</span>
+    <span class="hljs-attr">&quot;location_relative_to_other_objects&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame@1.20m[slightly right, above|E]&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象相对周边物体的压缩关系描述</span>
+
+    <span class="hljs-attr">&quot;surrounding_context&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span>...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象周边上下文列表；每个元素是一个邻近对象关系</span>
+    <span class="hljs-attr">&quot;surrounding_source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;polar_postprocess_v1&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// surrounding_context 的生成来源</span>
+
+    <span class="hljs-attr">&quot;scene_attributes&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-string">&quot;beige walls&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-string">&quot;carpeted stairs&quot;</span><span class="hljs-punctuation">,</span> ...<span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view 的场景级属性</span>
+    <span class="hljs-attr">&quot;view_type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;staircase&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 房间/视图类型</span>
+    <span class="hljs-attr">&quot;room_function&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;circulation&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 房间功能</span>
+    <span class="hljs-attr">&quot;style_hint&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;traditional&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 风格提示</span>
+    <span class="hljs-attr">&quot;clutter_level&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;low&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 杂乱程度</span>
+
+    <span class="hljs-attr">&quot;object_text_short&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象短文本，供检索/embedding</span>
+    <span class="hljs-attr">&quot;object_text_long&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center sector | Rectangular black frame ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象长文本，供检索/embedding</span>
+    <span class="hljs-attr">&quot;text_input_for_clip_short&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;black-framed sailboat print, glazed&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 给 CLIP 的短文本输入</span>
+    <span class="hljs-attr">&quot;text_input_for_clip_long&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;center sector | Rectangular black frame ...&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 给 CLIP 的长文本输入</span>
+
+    <span class="hljs-attr">&quot;parse_status&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ok&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 object record 的解析状态</span>
+    <span class="hljs-attr">&quot;geometry_source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;mask_depth&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 几何来源；表示由 mask + depth pipeline 得到</span>
+    <span class="hljs-attr">&quot;geometry_fallback_reason&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 如果走了 fallback，这里记录原因；否则为空</span>
+
+    <span class="hljs-attr">&quot;detector_label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// YOLO-World 原始标签</span>
+    <span class="hljs-attr">&quot;detector_confidence&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.9086</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// YOLO-World 原始检测置信度</span>
+
+    <span class="hljs-attr">&quot;mask_area_px&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">59000</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 前景像素数</span>
+    <span class="hljs-attr">&quot;mask_area_ratio&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.02845</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 面积占整张图比例</span>
+    <span class="hljs-attr">&quot;mask_centroid_x_px&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1242.5542</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask centroid 的 x 像素坐标</span>
+    <span class="hljs-attr">&quot;mask_centroid_y_px&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">188.1262</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask centroid 的 y 像素坐标</span>
+    <span class="hljs-attr">&quot;mask_centroid_x_norm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.6472</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask centroid 的归一化 x</span>
+    <span class="hljs-attr">&quot;mask_centroid_y_norm&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.1742</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask centroid 的归一化 y</span>
+
+    <span class="hljs-attr">&quot;depth_stat_median_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.7554</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 内 depth 的中位数</span>
+    <span class="hljs-attr">&quot;depth_stat_p10_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.7353</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 内 depth 的 10 分位数</span>
+    <span class="hljs-attr">&quot;depth_stat_p90_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.7744</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 内 depth 的 90 分位数</span>
+    <span class="hljs-attr">&quot;projected_planar_distance_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.9152</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 根据 bearing 从 forward depth 投影出的平面距离</span>
+    <span class="hljs-attr">&quot;vertical_angle_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">20.1034</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象相对相机光轴的垂直角</span>
+
+    <span class="hljs-attr">&quot;vlm_distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// crop-level VLM 估计的距离，可作对照</span>
+    <span class="hljs-attr">&quot;vlm_relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// VLM 估计的 bearing；当前样本中通常为空</span>
+
+    <span class="hljs-attr">&quot;crop_path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;spatial_db_nd/geometry/view_00000/objects/obj_000_crop.jpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象 crop 图路径</span>
+    <span class="hljs-attr">&quot;mask_path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;spatial_db_nd/geometry/view_00000/objects/obj_000_mask.png&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 对象 mask 图路径</span>
+    <span class="hljs-attr">&quot;mask_overlay_path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;spatial_db_nd/geometry/view_00000/objects/obj_000_mask_overlay.jpg&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask overlay 可视化路径</span>
+    <span class="hljs-attr">&quot;depth_map_path&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;spatial_db_nd/geometry/view_00000/depth_map.npy&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该 view 的 depth map 路径</span>
+
+    <span class="hljs-attr">&quot;crop_vlm_label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// crop VLM 返回的对象标签</span>
+    <span class="hljs-attr">&quot;view_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;view_00000&quot;</span> <span class="hljs-comment">// 该 object 所属 view id</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<p><strong><code>surrounding_context</code> 结构如下：</strong></p>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;target_object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 被关联的邻近对象 id</span>
+    <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象标签</span>
+    <span class="hljs-attr">&quot;distance_from_primary_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.1987</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象到当前主对象的距离</span>
+    <span class="hljs-attr">&quot;delta_angle_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">18.3999</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象相对主对象的角度差</span>
+    <span class="hljs-attr">&quot;delta_depth_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-0.0137</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象相对主对象的深度差</span>
+    <span class="hljs-attr">&quot;delta_height_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.6624</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象相对主对象的高度差</span>
+    <span class="hljs-attr">&quot;semantic_relation_local&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly right, above&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 局部语义关系</span>
+    <span class="hljs-attr">&quot;relation_to_primary&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;slightly right, above&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 与主对象的关系文本</span>
+    <span class="hljs-attr">&quot;allocentric_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">90.5243</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 在全局/allocentric 参考系下的方位角</span>
+    <span class="hljs-attr">&quot;allocentric_direction_8&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;E&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 8 方向离散方位</span>
+    <span class="hljs-attr">&quot;estimated_global_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-9.3437</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象全局 x</span>
+    <span class="hljs-attr">&quot;estimated_global_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.8003</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 邻近对象全局 y</span>
+    <span class="hljs-attr">&quot;estimated_global_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-6.7146</span> <span class="hljs-comment">// 邻近对象全局 z</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h3 id="3-object_object_relationsjsonl">3. <code>object_object_relations.jsonl</code></h3>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;entry_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该关系所属的 entry/view 序号</span>
+    <span class="hljs-attr">&quot;view_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;view_00000&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 该关系所属 view id</span>
+
+    <span class="hljs-attr">&quot;source_object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 关系源对象的全局 id</span>
+    <span class="hljs-attr">&quot;target_object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 关系目标对象的全局 id</span>
+
+    <span class="hljs-attr">&quot;source_obs_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;obs_000000&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 源对象的 observation id</span>
+    <span class="hljs-attr">&quot;target_obs_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;obs_000001&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标对象的 observation id</span>
+
+    <span class="hljs-attr">&quot;source_label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 源对象标签</span>
+    <span class="hljs-attr">&quot;target_label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标对象标签</span>
+
+    <span class="hljs-attr">&quot;source_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-10.8397</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 源对象全局 x</span>
+    <span class="hljs-attr">&quot;source_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.1379</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 源对象全局 y</span>
+    <span class="hljs-attr">&quot;source_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-6.7283</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 源对象全局 z</span>
+
+    <span class="hljs-attr">&quot;target_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-9.3437</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标对象全局 x</span>
+    <span class="hljs-attr">&quot;target_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.8003</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标对象全局 y</span>
+    <span class="hljs-attr">&quot;target_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-6.7146</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标对象全局 z</span>
+
+    <span class="hljs-attr">&quot;dx&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.4960</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标相对源的 x 方向位移</span>
+    <span class="hljs-attr">&quot;dy&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.6624</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标相对源的 y 方向位移</span>
+    <span class="hljs-attr">&quot;dz&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.0137</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标相对源的 z 方向位移</span>
+
+    <span class="hljs-attr">&quot;distance_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.4961</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 平面距离或主关系距离，只用x和z算</span>
+    <span class="hljs-attr">&quot;distance_3d_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1.6361</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 3D 欧式距离，用 x、y、z 全部算</span>
+
+    <span class="hljs-attr">&quot;direction&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;right&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标相对源的主要方向</span>
+    <span class="hljs-attr">&quot;direction_frame&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;view_aligned&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 方向定义所依据的坐标系</span>
+    <span class="hljs-attr">&quot;vertical_direction&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;above&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标相对源的垂直关系</span>
+
+    <span class="hljs-attr">&quot;relation_type&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;ObjectObject&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 关系类型</span>
+    <span class="hljs-attr">&quot;relation_source&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;geometry_postprocess&quot;</span> <span class="hljs-comment">// 关系生成来源</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+
+            
+            
+        </body>
+        </html>
