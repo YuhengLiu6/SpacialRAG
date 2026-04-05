@@ -362,7 +362,7 @@ The **mask centroid** is computed directly from the object mask output by NanoSA
 
 
 ### 1. Object Instance Pipeline
-**text embedding (with neighbor) -> affinity -> batch multi-view dedup**
+**text embedding (long / long_neighbors) -> affinity -> batch multi-view dedup**
 
 
 ```mermaid
@@ -378,44 +378,42 @@ flowchart TD
 
         F["YOLO-World<br/>input: selected_object_types"]
         G["Detections<br/>label + bbox_xyxy + confidence"]
+        H["DepthPro<br/>whole image -> dense depth map"]
 
-        J["DepthPro<br/>whole image -> dense depth map"]
-
-        subgraph P2["Per-detection branch"]
-            H["Crop image from bbox"]
+        subgraph P2["Per-detection geometry branch"]
             I["NanoSAM<br/>image + bbox -> object mask"]
-            K["Geometry from mask + depth + FOV<br/>masked depth -> distance<br/>mask centroid -> bearing / height"]
-            L["Object-level geometry metadata<br/>bbox / mask / depth / angle / estimated_global_xyz"]
-
-            M["Object Crop Prompt<br/>crop + YOLO label + confidence"]
-            N["Crop-level text metadata<br/>label / short_description /<br/>long_description / attributes"]
-
-            O["Merged object metadata<br/>geometry metadata + crop text"]
+            J["Geometry from mask + depth + FOV<br/>masked depth -> distance<br/>mask centroid -> bearing / height"]
+            K["Object-level geometry metadata<br/>bbox / mask / depth / angle / estimated_global_xyz"]
         end
+
+        M["Per-image batched object description VLM<br/>whole image + YOLO detections"]
+        N["Batched object text metadata<br/>object_local_id + label + short_description +<br/>long_description + attributes + distance_from_camera_m"]
+        O["Merged object metadata<br/>geometry metadata + batched object text"]
     end
 
     subgraph P3["Cross-image object-instance pipeline"]
         P["Optional polar surrounding postprocess<br/>surrounding_context / neighbor list"]
-        Q["Text embedding<br/>long or long_neighbors"]
+        Q["Text embedding<br/>default: long<br/>optional: long_neighbors"]
         R["Cosine similarity matrix"]
-        S["Affinity adjustment<br/>same-view penalty +threshold"]
+        S["Affinity adjustment<br/>same-view penalty + similarity threshold"]
         T["Multi-view deduplication<br/>spectral clustering"]
     end
 
     A --> B --> C --> D --> E
     E --> E2
     E --> F
-    G --> J
     F --> G
-
     G --> H
-    G --> I
-    J --> K
-    I --> K
-    K --> L
 
-    H --> M --> N
-    L --> O
+    G --> I
+    H --> J
+    I --> J
+    J --> K
+
+    G --> M
+    M --> N
+
+    K --> O
     N --> O
     E -. scene attributes .-> O
 
@@ -424,8 +422,13 @@ flowchart TD
 ```
 
 The core idea of this pipeline is:
-First concatenate the object’s own description and its neighbor information into an enhanced text, then compute embeddings, and use only text cosine similarity for batch multi-view deduplication.
-The affinity here uses only text embedding similarity, without using geo or polar features.
+First build object-level metadata per image using `Selector -> YOLO-World -> NanoSAM/DepthPro/angle`, then run one **batched whole-image VLM call** to describe all detector-localized objects at once, and finally perform batch multi-view deduplication using text embeddings.
+
+The affinity in this stage is still **text-only**, but it is not raw cosine alone: the pipeline computes a cosine similarity matrix and then applies a same-view penalty and similarity threshold before spectral clustering.
+
+For text input:
+- default mode is `long` (object text only)
+- optional mode is `long_neighbors` (object text + serialized `surrounding_context`)
 
 #### What the input metadata looks like
 Suppose the current object record has a dining table as the primary object:
@@ -468,15 +471,20 @@ This can be understood as:
 After combining the two, it becomes easier to distinguish objects that look similar but have different surrounding environments.
 
 #### How affinity is computed
-In this pipeline, it ultimately remains standard text similarity:
-`affinity(i, j) = cosine_similarity( embedding(text_i), embedding(text_j) )`
+In this pipeline, the base similarity is still standard text similarity:
+`similarity(i, j) = cosine_similarity( embedding(text_i), embedding(text_j) )`
+
+Then the clustering pipeline applies:
+- a same-view penalty
+- a similarity threshold
 
 That is to say:
 - It does not use `distance_from_camera_m`
 - It does not use `relative_bearing_deg`
 - It does not use `relative_height_from_camera_m`
 - It does not use global `estimated_global_x/y/z`
-It only checks whether the constructed text embeddings are similar.
+
+Batch multi-view dedup is therefore still a **text-driven** pipeline, but the actual affinity matrix is a post-processed version of cosine similarity rather than bare cosine alone.
 
 #### A more complete example
 **Object in View A**
@@ -531,46 +539,48 @@ Then:
 ---
 
 ### 2. Sequential Pipeline
-**text embedding (no neighbor) + geo + polar -> affinity**
+**text embedding (no neighbor) + geo distance gate -> affinity**
 
 ```mermaid
 flowchart TD
     A["Selected views<br/>from built spatial DB"]
 
     subgraph S1["Load sequence"]
-        B["Load object observations<br/>text embedding + geo + polar metadata"]
+        B["Load object observations<br/>text embedding + global xyz + polar metadata"]
         C["Order views sequentially"]
     end
 
     subgraph S2["Initialize memory"]
         D["Initial view"]
         E["Create singleton memory clusters<br/>one object -> one cluster"]
+        E2["Build cluster prototypes<br/>prototype_embedding + prototype_xyz + prototype_polar"]
     end
 
     subgraph S3["For each new view"]
         F["Current view objects"]
 
         G["Cross-affinity<br/>current objects vs memory clusters"]
-        G1["Text similarity"]
-        G2["Geo similarity"]
-        G3["Polar similarity"]
+        G1["Cosine similarity<br/>row embedding vs prototype_embedding"]
+        G2["Distance gate<br/>exp(-dsq / (2*dsq0))"]
+        G3["dsq = planar x-z distance squared<br/>row xyz vs prototype_xyz"]
 
         H["Bipartite affinity graph"]
         I["Spectral clustering + component grouping"]
 
         J["Incremental cluster update"]
         J1["Append to existing cluster"]
-        J2["Merge old clusters"]
-        J3["Reattach high-score cur obj"]
+        J2["Merge compatible memory clusters"]
+        J3["Reattach high-score current-only object"]
         J4["Spawn new tail cluster"]
     end
 
     subgraph S4["Outputs"]
         K["Updated memory registry"]
         L["Final object clusters"]
+        M["Optional dsq0 sweep summary"]
     end
 
-    A --> B --> C --> D --> E --> F
+    A --> B --> C --> D --> E --> E2 --> F
 
     F --> G
     G --> G1
@@ -593,13 +603,14 @@ flowchart TD
 
     K --> F
     K --> L
+    K --> M
 
 ```
 
 This pipeline differs from the one above:
 - the text embedding does not include neighbors
-- the affinity does not look only at text, but additionally includes geo similarity and polar similarity
-So it is more like a multimodal / multi-factor similarity fusion.
+- the default similarity is no longer a weighted fusion of text/geo/polar
+- instead, it uses **cosine similarity gated by global planar distance**
 - when initializing memory clusters, each object is its own cluster, and the initial clusters are not merged with one another
 
 #### 2.1 Text embedding
@@ -627,11 +638,19 @@ It uses the global coordinates of the object, for example:
 }
 ```
 A historical memory cluster also has a representative prototype/global position.
-Geo similarity is essentially checking:
-- whether the new object appears in roughly the same place in the room
-- whether it is spatially close to an existing cluster
 
-You can think of it as: **text asks whether they are the same kind of thing, while geo asks whether they are in the same place.**
+In the latest logic, geo is used as a **distance gate** rather than as an additive similarity term:
+
+`similarity = cosine_sim * exp(-dsq / (2 * dsq0))`
+
+where:
+- `cosine_sim` is the cosine similarity between the current row embedding and the cluster `prototype_embedding`
+- `dsq` is the squared planar distance on the global `x-z` plane
+- `dsq0` controls how quickly similarity decays with distance
+
+So you can think of it as:
+- **text** asks whether they look semantically similar
+- **geo gate** asks whether they are close enough in the world to remain a plausible match
 
 #### 2.3 Polar
 Polar means whether the object’s relative positional pattern in the camera-view coordinate system resembles that of a historical cluster.
@@ -657,7 +676,7 @@ The key metadata used here is:
   - For example: `+0.6` (the object is above the camera’s horizontal sight line)
   - For example: `-0.4` (the object is below the camera)
 
-**How polar similarity is compared**
+**How polar is used in the latest sequential logic**
 Suppose the current new object (row) is:
 ```json
 {
@@ -676,29 +695,15 @@ The `prototype_polar` of the historical cluster is:
 ```
 Note: the cluster_distance / cluster_bearing / cluster_height here do not come from a single old object, but from the `prototype_polar` of the memory cluster, which is the representative value of these polar fields among historical members.
 
-**Step 1: compute normalized differences**
-- Distance difference: `(row_distance - cluster_distance) / 2.0 = (2.4 - 2.0) / 2.0 = 0.2`
-- Horizontal angle difference: `wrap(row_bearing - cluster_bearing) / 45.0 = wrap(-18 - (-10)) / 45 = -8 / 45 ≈ -0.178`
-- Height difference: `(row_height - cluster_height) / 1.0 = (0.3 - 0.1) / 1.0 = 0.2`
+In the current default implementation, **polar metadata is still loaded and maintained in the cluster prototype, but it no longer contributes to the default similarity score**. It remains useful for:
+- diagnostics
+- cluster summaries
+- possible legacy comparisons
 
-This gives a polar difference vector:
-`dims = [0.2, -0.178, 0.2]`
-
-**Step 2: compute the L2 norm**
-`||dims|| = sqrt(0.2^2 + (-0.178)^2 + 0.2^2)`
-The smaller this value is, the more similar the new object and the cluster are in polar geometry.
-
-**Step 3: pass through a Gaussian function**
-`polar_similarity = exp( - ||dims||^2 )`
-So:
-- If all three dimensions are close, `||dims||` is small and `polar_similarity` approaches 1
-- If the differences are large, `||dims||` increases and `polar_similarity` decreases rapidly
-
-**Intuitive interpretation**
-When this sequential pipeline compares whether an object belongs to a historical cluster, it is actually looking at three things:
-1. **Text**: whether the text description of this object resembles that cluster
-2. **Geo**: whether its position in world coordinates is also close to that cluster
-3. **Polar**: whether its relative distance / left-right angle / height relationship in the current camera view also resembles that cluster
+So the current sequential matching logic is:
+1. **Text** provides the semantic similarity
+2. **Global planar geo** provides the distance gate
+3. **Polar** is retained as metadata, but not used in the default affinity computation
 
 ---
 
@@ -788,19 +793,22 @@ If the score is not high enough, it is not forcibly attached back, and is instea
 ### 3. Core differences between the two pipelines
 
 #### Batch multi-view dedup
-**text only**
-- text embedding uses neighbor-enhanced text
-- affinity only considers text cosine similarity
+**text-driven**
+- text embedding can use `long` or `long_neighbors`
+- default mode uses object text only
+- affinity is based on text cosine similarity, then adjusted by same-view penalty and similarity threshold
 - it does not consider geo or polar
 
 #### Sequential pipeline
-**text + geometry**
+**text + geo gate**
 - text embedding does not use neighbors
-- affinity jointly combines text similarity, geo similarity, and polar similarity
+- affinity uses `cosine_sim * exp(-dsq / (2*dsq0))`
+- `dsq` is the squared planar `x-z` distance to the cluster prototype
+- polar metadata is retained, but not used in the default similarity
 
 **Summary:**
 - **batch multi-view dedup** is more focused on deduplication after text-context enhancement
-- **sequential pipeline** is more focused on joint matching of text + spatial geometry
+- **sequential pipeline** is more focused on geo-gated semantic matching with incremental memory-cluster updates
 
 | Item | Value |
 |---|---:|
