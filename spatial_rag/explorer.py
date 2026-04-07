@@ -690,8 +690,8 @@ class Explorer:
         self._last_top_down_projection = {
             "view_min_x": float(min_x),
             "view_max_x": float(max_x),
-            "view_min_z": float(min_z),
-            "view_max_z": float(max_z),
+            "view_min_y": float(min_z),
+            "view_max_y": float(max_z),
         }
         return img_bgr
 
@@ -750,8 +750,8 @@ class Explorer:
             self._last_top_down_projection = {
                 "view_min_x": min_x,
                 "view_max_x": max_x,
-                "view_min_z": min_z,
-                "view_max_z": max_z,
+                "view_min_y": min_z,
+                "view_max_y": max_z,
             }
             return fallback
 
@@ -862,8 +862,8 @@ class Explorer:
         self._last_top_down_projection = {
             "view_min_x": min_x,
             "view_max_x": max_x,
-            "view_min_z": min_z,
-            "view_max_z": max_z,
+            "view_min_y": min_z,
+            "view_max_y": max_z,
         }
         return background
 
@@ -1150,20 +1150,20 @@ class Explorer:
         if projection is not None and "view_min_x" in projection:
             view_min_x = projection["view_min_x"]
             view_max_x = projection["view_max_x"]
-            view_min_z = projection["view_min_z"]
-            view_max_z = projection["view_max_z"]
+            view_min_y = projection["view_min_y"]
+            view_max_y = projection["view_max_y"]
         elif projection is not None:
             half = projection["ortho_scale"] / 2.0
             view_min_x = projection["center_x"] - half
             view_max_x = projection["center_x"] + half
-            view_min_z = projection["center_z"] - half
-            view_max_z = projection["center_z"] + half
+            view_min_y = projection["center_z"] - half
+            view_max_y = projection["center_z"] + half
         else:
             view_min_x, view_max_x = min_x, max_x
-            view_min_z, view_max_z = min_z, max_z
+            view_min_y, view_max_y = min_z, max_z
 
         denom_x = max(view_max_x - view_min_x, 1e-6)
-        denom_z = max(view_max_z - view_min_z, 1e-6)
+        denom_y = max(view_max_y - view_min_y, 1e-6)
 
         points = []
         arrows = []
@@ -1172,7 +1172,7 @@ class Explorer:
             x, z = pos[0], pos[2]
 
             px = int((x - view_min_x) / denom_x * width)
-            pz = int((z - view_min_z) / denom_z * height)
+            pz = int((z - view_min_y) / denom_y * height)
             px = int(np.clip(px, 0, width - 1))
             pz = int(np.clip(pz, 0, height - 1))
 
@@ -1183,7 +1183,7 @@ class Explorer:
                 vec = np.array(
                     [
                         head_xz[0] / denom_x * width,
-                        head_xz[1] / denom_z * height,
+                        head_xz[1] / denom_y * height,
                     ],
                     dtype=np.float32,
                 )

@@ -1,0 +1,415 @@
+{
+  "timestamp": "20260312_205015",
+  "num_queries_requested": 5,
+  "num_succeeded": 5,
+  "num_failed": 0,
+  "num_skipped": 0,
+  "config": {
+    "seed": 42,
+    "db_dir": "spatial_db_angle_split",
+    "scene_path": "data/scene_datasets/habitat-test-scenes/skokloster-castle.glb",
+    "top_k": 5,
+    "results_dir": "object_vpr_results/angle_split_batch_yoloworld",
+    "vlm_model": "gpt-5-mini",
+    "use_cache": true,
+    "object_text_mode": "short",
+    "query_source": "novel",
+    "min_db_dist": 0.35,
+    "min_query_dist": 0.6,
+    "max_sample_attempts": 20000,
+    "detector_conf": 0.35,
+    "min_bbox_side_px": 32,
+    "min_bbox_area_ratio": 0.005,
+    "max_bbox_area_ratio": 0.6,
+    "crop_padding_ratio": 0.25,
+    "object_candidate_pool": 256,
+    "max_resample_attempts_per_query": 20,
+    "detector_classes": null
+  },
+  "selected_queries": [
+    {
+      "sample_id": 1,
+      "query_id": null,
+      "x0": 4.114011764526367,
+      "y0": 6.62084436416626,
+      "theta0": 120.0,
+      "resample_attempt": 1
+    },
+    {
+      "sample_id": 2,
+      "query_id": null,
+      "x0": -1.5189645290374756,
+      "y0": 20.31839942932129,
+      "theta0": 182.0,
+      "resample_attempt": 1
+    },
+    {
+      "sample_id": 3,
+      "query_id": null,
+      "x0": -4.27044677734375,
+      "y0": 11.996306419372559,
+      "theta0": 143.0,
+      "resample_attempt": 1
+    },
+    {
+      "sample_id": 4,
+      "query_id": null,
+      "x0": 4.459653854370117,
+      "y0": 10.350687026977539,
+      "theta0": 234.0,
+      "resample_attempt": 1
+    },
+    {
+      "sample_id": 5,
+      "query_id": null,
+      "x0": 0.3682917654514313,
+      "y0": 8.27234935760498,
+      "theta0": 317.0,
+      "resample_attempt": 1
+    }
+  ],
+  "results": [
+    {
+      "index": 1,
+      "query_id": null,
+      "pose": {
+        "x0": 4.114011764526367,
+        "y0": 6.62084436416626,
+        "theta0": 120.0
+      },
+      "resample_attempt": 1,
+      "query_dir": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01",
+      "selected_detection": {
+        "label": "chair",
+        "confidence": 0.7162455916404724,
+        "bbox_xyxy": [
+          0,
+          519,
+          97,
+          657
+        ],
+        "area_ratio": 0.006455439814814815,
+        "crop_bbox_xyxy": [
+          0,
+          485,
+          121,
+          691
+        ]
+      },
+      "prediction": {
+        "id": 36,
+        "x": -5.405601501464844,
+        "y": 7.01353120803833,
+        "orientation": 0,
+        "file_name": "images/pose_00009_o000_000036.jpg",
+        "object_score": 0.7021662592887878
+      },
+      "metrics": {
+        "pos_error": 9.52770904737262,
+        "yaw_error": 120.0,
+        "num_valid_detections": 7,
+        "selected_detection_confidence": 0.7162455916404724,
+        "selected_detection_label": "chair",
+        "selected_detection_bbox_xyxy": [
+          0,
+          519,
+          97,
+          657
+        ],
+        "top1_object_score": 0.7021662592887878,
+        "top1_distance_to_query_entry_m": 9.52770904737262,
+        "top1_distance_to_query_object_m_approx": 7.625522043019692
+      },
+      "artifacts": {
+        "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/query_detection_overlay.jpg",
+        "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/retrieval_topk_overlay.jpg",
+        "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k",
+        "top_k_images": [
+          "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_01_id_000036_ori_000_score_0p7022.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_02_id_000013_ori_090_score_0p6853.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_03_id_000023_ori_270_score_0p6714.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_04_id_000032_ori_000_score_0p6681.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k/rank_05_id_000007_ori_270_score_0p6563.jpg"
+        ],
+        "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/top_k_contact_sheet.jpg",
+        "query_json": "object_vpr_results/angle_split_batch_yoloworld/query_01_sampled_attempt_01/query_20260312_205038.json"
+      }
+    },
+    {
+      "index": 2,
+      "query_id": null,
+      "pose": {
+        "x0": -1.5189645290374756,
+        "y0": 20.31839942932129,
+        "theta0": 182.0
+      },
+      "resample_attempt": 1,
+      "query_dir": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01",
+      "selected_detection": {
+        "label": "chair",
+        "confidence": 0.7991911172866821,
+        "bbox_xyxy": [
+          523,
+          417,
+          751,
+          782
+        ],
+        "area_ratio": 0.04013310185185185,
+        "crop_bbox_xyxy": [
+          466,
+          326,
+          808,
+          873
+        ]
+      },
+      "prediction": {
+        "id": 5,
+        "x": -6.759200572967529,
+        "y": 7.482508659362793,
+        "orientation": 90,
+        "file_name": "images/pose_00001_o090_000005.jpg",
+        "object_score": 0.8586522936820984
+      },
+      "metrics": {
+        "pos_error": 13.86434872810149,
+        "yaw_error": 92.0,
+        "num_valid_detections": 10,
+        "selected_detection_confidence": 0.7991911172866821,
+        "selected_detection_label": "chair",
+        "selected_detection_bbox_xyxy": [
+          523,
+          417,
+          751,
+          782
+        ],
+        "top1_object_score": 0.8586522936820984,
+        "top1_distance_to_query_entry_m": 13.86434872810149,
+        "top1_distance_to_query_object_m_approx": 15.13233764928221
+      },
+      "artifacts": {
+        "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/query_detection_overlay.jpg",
+        "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/retrieval_topk_overlay.jpg",
+        "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k",
+        "top_k_images": [
+          "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p8587.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_02_id_000009_ori_090_score_0p8360.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_03_id_000033_ori_090_score_0p7998.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p7747.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_05_id_000040_ori_000_score_0p7747.jpg"
+        ],
+        "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k_contact_sheet.jpg",
+        "query_json": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/query_20260312_205059.json"
+      }
+    },
+    {
+      "index": 3,
+      "query_id": null,
+      "pose": {
+        "x0": -4.27044677734375,
+        "y0": 11.996306419372559,
+        "theta0": 143.0
+      },
+      "resample_attempt": 1,
+      "query_dir": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01",
+      "selected_detection": {
+        "label": "chair",
+        "confidence": 0.6951668858528137,
+        "bbox_xyxy": [
+          131,
+          521,
+          265,
+          691
+        ],
+        "area_ratio": 0.010985725308641975,
+        "crop_bbox_xyxy": [
+          97,
+          479,
+          299,
+          733
+        ]
+      },
+      "prediction": {
+        "id": 5,
+        "x": -6.759200572967529,
+        "y": 7.482508659362793,
+        "orientation": 90,
+        "file_name": "images/pose_00001_o090_000005.jpg",
+        "object_score": 0.912439227104187
+      },
+      "metrics": {
+        "pos_error": 5.154441354162539,
+        "yaw_error": 53.0,
+        "num_valid_detections": 9,
+        "selected_detection_confidence": 0.6951668858528137,
+        "selected_detection_label": "chair",
+        "selected_detection_bbox_xyxy": [
+          131,
+          521,
+          265,
+          691
+        ],
+        "top1_object_score": 0.912439227104187,
+        "top1_distance_to_query_entry_m": 5.154441354162539,
+        "top1_distance_to_query_object_m_approx": 5.489603045206055
+      },
+      "artifacts": {
+        "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/query_detection_overlay.jpg",
+        "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/retrieval_topk_overlay.jpg",
+        "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k",
+        "top_k_images": [
+          "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p9124.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k/rank_02_id_000009_ori_090_score_0p9050.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k/rank_03_id_000033_ori_090_score_0p8599.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k/rank_04_id_000021_ori_090_score_0p8043.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k/rank_05_id_000041_ori_090_score_0p8033.jpg"
+        ],
+        "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/top_k_contact_sheet.jpg",
+        "query_json": "object_vpr_results/angle_split_batch_yoloworld/query_03_sampled_attempt_01/query_20260312_205115.json"
+      }
+    },
+    {
+      "index": 4,
+      "query_id": null,
+      "pose": {
+        "x0": 4.459653854370117,
+        "y0": 10.350687026977539,
+        "theta0": 234.0
+      },
+      "resample_attempt": 1,
+      "query_dir": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01",
+      "selected_detection": {
+        "label": "chair",
+        "confidence": 0.5266152620315552,
+        "bbox_xyxy": [
+          1600,
+          526,
+          1695,
+          669
+        ],
+        "area_ratio": 0.006551408179012346,
+        "crop_bbox_xyxy": [
+          1576,
+          490,
+          1719,
+          705
+        ]
+      },
+      "prediction": {
+        "id": 19,
+        "x": -5.050173282623291,
+        "y": 5.1801886558532715,
+        "orientation": 270,
+        "file_name": "images/pose_00004_o270_000019.jpg",
+        "object_score": 0.7500789165496826
+      },
+      "metrics": {
+        "pos_error": 10.82454920914931,
+        "yaw_error": 36.0,
+        "num_valid_detections": 4,
+        "selected_detection_confidence": 0.5266152620315552,
+        "selected_detection_label": "chair",
+        "selected_detection_bbox_xyxy": [
+          1600,
+          526,
+          1695,
+          669
+        ],
+        "top1_object_score": 0.7500789165496826,
+        "top1_distance_to_query_entry_m": 10.82454920914931,
+        "top1_distance_to_query_object_m_approx": 10.411730603566955
+      },
+      "artifacts": {
+        "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/query_detection_overlay.jpg",
+        "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/retrieval_topk_overlay.jpg",
+        "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k",
+        "top_k_images": [
+          "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_01_id_000019_ori_270_score_0p7501.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_02_id_000027_ori_270_score_0p7055.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_03_id_000028_ori_000_score_0p7019.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p6989.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k/rank_05_id_000032_ori_000_score_0p6811.jpg"
+        ],
+        "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/top_k_contact_sheet.jpg",
+        "query_json": "object_vpr_results/angle_split_batch_yoloworld/query_04_sampled_attempt_01/query_20260312_205135.json"
+      }
+    },
+    {
+      "index": 5,
+      "query_id": null,
+      "pose": {
+        "x0": 0.3682917654514313,
+        "y0": 8.27234935760498,
+        "theta0": 317.0
+      },
+      "resample_attempt": 1,
+      "query_dir": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01",
+      "selected_detection": {
+        "label": "picture",
+        "confidence": 0.3807260990142822,
+        "bbox_xyxy": [
+          1591,
+          425,
+          1703,
+          535
+        ],
+        "area_ratio": 0.005941358024691358,
+        "crop_bbox_xyxy": [
+          1563,
+          397,
+          1731,
+          563
+        ]
+      },
+      "prediction": {
+        "id": 5,
+        "x": -6.759200572967529,
+        "y": 7.482508659362793,
+        "orientation": 90,
+        "file_name": "images/pose_00001_o090_000005.jpg",
+        "object_score": 0.7792418599128723
+      },
+      "metrics": {
+        "pos_error": 7.171122322399799,
+        "yaw_error": 133.0,
+        "num_valid_detections": 9,
+        "selected_detection_confidence": 0.3807260990142822,
+        "selected_detection_label": "picture",
+        "selected_detection_bbox_xyxy": [
+          1591,
+          425,
+          1703,
+          535
+        ],
+        "top1_object_score": 0.7792418599128723,
+        "top1_distance_to_query_entry_m": 7.171122322399799,
+        "top1_distance_to_query_object_m_approx": 9.448734016182296
+      },
+      "artifacts": {
+        "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/query_detection_overlay.jpg",
+        "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/retrieval_topk_overlay.jpg",
+        "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k",
+        "top_k_images": [
+          "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p7792.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_02_id_000024_ori_000_score_0p7599.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_03_id_000040_ori_000_score_0p7548.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_04_id_000021_ori_090_score_0p7292.jpg",
+          "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_05_id_000012_ori_000_score_0p7232.jpg"
+        ],
+        "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k_contact_sheet.jpg",
+        "query_json": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/query_20260312_205158.json"
+      }
+    }
+  ],
+  "failures": [],
+  "skips": [],
+  "aggregate_metrics": {
+    "num_requested": 5,
+    "num_succeeded": 5,
+    "num_failed": 0,
+    "num_skipped": 0,
+    "mean_pos_error": 9.308434132237151,
+    "median_pos_error": 9.52770904737262,
+    "p90_pos_error": 12.648428916931152,
+    "mean_yaw_error": 86.8
+  }
+}

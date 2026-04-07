@@ -15,8 +15,8 @@ class _FakeExplorer:
         self._last_top_down_projection = {
             "view_min_x": -10.0,
             "view_max_x": 5.0,
-            "view_min_z": -3.0,
-            "view_max_z": 7.0,
+            "view_min_y": -3.0,
+            "view_max_y": 7.0,
         }
         return None
 
@@ -52,7 +52,7 @@ def test_backfill_floor_plan_projection_skips_existing_when_not_overwriting(tmp_
     overview_dir.mkdir(parents=True)
     projection_path = overview_dir / "floor_plan_projection.json"
     projection_path.write_text(
-        json.dumps({"view_min_x": 0.0, "view_max_x": 1.0, "view_min_z": 0.0, "view_max_z": 1.0}, ensure_ascii=True),
+        json.dumps({"view_min_x": 0.0, "view_max_x": 1.0, "view_min_y": 0.0, "view_max_y": 1.0}, ensure_ascii=True),
         encoding="utf-8",
     )
 

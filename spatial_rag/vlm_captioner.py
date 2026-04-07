@@ -302,7 +302,7 @@ class VLMCaptioner:
             return "camera:none"
         normalized = {
             "camera_x": float(camera_context.get("camera_x", 0.0)),
-            "camera_z": float(camera_context.get("camera_z", 0.0)),
+            "camera_y": float(camera_context.get("camera_y", 0.0)),
             "camera_orientation_deg": float(camera_context.get("camera_orientation_deg", 0.0)),
         }
         return json.dumps(normalized, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
@@ -323,11 +323,11 @@ class VLMCaptioner:
                 "Still estimate each object's distance_from_camera_m and relative_bearing_deg from the image alone. "
             )
         camera_x = float(camera_context.get("camera_x", 0.0))
-        camera_z = float(camera_context.get("camera_z", 0.0))
+        camera_y = float(camera_context.get("camera_y", 0.0))
         camera_orientation_deg = float(camera_context.get("camera_orientation_deg", 0.0))
         return (
             "Current camera global pose: "
-            f"x={camera_x:.3f}, z={camera_z:.3f}, orientation_deg={camera_orientation_deg:.1f}. "
+            f"x={camera_x:.3f}, y={camera_y:.3f}, orientation_deg={camera_orientation_deg:.1f}. "
             "Use this pose only to reason about spatial consistency. "
             "Do not return absolute global coordinates. "
             "Return relative geometry only, and let the downstream program compute global coordinates. "

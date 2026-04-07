@@ -22,12 +22,12 @@ def test_render_object_nodes_birdview_writes_png_and_sidecar(tmp_path):
     assert cv2.imwrite(str(overview_dir / "textured_floor_plan.jpg"), floorplan)
 
     meta_rows = [
-        {"id": 0, "x": 0.0, "y": 0.0, "world_position": [0.0, 1.6, 0.0], "orientation": 0, "file_name": "images/view_00000.jpg"},
-        {"id": 1, "x": 2.0, "y": 1.0, "world_position": [2.0, 1.6, 1.0], "orientation": 90, "file_name": "images/view_00001.jpg"},
+        {"id": 0, "x": 0.0, "y": 0.0, "z": 1.6, "world_position": [0.0, 0.0, 1.6], "orientation": 0, "file_name": "images/view_00000.jpg"},
+        {"id": 1, "x": 2.0, "y": 1.0, "z": 1.6, "world_position": [2.0, 1.0, 1.6], "orientation": 90, "file_name": "images/view_00001.jpg"},
     ]
     object_rows = [
-        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": -1.0},
-        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.0, "estimated_global_y": 1.2, "estimated_global_z": -0.5},
+        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": 0.5},
+        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.0, "estimated_global_y": 1.2, "estimated_global_z": 0.8},
     ]
     relation_rows = [
         {"entry_id": 0, "source_object_global_id": 3, "target_object_global_id": 4},
@@ -50,7 +50,8 @@ def test_render_object_nodes_birdview_writes_png_and_sidecar(tmp_path):
     sidecar = json.loads(out_path.with_suffix(".json").read_text(encoding="utf-8"))
     assert sidecar["entry_id"] == 0
     assert len(sidecar["objects"]) == 2
-    assert sidecar["camera"]["y"] == 1.6
+    assert sidecar["camera"]["y"] == 0.0
+    assert sidecar["camera"]["z"] == 1.6
     assert sidecar["objects"][0]["y"] is not None
     assert sidecar["camera"]["pixel"]
 
@@ -67,12 +68,12 @@ def test_render_object_nodes_birdview_supports_sampling(tmp_path):
     assert cv2.imwrite(str(images_dir / "view_00000.jpg"), view_img)
 
     meta_rows = [
-        {"id": 0, "x": 0.0, "y": 0.0, "world_position": [0.0, 1.6, 0.0], "orientation": 0, "file_name": "images/view_00000.jpg"},
+        {"id": 0, "x": 0.0, "y": 0.0, "z": 1.6, "world_position": [0.0, 0.0, 1.6], "orientation": 0, "file_name": "images/view_00000.jpg"},
     ]
     object_rows = [
-        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": -1.0},
-        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.0, "estimated_global_y": 1.0, "estimated_global_z": -0.5},
-        {"entry_id": 0, "object_global_id": 5, "label": "lamp", "estimated_global_x": 1.5, "estimated_global_y": 1.8, "estimated_global_z": -0.25},
+        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": 0.5},
+        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.0, "estimated_global_y": 1.0, "estimated_global_z": 0.8},
+        {"entry_id": 0, "object_global_id": 5, "label": "lamp", "estimated_global_x": 1.5, "estimated_global_y": 1.8, "estimated_global_z": 1.2},
     ]
     _write_jsonl(db_dir / "meta.jsonl", meta_rows)
     _write_jsonl(db_dir / "object_meta.jsonl", object_rows)
@@ -95,7 +96,8 @@ def test_render_object_nodes_birdview_supports_sampling(tmp_path):
     assert sidecar["sample_objects"] == 2
     assert sidecar["sample_seed"] == 11
     assert len(sidecar["objects"]) == 2
-    assert sidecar["camera"]["y"] == 1.6
+    assert sidecar["camera"]["y"] == 0.0
+    assert sidecar["camera"]["z"] == 1.6
     assert sidecar["view_image_output_path"]
 
 
@@ -107,11 +109,11 @@ def test_render_all_object_nodes_birdview_writes_png_and_sidecar(tmp_path):
     assert cv2.imwrite(str(overview_dir / "textured_floor_plan.jpg"), floorplan)
 
     meta_rows = [
-        {"id": 0, "x": 0.0, "y": 0.0, "world_position": [0.0, 1.6, 0.0], "orientation": 0, "file_name": "images/view_00000.jpg"},
-        {"id": 1, "x": 2.0, "y": 1.0, "world_position": [2.0, 1.6, 1.0], "orientation": 90, "file_name": "images/view_00001.jpg"},
+        {"id": 0, "x": 0.0, "y": 0.0, "z": 1.6, "world_position": [0.0, 0.0, 1.6], "orientation": 0, "file_name": "images/view_00000.jpg"},
+        {"id": 1, "x": 2.0, "y": 1.0, "z": 1.6, "world_position": [2.0, 1.0, 1.6], "orientation": 90, "file_name": "images/view_00001.jpg"},
     ]
     object_rows = [
-        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": -1.0},
+        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": 0.5},
         {"entry_id": 1, "object_global_id": 4, "label": "table", "estimated_global_x": 2.5, "estimated_global_y": 1.2, "estimated_global_z": 1.0},
     ]
     _write_jsonl(db_dir / "meta.jsonl", meta_rows)
@@ -144,17 +146,17 @@ def test_render_all_object_nodes_birdview_prefers_saved_projection(tmp_path):
             {
                 "view_min_x": -10.0,
                 "view_max_x": 10.0,
-                "view_min_z": -20.0,
-                "view_max_z": 20.0,
+                "view_min_y": -20.0,
+                "view_max_y": 20.0,
             },
             ensure_ascii=True,
         ),
         encoding="utf-8",
     )
 
-    meta_rows = [{"id": 0, "x": 100.0, "y": 200.0, "world_position": [100.0, 1.6, 200.0], "orientation": 0, "file_name": "images/view_00000.jpg"}]
+    meta_rows = [{"id": 0, "x": 100.0, "y": 200.0, "z": 1.6, "world_position": [100.0, 200.0, 1.6], "orientation": 0, "file_name": "images/view_00000.jpg"}]
     object_rows = [
-        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 101.0, "estimated_global_y": 0.8, "estimated_global_z": 199.0}
+        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 101.0, "estimated_global_y": 199.0, "estimated_global_z": 0.8}
     ]
     _write_jsonl(db_dir / "meta.jsonl", meta_rows)
     _write_jsonl(db_dir / "object_meta.jsonl", object_rows)
@@ -169,8 +171,8 @@ def test_render_all_object_nodes_birdview_prefers_saved_projection(tmp_path):
     assert sidecar["projection"] == {
         "view_min_x": -10.0,
         "view_max_x": 10.0,
-        "view_min_z": -20.0,
-        "view_max_z": 20.0,
+        "view_min_y": -20.0,
+        "view_max_y": 20.0,
     }
 
 
@@ -182,12 +184,12 @@ def test_render_all_object_nodes_birdview_supports_sampling_and_auto_labels(tmp_
     assert cv2.imwrite(str(overview_dir / "textured_floor_plan.jpg"), floorplan)
 
     meta_rows = [
-        {"id": 0, "x": 0.0, "y": 0.0, "world_position": [0.0, 1.6, 0.0], "orientation": 0, "file_name": "images/view_00000.jpg"},
+        {"id": 0, "x": 0.0, "y": 0.0, "z": 1.6, "world_position": [0.0, 0.0, 1.6], "orientation": 0, "file_name": "images/view_00000.jpg"},
     ]
     object_rows = [
-        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": -1.0},
-        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.5, "estimated_global_y": 1.0, "estimated_global_z": -0.5},
-        {"entry_id": 0, "object_global_id": 5, "label": "lamp", "estimated_global_x": 2.5, "estimated_global_y": 1.8, "estimated_global_z": 0.5},
+        {"entry_id": 0, "object_global_id": 3, "label": "chair", "estimated_global_x": 0.5, "estimated_global_y": 0.8, "estimated_global_z": 0.5},
+        {"entry_id": 0, "object_global_id": 4, "label": "table", "estimated_global_x": 1.5, "estimated_global_y": 1.0, "estimated_global_z": 0.8},
+        {"entry_id": 0, "object_global_id": 5, "label": "lamp", "estimated_global_x": 2.5, "estimated_global_y": 1.8, "estimated_global_z": 1.2},
     ]
     _write_jsonl(db_dir / "meta.jsonl", meta_rows)
     _write_jsonl(db_dir / "object_meta.jsonl", object_rows)

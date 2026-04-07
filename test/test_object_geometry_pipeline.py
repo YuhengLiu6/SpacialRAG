@@ -147,8 +147,8 @@ def test_project_global_xyz_from_geometry_uses_negative_left_positive_right():
     )
 
     assert round(projected_x, 3) == 1.732
-    assert round(projected_z, 3) == -1.0
-    assert round(projected_y, 3) == 1.1
+    assert round(projected_y, 3) == 0.6
+    assert round(projected_z, 3) == -0.5
 
 
 def test_mask_depth_stats_uses_trimmed_median_inside_mask():

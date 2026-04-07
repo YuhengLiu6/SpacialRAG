@@ -15,7 +15,7 @@ from spatial_rag.spatial_db_builder import (
     _format_object_text_long,
     _load_resume_state,
     _make_object_record,
-    _project_global_xz,
+    _project_global_xy,
     _response_has_length_finish_reason,
     _run_optional_polar_surrounding_postprocess,
     _should_reuse_existing_entry,
@@ -36,17 +36,17 @@ def test_compute_object_orientation_falls_back_to_center_for_invalid_laterality(
     assert _compute_object_orientation(180, "unknown", angle_split_enable=True, angle_step=30) == 180
 
 
-def test_project_global_xz_uses_camera_orientation_plus_relative_bearing():
-    projected_x, projected_z = _project_global_xz(
+def test_project_global_xy_uses_camera_orientation_plus_relative_bearing():
+    projected_x, projected_y = _project_global_xy(
         origin_x=0.0,
-        origin_z=0.0,
+        origin_y=0.0,
         camera_orientation_deg=270.0,
         relative_bearing_deg=-30.0,
         distance_m=2.0,
     )
 
     assert round(projected_x, 3) == 1.732
-    assert round(projected_z, 3) == -1.0
+    assert round(projected_y, 3) == -1.0
 
 
 def test_fallback_relative_bearing_from_laterality_uses_fixed_bucket_offsets():
@@ -63,7 +63,7 @@ def test_build_location_summary_from_surroundings_formats_anchor_and_distance():
                 "relation_to_primary": "right of chair",
                 "distance_from_primary_m": 0.84,
                 "estimated_global_x": 1.24,
-                "estimated_global_z": -2.26,
+                "estimated_global_y": -2.26,
             }
         ]
     )
@@ -72,10 +72,10 @@ def test_build_location_summary_from_surroundings_formats_anchor_and_distance():
 
 
 def test_classify_view_aligned_direction_uses_view_orientation():
-    assert _classify_view_aligned_direction(dx=1.0, dz=0.0, view_orientation_deg=0.0) == "right"
-    assert _classify_view_aligned_direction(dx=-1.0, dz=0.0, view_orientation_deg=0.0) == "left"
-    assert _classify_view_aligned_direction(dx=0.0, dz=-1.0, view_orientation_deg=0.0) == "in front"
-    assert _classify_view_aligned_direction(dx=0.0, dz=1.0, view_orientation_deg=0.0) == "behind"
+    assert _classify_view_aligned_direction(dx=1.0, dy=0.0, view_orientation_deg=0.0) == "right"
+    assert _classify_view_aligned_direction(dx=-1.0, dy=0.0, view_orientation_deg=0.0) == "left"
+    assert _classify_view_aligned_direction(dx=0.0, dy=-1.0, view_orientation_deg=0.0) == "in front"
+    assert _classify_view_aligned_direction(dx=0.0, dy=1.0, view_orientation_deg=0.0) == "behind"
 
 
 def test_classify_vertical_direction_uses_height_delta():
@@ -86,7 +86,7 @@ def test_classify_vertical_direction_uses_height_delta():
 
 def test_build_view_object_relations_uses_estimated_global_coordinates():
     rows = _build_view_object_relations(
-        metadata_records=[{"id": 0, "x": 1.0, "y": 2.0, "world_position": [1.0, 1.6, 2.0], "orientation": 0}],
+        metadata_records=[{"id": 0, "x": 1.0, "y": 2.0, "z": 3.0, "world_position": [1.0, 2.0, 3.0], "orientation": 0}],
         object_metadata_records=[
             {
                 "entry_id": 0,
@@ -107,19 +107,19 @@ def test_build_view_object_relations_uses_estimated_global_coordinates():
             "obs_id": "obs_000007",
             "label": "chair",
             "view_x": 1.0,
-            "view_y": 1.6,
-            "view_z": 2.0,
+            "view_y": 2.0,
+            "view_z": 3.0,
             "object_x": 2.0,
             "object_y": 0.8,
             "object_z": 4.0,
             "dx": 1.0,
-            "dy": -0.8,
-            "dz": 2.0,
-            "distance_m": 2.23606797749979,
-            "distance_3d_m": 2.3748684174075834,
+            "dy": -1.2,
+            "dz": 1.0,
+            "distance_m": 1.5620499351813308,
+            "distance_3d_m": 1.8547236990991407,
             "direction": "in",
             "direction_frame": "view_aligned",
-            "vertical_direction": "below",
+            "vertical_direction": "above",
             "relation_type": "ViewObject",
         }
     ]
@@ -152,13 +152,13 @@ def test_build_object_object_relations_generates_ordered_pairs_with_direction():
     assert rows[0]["source_obs_id"] == "obs_000001"
     assert rows[0]["target_obs_id"] == "obs_000002"
     assert rows[0]["direction"] == "right"
-    assert rows[0]["vertical_direction"] == "above"
+    assert rows[0]["vertical_direction"] == "level"
     assert rows[0]["dy"] == 0.3999999999999999
     assert rows[0]["distance_3d_m"] == 1.0770329614269007
     assert rows[0]["relation_type"] == "ObjectObject"
     assert rows[0]["relation_source"] == "geometry_postprocess"
     assert rows[1]["direction"] == "left"
-    assert rows[1]["vertical_direction"] == "below"
+    assert rows[1]["vertical_direction"] == "level"
 
 
 def test_format_object_text_long_prefixes_angle_bucket_for_angle_split():
@@ -183,7 +183,8 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         file_name="images/sample.jpg",
         x=1.0,
         y=2.0,
-        world_position=[1.0, 0.0, 2.0],
+        z=0.8,
+        world_position=[1.0, 2.0, 0.8],
         orientation=90,
         parse_status="ok",
         builder_variant="angle_split",
@@ -193,7 +194,7 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         object_local_id="feat_000",
         label="chair",
         object_confidence=1.0,
-        description="object: chair | attrs: wooden | anchor: x=1.0, z=2.0 | nearby: table@(1.5,2.5)",
+        description="object: chair | attrs: wooden | anchor: x=1.0, y=2.0 | nearby: table@(1.5,2.5)",
         long_form_open_description="object: chair | attributes: wooden | camera_relation: distance=2.0, bearing=-30.0",
         attributes=["wooden"],
         laterality="left",
@@ -203,10 +204,10 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         relative_height_from_camera_m=-0.8,
         relative_bearing_deg=-30.0,
         estimated_global_x=1.0,
-        estimated_global_y=0.8,
-        estimated_global_z=2.0,
+        estimated_global_y=2.0,
+        estimated_global_z=0.8,
         any_text="",
-        location_relative_to_other_objects="table relation=right of chair d=0.8m anchor=(1.0,2.5)",
+        location_relative_to_other_objects="table relation=right of chair d=0.8m anchor=(1.5,2.5)",
         surrounding_context=[
             {
                 "label": "table",
@@ -216,13 +217,13 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
                 "relative_height_from_camera_m": -0.6,
                 "relative_bearing_deg": 20.0,
                 "estimated_global_x": 1.5,
-                "estimated_global_y": 1.0,
-                "estimated_global_z": 2.5,
+                "estimated_global_y": 2.5,
+                "estimated_global_z": 1.0,
                 "relation_to_primary": "right of chair",
             }
         ],
         scene_attributes=["painted trim"],
-        object_text_short="object: chair | attrs: wooden | anchor: x=1.0, z=2.0 | nearby: table@(1.5,2.5)",
+        object_text_short="object: chair | attrs: wooden | anchor: x=1.0, y=2.0 | nearby: table@(1.5,2.5)",
         object_text_long="left sector | object: chair | attributes: wooden | camera_relation: distance=2.0, bearing=-30.0",
     )
 
@@ -236,10 +237,10 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
     assert record["relative_height_from_camera_m"] == -0.8
     assert record["relative_bearing_deg"] == -30.0
     assert record["estimated_global_x"] == 1.0
-    assert record["estimated_global_y"] == 0.8
-    assert record["estimated_global_z"] == 2.0
+    assert record["estimated_global_y"] == 2.0
+    assert record["estimated_global_z"] == 0.8
     assert record["surrounding_context"][0]["relative_height_from_camera_m"] == -0.6
-    assert record["surrounding_context"][0]["estimated_global_y"] == 1.0
+    assert record["surrounding_context"][0]["estimated_global_y"] == 2.5
     assert record["surrounding_context"][0]["label"] == "table"
     assert record["scene_attributes"] == ["painted trim"]
     assert record["object_text_short"].startswith("object: chair")
@@ -397,8 +398,8 @@ def test_write_floor_plan_projection_persists_expected_fields(tmp_path):
         {
             "view_min_x": -1.0,
             "view_max_x": 2.0,
-            "view_min_z": -3.0,
-            "view_max_z": 4.0,
+            "view_min_y": -3.0,
+            "view_max_y": 4.0,
             "ignored": 99,
         },
     )

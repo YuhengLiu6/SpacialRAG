@@ -1,0 +1,34 @@
+{
+  "image_file": "images/pose_00003_o270_000015.jpg",
+  "base_floorplan": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_split_k8s/overview/textured_floor_plan.jpg",
+  "camera": {
+    "entry_id": 15,
+    "x": -9.447001457214355,
+    "z": -2.4728803634643555,
+    "orientation_deg": 270.0,
+    "pixel_xy": [
+      111,
+      240
+    ]
+  },
+  "oven_metadata": {
+    "object_global_id": 212,
+    "description": "stainless steel range/oven with towel on handle (right side)",
+    "laterality": "right",
+    "distance_from_camera_m": 5.0,
+    "object_orientation_deg": 300.0
+  },
+  "estimated_oven_position": {
+    "x": -5.116874438292163,
+    "z": -4.9728803634643555,
+    "pixel_xy": [
+      261,
+      148
+    ]
+  },
+  "camera_to_oven_planar_distance_m": 5.0,
+  "projection_note": "Projected onto existing Explorer textured floorplan using DB pose x/z extents because live Habitat rendering was unavailable in this environment.",
+  "artifacts": {
+    "existing_explorer_floorplan_overlay_png": "/Users/liuyuheng/Desktop/antigravityTest/object_vpr_results/manual_floorplan/pose_00003_o270_000015_oven_existing_explorer_floorplan.png"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "image_file": "images/pose_00010_o090_000041.jpg",
+  "base_floorplan": "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_split_k8s/overview/textured_floor_plan.jpg",
+  "camera": {
+    "entry_id": 41,
+    "x": -9.447001457214355,
+    "z": -0.9728803634643555,
+    "orientation_deg": 90.0,
+    "pixel_xy": [
+      111,
+      295
+    ]
+  },
+  "projection_note": "Projected onto existing Explorer textured floorplan using the same manual world-to-pixel mapping as pose_00003_o270_000015.",
+  "artifacts": {
+    "camera_only_floorplan_png": "/Users/liuyuheng/Desktop/antigravityTest/object_vpr_results/manual_floorplan/pose_00010_o090_000041_camera_only_floorplan.png"
+  }
+}

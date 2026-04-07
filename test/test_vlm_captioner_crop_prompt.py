@@ -43,7 +43,7 @@ def test_object_cache_path_varies_by_prompt_variant_and_camera_context(tmp_path)
     with_pose = captioner._object_cache_path(
         str(image_path),
         prompt_variant="standard",
-        camera_context={"camera_x": 1.0, "camera_z": 2.0, "camera_orientation_deg": 90.0},
+        camera_context={"camera_x": 1.0, "camera_y": 2.0, "camera_orientation_deg": 90.0},
     )
 
     assert standard != angle_split
@@ -59,7 +59,7 @@ def test_object_cache_path_uses_structured_directory_layout(tmp_path):
     cache_path = captioner._object_cache_path(
         str(image_path),
         prompt_variant="angle_split",
-        camera_context={"camera_x": 1.0, "camera_z": 2.0, "camera_orientation_deg": 90.0},
+        camera_context={"camera_x": 1.0, "camera_y": 2.0, "camera_orientation_deg": 90.0},
     )
 
     rel_parts = cache_path.relative_to(captioner.object_cache_dir).parts
@@ -80,7 +80,7 @@ def test_selector_cache_legacy_file_is_promoted_to_structured_path(tmp_path):
 
     legacy_path = captioner._legacy_selector_cache_path(
         str(image_path),
-        camera_context={"camera_x": 0.0, "camera_z": 0.0, "camera_orientation_deg": 0.0},
+        camera_context={"camera_x": 0.0, "camera_y": 0.0, "camera_orientation_deg": 0.0},
     )
     legacy_path.parent.mkdir(parents=True, exist_ok=True)
     legacy_payload = {
@@ -91,12 +91,12 @@ def test_selector_cache_legacy_file_is_promoted_to_structured_path(tmp_path):
 
     result = captioner.select_object_types_with_meta(
         str(image_path),
-        camera_context={"camera_x": 0.0, "camera_z": 0.0, "camera_orientation_deg": 0.0},
+        camera_context={"camera_x": 0.0, "camera_y": 0.0, "camera_orientation_deg": 0.0},
     )
 
     new_path = captioner._selector_cache_path(
         str(image_path),
-        camera_context={"camera_x": 0.0, "camera_z": 0.0, "camera_orientation_deg": 0.0},
+        camera_context={"camera_x": 0.0, "camera_y": 0.0, "camera_orientation_deg": 0.0},
     )
     assert result["source"] == "cache"
     assert result["payload"]["selected_object_types"] == ["chair"]
@@ -123,7 +123,7 @@ def test_angle_split_prompt_mentions_new_geometry_and_scene_attributes():
     prompt = VLMCaptioner._object_user_prompt(
         max_objects=8,
         prompt_variant="angle_split",
-        camera_context={"camera_x": 1.5, "camera_z": -2.0, "camera_orientation_deg": 270.0},
+        camera_context={"camera_x": 1.5, "camera_y": -2.0, "camera_orientation_deg": 270.0},
     )
 
     assert "three discrete sectors" in prompt
@@ -193,7 +193,7 @@ def test_selector_defaults_and_schema_include_selected_object_types():
 
 def test_selector_prompt_mentions_candidate_subset_behavior():
     prompt = VLMCaptioner._selector_user_prompt(
-        camera_context={"camera_x": 0.0, "camera_z": 0.0, "camera_orientation_deg": 90.0}
+        camera_context={"camera_x": 0.0, "camera_y": 0.0, "camera_orientation_deg": 90.0}
     )
 
     assert "object category pre-selection only" in prompt

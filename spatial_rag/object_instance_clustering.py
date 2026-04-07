@@ -2290,7 +2290,7 @@ def _collect_anchor_scene_records(
 
         camera_context = {
             "camera_x": float(actual_world_position[0]),
-            "camera_z": float(actual_world_position[2]),
+            "camera_y": float(actual_world_position[1]),
             "camera_orientation_deg": float(spec["orientation_deg"]),
         }
         parse_result = _parse_objects_with_retry(
@@ -2348,7 +2348,8 @@ def _collect_anchor_scene_records(
                     entry_id=current_entry_id,
                     file_name=str(image_rel_path),
                     x=float(actual_world_position[0]),
-                    y=float(actual_world_position[2]),
+                    y=float(actual_world_position[1]),
+                    z=float(actual_world_position[2]),
                     world_position=[
                         float(actual_world_position[0]),
                         float(actual_world_position[1]),
@@ -2402,7 +2403,8 @@ def _collect_anchor_scene_records(
             "synthetic_view_id": synthetic_view_id,
             "anchor_direction": str(spec["anchor_direction"]),
             "x": float(actual_world_position[0]),
-            "y": float(actual_world_position[2]),
+            "y": float(actual_world_position[1]),
+            "z": float(actual_world_position[2]),
             "world_position": [
                 float(actual_world_position[0]),
                 float(actual_world_position[1]),

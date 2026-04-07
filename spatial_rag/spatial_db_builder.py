@@ -130,7 +130,7 @@ def _write_jsonl(path: Path, records: List[Dict]) -> None:
 def _serialize_floor_plan_projection(projection: Any) -> Optional[Dict[str, float]]:
     if not isinstance(projection, dict):
         return None
-    required = ("view_min_x", "view_max_x", "view_min_z", "view_max_z")
+    required = ("view_min_x", "view_max_x", "view_min_y", "view_max_y")
     serialized: Dict[str, float] = {}
     try:
         for key in required:
@@ -646,9 +646,9 @@ def _normalize_bearing_deg(value: Any) -> Optional[float]:
     return bearing
 
 
-def _project_global_xz(
+def _project_global_xy(
     origin_x: float,
-    origin_z: float,
+    origin_y: float,
     camera_orientation_deg: float,
     relative_bearing_deg: Optional[float],
     distance_m: Optional[float],
@@ -661,8 +661,8 @@ def _project_global_xz(
     global_bearing = (float(camera_orientation_deg) - float(relative_bearing_deg)) % 360.0
     yaw = math.radians(global_bearing)
     projected_x = float(origin_x - math.sin(yaw) * dist)
-    projected_z = float(origin_z - math.cos(yaw) * dist)
-    return projected_x, projected_z
+    projected_y = float(origin_y - math.cos(yaw) * dist)
+    return projected_x, projected_y
 
 
 def _fallback_relative_bearing_from_laterality(laterality: Optional[str], angle_step: int) -> float:
@@ -696,7 +696,7 @@ def _build_location_summary_from_surroundings(surrounding_context: Sequence[Dict
         relation = str(item.get("relation_to_primary") or "").strip() or "unknown"
         rendered.append(
             f"{label} relation={relation} d={_round_location_dist(item.get('distance_from_primary_m'))}m "
-            f"anchor=({_round_location_coord(item.get('estimated_global_x'))},{_round_location_coord(item.get('estimated_global_z'))})"
+            f"anchor=({_round_location_coord(item.get('estimated_global_x'))},{_round_location_coord(item.get('estimated_global_y'))})"
         )
     return "; ".join(rendered)
 
@@ -739,22 +739,22 @@ def _safe_float(value: Any) -> Optional[float]:
 
 def _classify_view_aligned_direction(
     dx: float,
-    dz: float,
+    dy: float,
     view_orientation_deg: float,
     same_axis_eps: float = 0.25,
 ) -> Optional[str]:
-    distance = float(math.hypot(float(dx), float(dz)))
+    distance = float(math.hypot(float(dx), float(dy)))
     if distance <= float(same_axis_eps):
         return None
 
     yaw = math.radians(float(view_orientation_deg))
     forward_x = -math.sin(yaw)
-    forward_z = -math.cos(yaw)
+    forward_y = -math.cos(yaw)
     right_x = math.cos(yaw)
-    right_z = -math.sin(yaw)
+    right_y = -math.sin(yaw)
 
-    local_forward = float(dx) * forward_x + float(dz) * forward_z
-    local_right = float(dx) * right_x + float(dz) * right_z
+    local_forward = float(dx) * forward_x + float(dy) * forward_y
+    local_right = float(dx) * right_x + float(dy) * right_y
     if abs(local_right) >= abs(local_forward):
         if local_right > float(same_axis_eps):
             return "right"
@@ -768,20 +768,20 @@ def _classify_view_aligned_direction(
     return None
 
 
-def _entry_camera_y(entry: Dict[str, Any]) -> float:
+def _entry_camera_z(entry: Dict[str, Any]) -> float:
     world_position = entry.get("world_position")
-    if isinstance(world_position, (list, tuple)) and len(world_position) >= 2:
-        y = _safe_float(world_position[1])
-        if y is not None:
-            return float(y)
+    if isinstance(world_position, (list, tuple)) and len(world_position) >= 3:
+        z = _safe_float(world_position[2])
+        if z is not None:
+            return float(z)
     return 0.0
 
 
-def _estimated_global_y(camera_y: float, relative_height_from_camera_m: Any) -> Optional[float]:
+def _estimated_global_z(camera_z: float, relative_height_from_camera_m: Any) -> Optional[float]:
     relative_height = _safe_float(relative_height_from_camera_m)
     if relative_height is None:
         return None
-    return float(camera_y + relative_height)
+    return float(camera_z + relative_height)
 
 
 def _classify_vertical_direction(dy: float, vertical_eps: float = OBJECT_VERTICAL_REL_EPS_M) -> str:
@@ -804,19 +804,19 @@ def _build_view_object_relations(
         if entry is None:
             continue
         object_x = _safe_float(row.get("estimated_global_x"))
-        object_z = _safe_float(row.get("estimated_global_z"))
-        if object_x is None or object_z is None:
+        object_y = _safe_float(row.get("estimated_global_y"))
+        if object_x is None or object_y is None:
             continue
 
         view_x = _safe_float(entry.get("x"))
-        view_z = _safe_float(entry.get("y"))
-        if view_x is None or view_z is None:
+        view_y = _safe_float(entry.get("y"))
+        if view_x is None or view_y is None:
             continue
-        view_y = _entry_camera_y(entry)
-        object_y = _safe_float(row.get("estimated_global_y"))
+        view_z = _entry_camera_z(entry)
+        object_z = _safe_float(row.get("estimated_global_z"))
         dx = float(object_x - view_x)
-        dy = float(object_y - view_y) if object_y is not None else 0.0
-        dz = float(object_z - view_z)
+        dy = float(object_y - view_y)
+        dz = float(object_z - view_z) if object_z is not None else 0.0
         relations.append(
             {
                 "entry_id": entry_id,
@@ -833,11 +833,11 @@ def _build_view_object_relations(
                 "dx": dx,
                 "dy": dy,
                 "dz": dz,
-                "distance_m": float(math.hypot(dx, dz)),
+                "distance_m": float(math.hypot(dx, dy)),
                 "distance_3d_m": float(math.sqrt(dx * dx + dy * dy + dz * dz)),
                 "direction": "in",
                 "direction_frame": "view_aligned",
-                "vertical_direction": _classify_vertical_direction(dy=dy),
+                "vertical_direction": _classify_vertical_direction(dy=dz),
                 "relation_type": "ViewObject",
             }
         )
@@ -853,8 +853,8 @@ def _build_object_object_relations(
     grouped: Dict[int, List[Dict[str, Any]]] = {}
     for row in object_metadata_records:
         object_x = _safe_float(row.get("estimated_global_x"))
-        object_z = _safe_float(row.get("estimated_global_z"))
-        if object_x is None or object_z is None:
+        object_y = _safe_float(row.get("estimated_global_y"))
+        if object_x is None or object_y is None:
             continue
         grouped.setdefault(int(row["entry_id"]), []).append(dict(row))
 
@@ -870,24 +870,24 @@ def _build_object_object_relations(
         ordered = sorted(rows, key=lambda item: int(item["object_global_id"]))
         for source in ordered:
             source_x = _safe_float(source.get("estimated_global_x"))
-            source_z = _safe_float(source.get("estimated_global_z"))
-            if source_x is None or source_z is None:
-                continue
             source_y = _safe_float(source.get("estimated_global_y"))
+            if source_x is None or source_y is None:
+                continue
+            source_z = _safe_float(source.get("estimated_global_z"))
             for target in ordered:
                 if int(source["object_global_id"]) == int(target["object_global_id"]):
                     continue
                 target_x = _safe_float(target.get("estimated_global_x"))
-                target_z = _safe_float(target.get("estimated_global_z"))
-                if target_x is None or target_z is None:
-                    continue
                 target_y = _safe_float(target.get("estimated_global_y"))
+                if target_x is None or target_y is None:
+                    continue
+                target_z = _safe_float(target.get("estimated_global_z"))
                 dx = float(target_x - source_x)
-                dy = float(target_y - source_y) if source_y is not None and target_y is not None else 0.0
-                dz = float(target_z - source_z)
+                dy = float(target_y - source_y)
+                dz = float(target_z - source_z) if source_z is not None and target_z is not None else 0.0
                 direction = _classify_view_aligned_direction(
                     dx=dx,
-                    dz=dz,
+                    dy=dy,
                     view_orientation_deg=view_orientation,
                     same_axis_eps=same_axis_eps,
                 )
@@ -912,11 +912,11 @@ def _build_object_object_relations(
                         "dx": dx,
                         "dy": dy,
                         "dz": dz,
-                        "distance_m": float(math.hypot(dx, dz)),
+                        "distance_m": float(math.hypot(dx, dy)),
                         "distance_3d_m": float(math.sqrt(dx * dx + dy * dy + dz * dz)),
                         "direction": direction,
                         "direction_frame": "view_aligned",
-                        "vertical_direction": _classify_vertical_direction(dy=dy),
+                        "vertical_direction": _classify_vertical_direction(dy=dz),
                         "relation_type": "ObjectObject",
                         "relation_source": "geometry_postprocess",
                     }
@@ -968,37 +968,37 @@ def _enrich_scene_objects_geometry(
                 angle_step=angle_step,
             )
         obj.relative_bearing_deg = bearing
-        projected_x, projected_z = _project_global_xz(
+        projected_x, projected_y = _project_global_xy(
             origin_x=camera_x,
-            origin_z=camera_z,
+            origin_y=camera_y,
             camera_orientation_deg=camera_orientation_deg,
             relative_bearing_deg=bearing,
             distance_m=getattr(obj, "distance_from_camera_m", None),
         )
         obj.estimated_global_x = projected_x
-        obj.estimated_global_y = _estimated_global_y(
-            camera_y=camera_y,
+        obj.estimated_global_y = projected_y
+        obj.estimated_global_z = _estimated_global_z(
+            camera_z=camera_z,
             relative_height_from_camera_m=getattr(obj, "relative_height_from_camera_m", None),
         )
-        obj.estimated_global_z = projected_z
 
         enriched_ctx = []
         for ctx in list(getattr(obj, "surrounding_context", []) or [])[: int(OBJECT_SURROUNDING_MAX)]:
             ctx_bearing = _normalize_bearing_deg(getattr(ctx, "relative_bearing_deg", None))
             ctx.relative_bearing_deg = ctx_bearing
-            ctx_x, ctx_z = _project_global_xz(
+            ctx_x, ctx_y = _project_global_xy(
                 origin_x=camera_x,
-                origin_z=camera_z,
+                origin_y=camera_y,
                 camera_orientation_deg=camera_orientation_deg,
                 relative_bearing_deg=ctx_bearing,
                 distance_m=getattr(ctx, "distance_from_camera_m", None),
             )
             ctx.estimated_global_x = ctx_x
-            ctx.estimated_global_y = _estimated_global_y(
-                camera_y=camera_y,
+            ctx.estimated_global_y = ctx_y
+            ctx.estimated_global_z = _estimated_global_z(
+                camera_z=camera_z,
                 relative_height_from_camera_m=getattr(ctx, "relative_height_from_camera_m", None),
             )
-            ctx.estimated_global_z = ctx_z
             enriched_ctx.append(ctx)
         obj.surrounding_context = enriched_ctx
         obj.location_relative_to_other_objects = _build_location_summary_from_surroundings(
@@ -1014,6 +1014,7 @@ def _make_object_record(
     file_name: str,
     x: float,
     y: float,
+    z: float,
     world_position: List[float],
     orientation: int,
     parse_status: str,
@@ -1086,6 +1087,7 @@ def _make_object_record(
         "file_name": file_name,
         "x": x,
         "y": y,
+        "z": z,
         "world_position": world_position,
         "orientation": int(orientation),
         "frame_orientation": int(orientation),
@@ -1395,7 +1397,8 @@ def _build_spatial_database_core(
 
                 world_position = [float(pos[0]), float(pos[1]), float(pos[2])]
                 x = float(world_position[0])
-                y = float(world_position[2])
+                y = float(world_position[1])
+                z = float(world_position[2])
                 orientation = _rotation_to_orientation_deg(pose.get("rotation"))
                 orientation = _nearest_scan_angle(orientation, normalized_scan_angles)
                 if orientation not in valid_orientation_set:
@@ -1463,13 +1466,14 @@ def _build_spatial_database_core(
                         "world_position": list(world_position),
                         "x": float(x),
                         "y": float(y),
+                        "z": float(z),
                         "orientation": int(orientation),
                         "position_id": int(position_id),
                         "file_name": file_name,
                         "image_path": str(image_path),
                         "camera_context": {
                             "camera_x": float(x),
-                            "camera_z": float(y),
+                            "camera_y": float(y),
                             "camera_orientation_deg": float(orientation),
                         },
                         "capture_sec": float(time.perf_counter() - capture_job_t0),
@@ -1546,8 +1550,8 @@ def _build_spatial_database_core(
                         image_path=str(job["image_path"]),
                         image_rgb=job["rgb_image"],
                         camera_x=float(job["x"]),
-                        camera_y=float(job["world_position"][1]),
-                        camera_z=float(job["y"]),
+                        camera_y=float(job["y"]),
+                        camera_z=float(job["z"]),
                         camera_orientation_deg=float(job["orientation"]),
                         max_objects=int(object_max_per_frame),
                         selector_result_override=job.get("selector_result"),
@@ -1645,6 +1649,7 @@ def _build_spatial_database_core(
                 world_position = list(job["world_position"])
                 x = float(job["x"])
                 y = float(job["y"])
+                z = float(job["z"])
                 orientation = int(job["orientation"])
                 file_name = str(job["file_name"])
                 image_path = Path(str(job["image_path"]))
@@ -1715,8 +1720,8 @@ def _build_spatial_database_core(
                         _enrich_scene_objects_geometry(
                             scene_objects,
                             camera_x=float(x),
-                            camera_y=float(world_position[1]),
-                            camera_z=float(y),
+                            camera_y=float(y),
+                            camera_z=float(z),
                             camera_orientation_deg=float(orientation),
                             angle_step=int(angle_step),
                         )
@@ -1768,7 +1773,11 @@ def _build_spatial_database_core(
                         f"text_short={text_emb_short.shape[0]}, text_long={text_emb_long.shape[0]}, "
                         f"expected={emb_dim}"
                     )
-                if not np.isclose(x, world_position[0]) or not np.isclose(y, world_position[2]):
+                if (
+                    not np.isclose(x, world_position[0])
+                    or not np.isclose(y, world_position[1])
+                    or not np.isclose(z, world_position[2])
+                ):
                     raise ValueError("2D/3D coordinate consistency check failed")
 
                 entry_object_count = 0
@@ -1777,6 +1786,7 @@ def _build_spatial_database_core(
                     "frame_id": int(frame_idx),
                     "x": x,
                     "y": y,
+                    "z": z,
                     "world_position": world_position,
                     "orientation": orientation,
                     "file_name": file_name,
@@ -1871,6 +1881,7 @@ def _build_spatial_database_core(
                             file_name=file_name,
                             x=x,
                             y=y,
+                            z=z,
                             world_position=world_position,
                             orientation=orientation,
                             parse_status=parse_status,
@@ -1949,6 +1960,7 @@ def _build_spatial_database_core(
                             file_name=file_name,
                             x=x,
                             y=y,
+                            z=z,
                             world_position=world_position,
                             orientation=orientation,
                             parse_status=parse_status,
@@ -2011,6 +2023,7 @@ def _build_spatial_database_core(
                         file_name=file_name,
                         x=x,
                         y=y,
+                        z=z,
                         world_position=world_position,
                         orientation=orientation,
                         parse_status=parse_status,
@@ -2113,7 +2126,8 @@ def _build_spatial_database_core(
 
                 world_position = [float(pos[0]), float(pos[1]), float(pos[2])]
                 x = float(world_position[0])
-                y = float(world_position[2])
+                y = float(world_position[1])
+                z = float(world_position[2])
                 orientation = _rotation_to_orientation_deg(pose.get("rotation"))
                 orientation = _nearest_scan_angle(orientation, normalized_scan_angles)
                 position_id = frame_idx // num_angles_per_position
@@ -2162,7 +2176,7 @@ def _build_spatial_database_core(
                     f"position_id={int(position_id)} "
                     f"orientation_deg={int(orientation)} "
                     f"file={file_name} "
-                    f"camera_xyz=({x:.3f},{float(world_position[1]):.3f},{y:.3f})"
+                    f"camera_xyz=({x:.3f},{y:.3f},{z:.3f})"
                 )
                 if _should_reuse_existing_entry(
                     existing_meta=existing_meta,
@@ -2200,7 +2214,7 @@ def _build_spatial_database_core(
 
                 camera_context = {
                     "camera_x": float(x),
-                    "camera_z": float(y),
+                    "camera_y": float(y),
                     "camera_orientation_deg": float(orientation),
                 }
                 geometry_result = None
@@ -2225,8 +2239,8 @@ def _build_spatial_database_core(
                         image_path=str(image_path),
                         image_rgb=rgb_image,
                         camera_x=float(x),
-                        camera_y=float(world_position[1]),
-                        camera_z=float(y),
+                        camera_y=float(y),
+                        camera_z=float(z),
                         camera_orientation_deg=float(orientation),
                         max_objects=int(object_max_per_frame),
                     )
@@ -2332,8 +2346,8 @@ def _build_spatial_database_core(
                         _enrich_scene_objects_geometry(
                             scene_objects,
                             camera_x=float(x),
-                            camera_y=float(world_position[1]),
-                            camera_z=float(y),
+                            camera_y=float(y),
+                            camera_z=float(z),
                             camera_orientation_deg=float(orientation),
                             angle_step=int(angle_step),
                         )
@@ -2403,7 +2417,11 @@ def _build_spatial_database_core(
                         f"text_short={text_emb_short.shape[0]}, text_long={text_emb_long.shape[0]}, "
                         f"expected={emb_dim}"
                     )
-                if not np.isclose(x, world_position[0]) or not np.isclose(y, world_position[2]):
+                if (
+                    not np.isclose(x, world_position[0])
+                    or not np.isclose(y, world_position[1])
+                    or not np.isclose(z, world_position[2])
+                ):
                     raise ValueError("2D/3D coordinate consistency check failed")
                 if orientation not in valid_orientation_set:
                     raise ValueError(
@@ -2418,6 +2436,7 @@ def _build_spatial_database_core(
                     "frame_id": int(frame_idx),
                     "x": x,
                     "y": y,
+                    "z": z,
                     "world_position": world_position,
                     "orientation": orientation,
                     "file_name": file_name,
@@ -2511,6 +2530,7 @@ def _build_spatial_database_core(
                             file_name=file_name,
                             x=x,
                             y=y,
+                            z=z,
                             world_position=world_position,
                             orientation=orientation,
                             parse_status=parse_status,
@@ -2589,6 +2609,7 @@ def _build_spatial_database_core(
                             file_name=file_name,
                             x=x,
                             y=y,
+                            z=z,
                             world_position=world_position,
                             orientation=orientation,
                             parse_status=parse_status,
@@ -2651,6 +2672,7 @@ def _build_spatial_database_core(
                         file_name=file_name,
                         x=x,
                         y=y,
+                        z=z,
                         world_position=world_position,
                         orientation=orientation,
                         parse_status=parse_status,

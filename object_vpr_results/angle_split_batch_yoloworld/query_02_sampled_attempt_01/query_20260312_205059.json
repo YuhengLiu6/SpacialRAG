@@ -1,0 +1,416 @@
+{
+  "timestamp": "20260312_205059",
+  "pose": {
+    "x0": -1.5189645290374756,
+    "y0": 20.31839942932129,
+    "theta0": 182.0,
+    "actual_world_position": [
+      -1.5189645290374756,
+      -0.39008140563964844,
+      20.31839942932129
+    ],
+    "used_snap_fallback": false
+  },
+  "query": {
+    "query_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/query_image.jpg",
+    "query_object_crop_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/query_object_crop.jpg",
+    "query_object_text": "ornate dark-wood armchair with cane back",
+    "query_object_text_long": "Antique-style ornate dark wood armchair with carved apron, turned cabriole legs, curved wooden armrests, a woven cane backrest and a beige striped upholstered seat cushion; well-preserved appearance in soft daylight, approximately 1.5 m from camera.",
+    "query_text_used_for_retrieval": "ornate dark-wood armchair with cane back",
+    "query_object_text_source": "api",
+    "yolo_label_hint": "chair",
+    "yolo_confidence_hint": 0.7991911172866821,
+    "query_bbox_laterality": "left",
+    "query_object_orientation_deg_approx": 152.0,
+    "query_object_distance_from_camera_m": 1.5,
+    "query_object_xy_approx": [
+      -2.2231718732163115,
+      21.642820818609678
+    ],
+    "object_text_mode": "short",
+    "selection_seed": 20043
+  },
+  "selected_detection": {
+    "label": "chair",
+    "confidence": 0.7991911172866821,
+    "bbox_xyxy": [
+      523,
+      417,
+      751,
+      782
+    ],
+    "area_ratio": 0.04013310185185185,
+    "crop_bbox_xyxy": [
+      466,
+      326,
+      808,
+      873
+    ]
+  },
+  "valid_detections": [
+    {
+      "label": "chair",
+      "confidence": 0.7991911172866821,
+      "bbox_xyxy": [
+        523,
+        417,
+        751,
+        782
+      ],
+      "area_ratio": 0.04013310185185185
+    },
+    {
+      "label": "chair",
+      "confidence": 0.7979299426078796,
+      "bbox_xyxy": [
+        760,
+        415,
+        958,
+        784
+      ],
+      "area_ratio": 0.035234375
+    },
+    {
+      "label": "chair",
+      "confidence": 0.7029842734336853,
+      "bbox_xyxy": [
+        1412,
+        412,
+        1758,
+        801
+      ],
+      "area_ratio": 0.06490837191358025
+    },
+    {
+      "label": "chair",
+      "confidence": 0.480170875787735,
+      "bbox_xyxy": [
+        1595,
+        406,
+        1920,
+        807
+      ],
+      "area_ratio": 0.06284963348765432
+    },
+    {
+      "label": "person",
+      "confidence": 0.6598635911941528,
+      "bbox_xyxy": [
+        1115,
+        273,
+        1238,
+        423
+      ],
+      "area_ratio": 0.008897569444444444
+    },
+    {
+      "label": "picture",
+      "confidence": 0.7930118441581726,
+      "bbox_xyxy": [
+        1049,
+        174,
+        1310,
+        471
+      ],
+      "area_ratio": 0.0373828125
+    },
+    {
+      "label": "picture",
+      "confidence": 0.7738431692123413,
+      "bbox_xyxy": [
+        251,
+        171,
+        511,
+        468
+      ],
+      "area_ratio": 0.03723958333333333
+    },
+    {
+      "label": "picture",
+      "confidence": 0.5715141296386719,
+      "bbox_xyxy": [
+        1035,
+        1,
+        1315,
+        110
+      ],
+      "area_ratio": 0.014718364197530864
+    },
+    {
+      "label": "picture",
+      "confidence": 0.3631317615509033,
+      "bbox_xyxy": [
+        241,
+        0,
+        513,
+        100
+      ],
+      "area_ratio": 0.013117283950617283
+    },
+    {
+      "label": "table",
+      "confidence": 0.36124831438064575,
+      "bbox_xyxy": [
+        1069,
+        555,
+        1416,
+        814
+      ],
+      "area_ratio": 0.04334153163580247
+    }
+  ],
+  "prediction": {
+    "id": 5,
+    "x": -6.759200572967529,
+    "y": 7.482508659362793,
+    "orientation": 90,
+    "file_name": "images/pose_00001_o090_000005.jpg",
+    "object_score": 0.8586522936820984
+  },
+  "metrics": {
+    "pos_error": 13.86434872810149,
+    "yaw_error": 92.0,
+    "num_valid_detections": 10,
+    "selected_detection_confidence": 0.7991911172866821,
+    "selected_detection_label": "chair",
+    "selected_detection_bbox_xyxy": [
+      523,
+      417,
+      751,
+      782
+    ],
+    "top1_object_score": 0.8586522936820984,
+    "top1_distance_to_query_entry_m": 13.86434872810149,
+    "top1_distance_to_query_object_m_approx": 15.13233764928221
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 5,
+      "x": -6.759200572967529,
+      "y": 7.482508659362793,
+      "orientation": 90,
+      "file_name": "images/pose_00001_o090_000005.jpg",
+      "object_score": 0.8586522936820984,
+      "distance_to_query_entry_m": 13.86434872810149,
+      "distance_to_query_object_m_approx": 15.13233764928221,
+      "query_object_xy_approx": [
+        -2.2231718732163115,
+        21.642820818609678
+      ],
+      "matched_object_xy_approx": [
+        -7.559200572967529,
+        7.482508659362793
+      ],
+      "matched_object": {
+        "object_index": 58,
+        "label": "chair",
+        "description": "ornate carved wooden dining chair with cane back (center)",
+        "long_form_open_description": "A carved wooden dining chair occupying the center third, very close to the camera. The chair has a tall cane or woven back, light beige seat/back color, and an ornate carved crest rail at the top with scrollwork. The wood finish is pale, slightly worn. The front legs are partially visible; the seat shows a small darker mark near the lower front edge. The chair's height reaches into the middle and upper-middle part of the image.",
+        "laterality": "center",
+        "distance_from_camera_m": 0.8,
+        "object_orientation_deg": 90,
+        "score": 0.8586522936820984
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p8587.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 9,
+      "x": -5.936915397644043,
+      "y": 6.913433074951172,
+      "orientation": 90,
+      "file_name": "images/pose_00002_o090_000009.jpg",
+      "object_score": 0.8359645009040833,
+      "distance_to_query_entry_m": 14.114227319949768,
+      "distance_to_query_object_m_approx": 15.527386732058067,
+      "query_object_xy_approx": [
+        -2.2231718732163115,
+        21.642820818609678
+      ],
+      "matched_object_xy_approx": [
+        -7.136915397644043,
+        6.913433074951172
+      ],
+      "matched_object": {
+        "object_index": 114,
+        "label": "chair",
+        "description": "right carved wooden cane-back chair with worn seat",
+        "long_form_open_description": "Matching antique carved wooden chair with tall cane back and carved crest, similar torn/missing upholstery on the seat; wood finish similar to left chair. Back extends into middle-upper portion of image; legs have decorative curved shapes and stretchers visible underneath.",
+        "laterality": "center",
+        "distance_from_camera_m": 1.2,
+        "object_orientation_deg": 90,
+        "score": 0.8359645009040833
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_02_id_000009_ori_090_score_0p8360.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 33,
+      "x": -4.7689528465271,
+      "y": 7.784685134887695,
+      "orientation": 90,
+      "file_name": "images/pose_00008_o090_000033.jpg",
+      "object_score": 0.7998006343841553,
+      "distance_to_query_entry_m": 12.94822065298194,
+      "distance_to_query_object_m_approx": 14.748146672008444,
+      "query_object_xy_approx": [
+        -2.2231718732163115,
+        21.642820818609678
+      ],
+      "matched_object_xy_approx": [
+        -7.2689528465271,
+        7.784685134887695
+      ],
+      "matched_object": {
+        "object_index": 460,
+        "label": "chair",
+        "description": "Pair of matching cane-back wooden chairs",
+        "long_form_open_description": "Two antique wooden side chairs with caned backs and carved crest rails, exposed wooden frames with cabriole legs, light brown cane seating/back that is worn in places; chairs sit side-by-side against the wall below the portrait. One chair shows minor wear/damage on the seat.",
+        "laterality": "center",
+        "distance_from_camera_m": 2.5,
+        "object_orientation_deg": 90,
+        "score": 0.7998006343841553
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_03_id_000033_ori_090_score_0p7998.jpg"
+    },
+    {
+      "rank": 4,
+      "id": 36,
+      "x": -5.405601501464844,
+      "y": 7.01353120803833,
+      "orientation": 0,
+      "file_name": "images/pose_00009_o000_000036.jpg",
+      "object_score": 0.7746801376342773,
+      "distance_to_query_entry_m": 13.860933061707806,
+      "distance_to_query_object_m_approx": 16.440250657469882,
+      "query_object_xy_approx": [
+        -2.2231718732163115,
+        21.642820818609678
+      ],
+      "matched_object_xy_approx": [
+        -5.405601501464844,
+        5.51353120803833
+      ],
+      "matched_object": {
+        "object_index": 505,
+        "label": "chair",
+        "description": "ornate carved wooden armchair with striped upholstery",
+        "long_form_open_description": "Large, centrally placed antique armchair with dark carved wooden frame, scrolling arms and cabriole legs. Seat and back upholstered in narrow vertical cream-and-gray stripes; visible wear/softening on seat cushion. Back has carved crest and openwork detailing. Occupies the foreground and is directly in front of the window.",
+        "laterality": "center",
+        "distance_from_camera_m": 1.5,
+        "object_orientation_deg": 0,
+        "score": 0.7746801376342773
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p7747.jpg"
+    },
+    {
+      "rank": 5,
+      "id": 40,
+      "x": -4.674384117126465,
+      "y": 6.331386566162109,
+      "orientation": 0,
+      "file_name": "images/pose_00010_o000_000040.jpg",
+      "object_score": 0.7746801376342773,
+      "distance_to_query_entry_m": 14.3385215978174,
+      "distance_to_query_object_m_approx": 15.976540370886537,
+      "query_object_xy_approx": [
+        -2.2231718732163115,
+        21.642820818609678
+      ],
+      "matched_object_xy_approx": [
+        -4.374384117126464,
+        5.811771323891446
+      ],
+      "matched_object": {
+        "object_index": 567,
+        "label": "chair",
+        "description": "ornate carved wooden armchair with striped upholstery",
+        "long_form_open_description": "Large antique-style armchair occupying the left foreground. Dark carved wooden frame with turned spindles and scrolled armrests; seat and back upholstered in pale gray/cream vertical stripes. Visible wear on finish and slight sheen on fabric. The backrest has a scalloped carved crest rail.",
+        "laterality": "left",
+        "distance_from_camera_m": 0.6,
+        "object_orientation_deg": 330,
+        "score": 0.7746801376342773
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_05_id_000040_ori_000_score_0p7747.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/query_detection_overlay.jpg",
+    "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/retrieval_topk_overlay.jpg",
+    "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k",
+    "top_k_images": [
+      "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p8587.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_02_id_000009_ori_090_score_0p8360.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_03_id_000033_ori_090_score_0p7998.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_04_id_000036_ori_000_score_0p7747.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k/rank_05_id_000040_ori_000_score_0p7747.jpg"
+    ],
+    "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_02_sampled_attempt_01/top_k_contact_sheet.jpg"
+  },
+  "debug": {
+    "object_candidate_pool": 256,
+    "ranked_entry_scores_top10": [
+      {
+        "entry_id": 5,
+        "score": 0.8586522936820984
+      },
+      {
+        "entry_id": 9,
+        "score": 0.8359645009040833
+      },
+      {
+        "entry_id": 4,
+        "score": 0.8194937109947205
+      },
+      {
+        "entry_id": 33,
+        "score": 0.7998006343841553
+      },
+      {
+        "entry_id": 32,
+        "score": 0.7995639443397522
+      },
+      {
+        "entry_id": 36,
+        "score": 0.7746801376342773
+      },
+      {
+        "entry_id": 40,
+        "score": 0.7746801376342773
+      },
+      {
+        "entry_id": 0,
+        "score": 0.7683740258216858
+      },
+      {
+        "entry_id": 41,
+        "score": 0.7615526914596558
+      },
+      {
+        "entry_id": 24,
+        "score": 0.7609660625457764
+      }
+    ],
+    "crop_description": {
+      "label": "chair",
+      "short_description": "ornate dark-wood armchair with cane back",
+      "long_description": "Antique-style ornate dark wood armchair with carved apron, turned cabriole legs, curved wooden armrests, a woven cane backrest and a beige striped upholstered seat cushion; well-preserved appearance in soft daylight, approximately 1.5 m from camera.",
+      "attributes": [
+        "dark stained carved wood",
+        "woven cane backrest",
+        "beige striped upholstery",
+        "turned cabriole legs",
+        "curved wooden armrests",
+        "ornate carved apron",
+        "antique/Victorian styling",
+        "soft natural lighting",
+        "adjacent chair visible at right"
+      ],
+      "distance_from_camera_m": 1.5,
+      "source": "api",
+      "yolo_label_hint": "chair",
+      "yolo_confidence_hint": 0.7991911172866821
+    }
+  }
+}

@@ -67,10 +67,10 @@ def _compute_projection_from_existing_floorplan(db_path: Path) -> Optional[Dict[
         return None
     meta_rows = _load_jsonl(meta_path)
     xs = [_safe_float(row.get("x")) for row in meta_rows]
-    zs = [_safe_float(row.get("y")) for row in meta_rows]
+    ys = [_safe_float(row.get("y")) for row in meta_rows]
     xs = [v for v in xs if v is not None]
-    zs = [v for v in zs if v is not None]
-    if not xs or not zs:
+    ys = [v for v in ys if v is not None]
+    if not xs or not ys:
         return None
 
     # Background pixels are the uniform dark gray fill used by render_textured_floor_plan.
@@ -87,28 +87,28 @@ def _compute_projection_from_existing_floorplan(db_path: Path) -> Optional[Dict[
 
     world_min_x = float(min(xs))
     world_max_x = float(max(xs))
-    world_min_z = float(min(zs))
-    world_max_z = float(max(zs))
-    if world_max_x <= world_min_x or world_max_z <= world_min_z:
+    world_min_y = float(min(ys))
+    world_max_y = float(max(ys))
+    if world_max_x <= world_min_x or world_max_y <= world_min_y:
         return None
 
     frac_min_x = float(px_min) / float(width)
     frac_max_x = float(px_max) / float(width)
-    frac_min_z = float(py_min) / float(height)
-    frac_max_z = float(py_max) / float(height)
-    if frac_max_x <= frac_min_x or frac_max_z <= frac_min_z:
+    frac_min_y = float(py_min) / float(height)
+    frac_max_y = float(py_max) / float(height)
+    if frac_max_x <= frac_min_x or frac_max_y <= frac_min_y:
         return None
 
     full_min_x = world_min_x - frac_min_x * (world_max_x - world_min_x) / max(frac_max_x - frac_min_x, 1e-6)
     full_max_x = full_min_x + (world_max_x - world_min_x) / max(frac_max_x - frac_min_x, 1e-6)
-    full_min_z = world_min_z - frac_min_z * (world_max_z - world_min_z) / max(frac_max_z - frac_min_z, 1e-6)
-    full_max_z = full_min_z + (world_max_z - world_min_z) / max(frac_max_z - frac_min_z, 1e-6)
+    full_min_y = world_min_y - frac_min_y * (world_max_y - world_min_y) / max(frac_max_y - frac_min_y, 1e-6)
+    full_max_y = full_min_y + (world_max_y - world_min_y) / max(frac_max_y - frac_min_y, 1e-6)
 
     return {
         "view_min_x": float(full_min_x),
         "view_max_x": float(full_max_x),
-        "view_min_z": float(full_min_z),
-        "view_max_z": float(full_max_z),
+        "view_min_y": float(full_min_y),
+        "view_max_y": float(full_max_y),
     }
 
 
@@ -129,8 +129,8 @@ def _compute_projection_from_scene(
         return {
             "view_min_x": float(projection["view_min_x"]),
             "view_max_x": float(projection["view_max_x"]),
-            "view_min_z": float(projection["view_min_z"]),
-            "view_max_z": float(projection["view_max_z"]),
+            "view_min_y": float(projection["view_min_y"]),
+            "view_max_y": float(projection["view_max_y"]),
         }
     except Exception as exc:
         raise RuntimeError("Failed to compute floor plan projection from scene") from exc

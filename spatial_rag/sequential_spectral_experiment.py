@@ -60,7 +60,7 @@ OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
     "estimated_global_y",
     "estimated_global_z",
     "term1_cosine",
-    "xz_distance_m",
+    "xy_distance_m",
     "dsq",
     "distance_gate_dsq0",
     "distance_gate",
@@ -381,8 +381,8 @@ def _detail_summary(detail: Optional[Mapping[str, Any]]) -> Optional[Dict[str, A
         "global_geo_distance_m": _safe_float(detail.get("global_geo_distance_m")),
         "used_3d_global_geo": bool(detail.get("used_3d_global_geo")),
         "distance_gate": _safe_float(detail.get("distance_gate")),
-        "xz_distance_m": _safe_float(detail.get("xz_distance_m")),
-        "xz_distance_sq_m2": _safe_float(detail.get("xz_distance_sq_m2")),
+        "xy_distance_m": _safe_float(detail.get("xy_distance_m")),
+        "xy_distance_sq_m2": _safe_float(detail.get("xy_distance_sq_m2")),
         "distance_gate_dsq0": _safe_float(detail.get("distance_gate_dsq0")),
     }
 
@@ -470,8 +470,8 @@ def _object_assignment_record(
 ) -> Dict[str, Any]:
     status = similarity_detail_status or _assignment_detail_status(assignment_reason, detail)
     term1_cosine = _safe_float(detail.get("text_similarity")) if detail else None
-    xz_distance_m = _safe_float(detail.get("xz_distance_m")) if detail else None
-    dsq = _safe_float(detail.get("xz_distance_sq_m2")) if detail else None
+    xy_distance_m = _safe_float(detail.get("xy_distance_m")) if detail else None
+    dsq = _safe_float(detail.get("xy_distance_sq_m2")) if detail else None
     distance_gate_dsq0 = _safe_float(detail.get("distance_gate_dsq0")) if detail else None
     distance_gate = _safe_float(detail.get("distance_gate")) if detail else None
     exponent = None
@@ -493,7 +493,7 @@ def _object_assignment_record(
         "estimated_global_y": _safe_float(row.get("estimated_global_y")),
         "estimated_global_z": _safe_float(row.get("estimated_global_z")),
         "term1_cosine": term1_cosine,
-        "xz_distance_m": xz_distance_m,
+        "xy_distance_m": xy_distance_m,
         "dsq": dsq,
         "distance_gate_dsq0": distance_gate_dsq0,
         "distance_gate": distance_gate,
@@ -900,25 +900,25 @@ def _global_geo_similarity(
     cluster_x = _safe_float(proto_xyz.get("x"))
     cluster_y = _safe_float(proto_xyz.get("y"))
     cluster_z = _safe_float(proto_xyz.get("z"))
-    if row_x is None or row_z is None or cluster_x is None or cluster_z is None:
+    if row_x is None or row_y is None or cluster_x is None or cluster_y is None:
         return None, None, False
-    if row_y is not None and cluster_y is not None:
+    if row_z is not None and cluster_z is not None:
         delta = np.asarray([row_x - cluster_x, row_y - cluster_y, row_z - cluster_z], dtype=np.float32)
         return _gaussian_similarity(float(np.linalg.norm(delta)), sigma_m), float(np.linalg.norm(delta)), True
-    delta = np.asarray([row_x - cluster_x, row_z - cluster_z], dtype=np.float32)
+    delta = np.asarray([row_x - cluster_x, row_y - cluster_y], dtype=np.float32)
     return _gaussian_similarity(float(np.linalg.norm(delta)), sigma_m), float(np.linalg.norm(delta)), False
 
 
-def _xz_distance(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Tuple[Optional[float], Optional[float]]:
-    row_x, _row_y, row_z = _row_xyz(row)
+def _xy_distance(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Tuple[Optional[float], Optional[float]]:
+    row_x, row_y, _row_z = _row_xyz(row)
     proto_xyz = dict(cluster.get("prototype_xyz") or {})
     cluster_x = _safe_float(proto_xyz.get("x"))
-    cluster_z = _safe_float(proto_xyz.get("z"))
-    if row_x is None or row_z is None or cluster_x is None or cluster_z is None:
+    cluster_y = _safe_float(proto_xyz.get("y"))
+    if row_x is None or row_y is None or cluster_x is None or cluster_y is None:
         return None, None
     dx = float(row_x) - float(cluster_x)
-    dz = float(row_z) - float(cluster_z)
-    distance_sq = float(dx * dx + dz * dz)
+    dy = float(row_y) - float(cluster_y)
+    distance_sq = float(dx * dx + dy * dy)
     return float(math.sqrt(distance_sq)), distance_sq
 
 
@@ -983,29 +983,29 @@ def _pair_affinity_detail(
             "used_3d_global_geo": bool(used_3d_geo),
             "normalized_weights": normalized_weights,
             "distance_gate": None,
-            "xz_distance_m": None,
-            "xz_distance_sq_m2": None,
+            "xy_distance_m": None,
+            "xy_distance_sq_m2": None,
             "distance_gate_dsq0": None,
         }
 
-    xz_distance_m, xz_distance_sq_m2 = _xz_distance(row, cluster)
+    xy_distance_m, xy_distance_sq_m2 = _xy_distance(row, cluster)
     geo_sim = None
     polar_sim = None
     used_3d_geo = False
     if text_sim is None:
         combined = 0.0
         distance_gate = None
-        geo_distance = xz_distance_m
+        geo_distance = xy_distance_m
         normalized_weights = {"text": 0.0, "global_geo": 0.0, "polar": 0.0}
-    elif xz_distance_sq_m2 is None:
+    elif xy_distance_sq_m2 is None:
         distance_gate = 1.0
         combined = float(text_sim)
         geo_distance = None
         normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
     else:
-        distance_gate = _distance_gate_from_dsq(xz_distance_sq_m2, distance_gate_dsq0)
+        distance_gate = _distance_gate_from_dsq(xy_distance_sq_m2, distance_gate_dsq0)
         combined = float(text_sim) * float(distance_gate)
-        geo_distance = xz_distance_m
+        geo_distance = xy_distance_m
         normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
     return {
         "similarity_mode": similarity_mode_clean,
@@ -1017,8 +1017,8 @@ def _pair_affinity_detail(
         "used_3d_global_geo": bool(used_3d_geo),
         "normalized_weights": normalized_weights,
         "distance_gate": None if distance_gate is None else float(distance_gate),
-        "xz_distance_m": xz_distance_m,
-        "xz_distance_sq_m2": xz_distance_sq_m2,
+        "xy_distance_m": xy_distance_m,
+        "xy_distance_sq_m2": xy_distance_sq_m2,
         "distance_gate_dsq0": float(distance_gate_dsq0),
     }
 
