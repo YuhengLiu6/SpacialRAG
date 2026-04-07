@@ -20,7 +20,9 @@ from spatial_rag.spatial_db_builder import (
     _run_optional_polar_surrounding_postprocess,
     _should_reuse_existing_entry,
     _write_floor_plan_projection,
+    build_spatial_database,
     build_spatial_database_angle_split,
+    main,
 )
 
 
@@ -443,3 +445,122 @@ def test_build_spatial_database_angle_split_forwards_polar_postprocess_flag(monk
 
     assert report == {"ok": True}
     assert captured["run_polar_surrounding_postprocess"] is True
+
+
+def test_build_spatial_database_forwards_execution_mode_flags(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(
+        execution_mode="legacy_per_frame",
+        vlm_max_in_flight=7,
+        legacy_per_frame=True,
+    )
+
+    assert report == {"ok": True}
+    assert captured["execution_mode"] == "legacy_per_frame"
+    assert captured["vlm_max_in_flight"] == 7
+    assert captured["legacy_per_frame"] is True
+
+
+def test_main_dispatches_to_standard_builder(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["spatial_db_builder.py", "--builder_variant", "standard", "--run_polar_surrounding_postprocess", "true"],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][0] == "standard"
+    assert calls[0][1]["run_polar_surrounding_postprocess"] is True
+
+
+def test_main_forwards_execution_mode_flags(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--execution_mode",
+            "legacy_per_frame",
+            "--vlm_max_in_flight",
+            "6",
+            "--legacy_per_frame",
+            "true",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["execution_mode"] == "legacy_per_frame"
+    assert calls[0][1]["vlm_max_in_flight"] == 6
+    assert calls[0][1]["legacy_per_frame"] is True
+
+
+def test_main_dispatches_to_angle_split_builder(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "angle_split",
+            "--angle_split_enable",
+            "true",
+            "--angle_step",
+            "45",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "angle_split"' in out
+    assert calls[0][0] == "angle_split"
+    assert calls[0][1]["angle_split_enable"] is True
+    assert calls[0][1]["angle_step"] == 45

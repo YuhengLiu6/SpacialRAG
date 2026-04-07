@@ -20,6 +20,9 @@ from spatial_rag.object_geometry_pipeline import (
 
 
 class _FakeCaptioner:
+    def __init__(self):
+        self.batched_calls = []
+
     def select_object_types_with_meta(self, image_path: str, force_refresh: bool = False, camera_context=None):
         payload = {
             "view_type": "living room",
@@ -38,6 +41,32 @@ class _FakeCaptioner:
             "payload": payload,
             "raw_json": json.dumps(payload, ensure_ascii=True),
             "raw_api_response": {"choices": [{"finish_reason": "stop"}]},
+            "source": "api",
+        }
+
+    def describe_detected_objects_with_meta(self, image_path: str, detections, force_refresh: bool = False):
+        self.batched_calls.append(
+            {
+                "image_path": image_path,
+                "detections": list(detections or []),
+                "force_refresh": bool(force_refresh),
+            }
+        )
+        objects = []
+        for det in list(detections or []):
+            objects.append(
+                {
+                    "object_local_id": det["object_local_id"],
+                    "label": det["detector_label"],
+                    "short_description": "brown leather chair",
+                    "long_description": "brown leather chair near the center of the room",
+                    "attributes": ["brown", "leather"],
+                    "distance_from_camera_m": 2.1,
+                }
+            )
+        return {
+            "objects": objects,
+            "raw_response": {"choices": [{"finish_reason": "stop"}]},
             "source": "api",
         }
 
@@ -243,9 +272,10 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     image_rgb = np.full((1080, 1920, 3), 220, dtype=np.uint8)
     ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
     assert ok
+    captioner = _FakeCaptioner()
 
     pipeline = ObjectGeometryPipeline(
-        captioner=_FakeCaptioner(),
+        captioner=captioner,
         output_root=str(tmp_path),
         detector=_FakeDetector(),
         segmenter=_FakeSegmenter(),
@@ -280,9 +310,90 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     assert row["mask_path"]
     assert row["mask_overlay_path"]
     assert row["depth_map_path"]
+    assert result.timings["object_description_call_count"] == 1
+    assert len(captioner.batched_calls) == 1
+    assert captioner.batched_calls[0]["detections"][0]["object_local_id"] == "det_000"
     assert result.artifacts.detections_path
     assert result.artifacts.detection_overlay_path
     assert result.artifacts.depth_preview_path
+
+
+def test_object_geometry_pipeline_uses_default_description_when_batched_item_missing(tmp_path):
+    class _MissingBatchCaptioner(_FakeCaptioner):
+        def describe_detected_objects_with_meta(self, image_path: str, detections, force_refresh: bool = False):
+            self.batched_calls.append({"image_path": image_path, "detections": list(detections or [])})
+            return {
+                "objects": [],
+                "raw_response": {"choices": [{"finish_reason": "stop"}]},
+                "source": "api",
+            }
+
+    image_path = tmp_path / "view.jpg"
+    image_rgb = np.full((1080, 1920, 3), 220, dtype=np.uint8)
+    ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+    assert ok
+    captioner = _MissingBatchCaptioner()
+    pipeline = ObjectGeometryPipeline(
+        captioner=captioner,
+        output_root=str(tmp_path),
+        detector=_FakeDetector(),
+        segmenter=_FakeSegmenter(),
+        depth_estimator=_FakeDepthEstimator(),
+        save_artifacts=False,
+    )
+
+    result = pipeline.run_for_view(
+        entry_id=7,
+        image_path=str(image_path),
+        image_rgb=image_rgb,
+        camera_x=0.0,
+        camera_y=1.6,
+        camera_z=0.0,
+        camera_orientation_deg=0.0,
+        max_objects=4,
+    )
+
+    assert result.ok is True
+    row = result.object_rows[0]
+    assert row["label"] == "chair"
+    assert row["description"] == "chair"
+    assert row["long_form_open_description"] == "chair"
+    assert row["attributes"] == []
+    assert result.timings["object_description_call_count"] == 1
+
+
+def test_object_geometry_pipeline_defer_object_descriptions_skips_vlm_calls(tmp_path):
+    image_path = tmp_path / "view.jpg"
+    image_rgb = np.full((1080, 1920, 3), 220, dtype=np.uint8)
+    ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+    assert ok
+    captioner = _FakeCaptioner()
+    pipeline = ObjectGeometryPipeline(
+        captioner=captioner,
+        output_root=str(tmp_path),
+        detector=_FakeDetector(),
+        segmenter=_FakeSegmenter(),
+        depth_estimator=_FakeDepthEstimator(),
+        save_artifacts=False,
+    )
+
+    result = pipeline.run_for_view(
+        entry_id=9,
+        image_path=str(image_path),
+        image_rgb=image_rgb,
+        camera_x=0.0,
+        camera_y=1.6,
+        camera_z=0.0,
+        camera_orientation_deg=0.0,
+        max_objects=4,
+        defer_object_descriptions=True,
+    )
+
+    assert result.ok is True
+    assert result.description_requests[0]["object_local_id"] == "det_000"
+    assert result.object_rows[0]["description"] == "chair"
+    assert result.timings["object_description_call_count"] == 0
+    assert captioner.batched_calls == []
 
 
 def test_object_geometry_pipeline_returns_failure_when_selector_subset_empty(tmp_path):

@@ -21,3 +21,9 @@ data/
 *.pt
 *.log
 *.jpg
+
+
+spatial_db_nd/
+spatial_db_nd2/
+README copy.md
+test_openai.py
