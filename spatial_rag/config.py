@@ -6,8 +6,6 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
 # API Keys
-# os.environ["OPENAI_API_KEY"] = "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" # User should replace this with their actual key
-os.environ["OPENAI_API_KEY"] = "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" 
 # SCENE_PATH = "data/scene_datasets/habitat-test-scenes/apartment_1.glb"  # Modern apartment scene (Stable)
 # SCENE_PATH = "data/scene_datasets/habitat-test-scenes/van-gogh-room.glb"  # Modern apartment scene (Stable)
 SCENE_PATH = "data/scene_datasets/habitat-test-scenes/skokloster-castle.glb"  # Modern apartment scene (Stable)

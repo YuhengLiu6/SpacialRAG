@@ -1,10 +1,12 @@
 import argparse
 import json
 import math
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -435,6 +437,141 @@ def _parse_objects_with_retry(
         raw_api_response=last_result.raw_api_response,
         raw_api_source=last_result.raw_api_source,
     )
+
+
+def _make_thread_local_captioner_getter(
+    *,
+    model_name: str,
+    use_cache: bool,
+    cache_dir: str,
+    object_use_cache: bool,
+    object_cache_dir: str,
+) -> Callable[[], VLMCaptioner]:
+    thread_local = threading.local()
+
+    def _get_captioner() -> VLMCaptioner:
+        captioner = getattr(thread_local, "captioner", None)
+        if captioner is None:
+            captioner = VLMCaptioner(
+                model_name=model_name,
+                use_cache=use_cache,
+                cache_dir=cache_dir,
+                object_use_cache=object_use_cache,
+                object_cache_dir=object_cache_dir,
+            )
+            thread_local.captioner = captioner
+        return captioner
+
+    return _get_captioner
+
+
+def _run_parallel_vlm_stage(
+    *,
+    jobs: Sequence[Dict[str, Any]],
+    max_in_flight: int,
+    worker: Callable[[Dict[str, Any], VLMCaptioner], Any],
+    captioner_getter: Callable[[], VLMCaptioner],
+    stage_name: str,
+) -> Dict[int, Dict[str, Any]]:
+    if not jobs:
+        return {}
+
+    max_workers = max(1, int(max_in_flight))
+    results_by_frame_idx: Dict[int, Dict[str, Any]] = {}
+
+    def _wrapped(job: Dict[str, Any]) -> Dict[str, Any]:
+        t0 = time.perf_counter()
+        result = worker(job, captioner_getter())
+        return {
+            "result": result,
+            "elapsed_sec": float(time.perf_counter() - t0),
+        }
+
+    _builder_log(
+        f"{stage_name}_batch_start count={len(jobs)} max_in_flight={max_workers}"
+    )
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_frame_idx = {
+            executor.submit(_wrapped, dict(job)): int(job["frame_idx"])
+            for job in jobs
+        }
+        for future in as_completed(future_to_frame_idx):
+            frame_idx = int(future_to_frame_idx[future])
+            results_by_frame_idx[frame_idx] = dict(future.result())
+    _builder_log(
+        f"{stage_name}_batch_done count={len(jobs)} max_in_flight={max_workers}"
+    )
+    return results_by_frame_idx
+
+
+def _apply_batched_description_result_to_geometry(
+    geometry_result: Any,
+    *,
+    description_result: Optional[Mapping[str, Any]],
+    description_total_sec: float,
+) -> Any:
+    default_payload = VLMCaptioner._default_object_crop_description()
+    request_by_local_id = {
+        str(item.get("object_local_id") or "").strip(): dict(item)
+        for item in list(getattr(geometry_result, "description_requests", []) or [])
+        if str(item.get("object_local_id") or "").strip()
+    }
+    description_by_local_id: Dict[str, Dict[str, Any]] = {}
+    for item in list((description_result or {}).get("objects") or []):
+        if not isinstance(item, Mapping):
+            continue
+        object_local_id = str(item.get("object_local_id") or "").strip()
+        if not object_local_id or object_local_id in description_by_local_id:
+            continue
+        label_hint = str(request_by_local_id.get(object_local_id, {}).get("detector_label") or "")
+        description_by_local_id[object_local_id] = VLMCaptioner._normalize_object_description_payload(
+            item,
+            default_payload=default_payload,
+            label_hint=label_hint,
+        )
+
+    request_count = max(len(request_by_local_id), 1)
+    description_per_object_sec = float(description_total_sec / request_count)
+    for row in list(getattr(geometry_result, "object_rows", []) or []):
+        object_local_id = str(row.get("object_local_id") or "").strip()
+        label_hint = str(
+            request_by_local_id.get(object_local_id, {}).get("detector_label")
+            or row.get("detector_label")
+            or row.get("label")
+            or "unknown"
+        )
+        payload = description_by_local_id.get(object_local_id)
+        if payload is None:
+            payload = VLMCaptioner._normalize_object_description_payload(
+                {},
+                default_payload=default_payload,
+                label_hint=label_hint,
+            )
+        short_description = str(payload.get("short_description") or label_hint).strip() or label_hint
+        long_description = (
+            str(payload.get("long_description") or payload.get("short_description") or label_hint).strip()
+            or label_hint
+        )
+        row["crop_vlm_label"] = payload.get("label")
+        row["description"] = short_description
+        row["long_form_open_description"] = long_description
+        row["attributes"] = [str(v).strip() for v in list(payload.get("attributes") or []) if str(v).strip()]
+        row["object_text_short"] = short_description
+        row["object_text_long"] = long_description
+        row["text_input_for_clip_short"] = short_description
+        row["text_input_for_clip_long"] = long_description
+        row["vlm_distance_from_camera_m"] = payload.get("distance_from_camera_m")
+        row["timing_crop_vlm_description_sec"] = float(description_per_object_sec)
+
+    timings = dict(getattr(geometry_result, "timings", {}) or {})
+    object_count = int(len(list(getattr(geometry_result, "object_rows", []) or [])))
+    timings["crop_vlm_description_total_sec"] = float(description_total_sec)
+    timings["crop_vlm_description_per_object_sec"] = [float(description_per_object_sec) for _ in range(object_count)]
+    timings["crop_vlm_description_avg_sec"] = float(description_per_object_sec if object_count > 0 else 0.0)
+    timings["object_description_call_count"] = int(1 if object_count > 0 else 0)
+    timings["total_sec"] = float(timings.get("total_sec") or 0.0) + float(description_total_sec)
+    geometry_result.timings = timings
+    return geometry_result
 
 
 def _frame_text_from_object_rows(rows: Sequence[Dict[str, Any]], mode: str = "short") -> str:
@@ -1043,6 +1180,9 @@ def _build_spatial_database_core(
     angle_split_enable: bool,
     angle_step: int,
     run_polar_surrounding_postprocess: bool,
+    execution_mode: str = "capture_then_parallel_vlm",
+    vlm_max_in_flight: int = 4,
+    legacy_per_frame: bool = False,
 ) -> Dict:
     try:
         from spatial_rag.embedder import Embedder
@@ -1123,6 +1263,9 @@ def _build_spatial_database_core(
             "include_start_scan": bool(random_include_start_scan),
         },
         "scan_angles": [int(a) for a in normalized_scan_angles],
+        "execution_mode": str(execution_mode),
+        "legacy_per_frame": bool(legacy_per_frame),
+        "vlm_max_in_flight": int(max(1, int(vlm_max_in_flight))),
         "total_frames_raw": 0,
         "total_frames_processed": 0,
         "total_entries": 0,
@@ -1147,6 +1290,10 @@ def _build_spatial_database_core(
         "resumed_entry_count": 0,
         "regenerated_length_entry_count": 0,
         "generated_entry_count": 0,
+        "capture_phase_total_sec": 0.0,
+        "selector_batch_total_sec": 0.0,
+        "object_description_batch_total_sec": 0.0,
+        "fallback_batch_total_sec": 0.0,
         "polar_surrounding_postprocess": {
             "enabled": bool(run_polar_surrounding_postprocess),
             "ran": False,
@@ -1231,14 +1378,731 @@ def _build_spatial_database_core(
             poses = poses[:max_frames]
 
         report["total_frames_processed"] = len(frames)
+        normalized_execution_mode = str(execution_mode or "capture_then_parallel_vlm").strip().lower()
+        legacy_mode = bool(legacy_per_frame) or normalized_execution_mode == "legacy_per_frame"
+        report["execution_mode"] = "legacy_per_frame" if legacy_mode else normalized_execution_mode
+        valid_orientation_set = set(normalized_scan_angles)
+
+        if not legacy_mode:
+            capture_t0 = time.perf_counter()
+            frame_jobs: List[Dict[str, Any]] = []
+            next_new_entry_id = int(len(metadata_records))
+            for frame_idx, (rgb_image, pose) in enumerate(zip(frames, poses)):
+                capture_job_t0 = time.perf_counter()
+                pos = np.asarray(pose["position"], dtype=np.float32).reshape(-1)
+                if pos.shape[0] != 3:
+                    raise ValueError(f"Position must be length 3, got {pos.tolist()}")
+
+                world_position = [float(pos[0]), float(pos[1]), float(pos[2])]
+                x = float(world_position[0])
+                y = float(world_position[2])
+                orientation = _rotation_to_orientation_deg(pose.get("rotation"))
+                orientation = _nearest_scan_angle(orientation, normalized_scan_angles)
+                if orientation not in valid_orientation_set:
+                    raise ValueError(
+                        f"Invalid orientation value: {orientation}; expected one of {list(normalized_scan_angles)}"
+                    )
+                position_id = frame_idx // num_angles_per_position
+                file_name = f"images/pose_{position_id:05d}_o{orientation:03d}_{frame_idx:06d}.jpg"
+                image_path = output_root / file_name
+                existing_entry_id = file_name_to_entry_id.get(file_name)
+                existing_meta = (
+                    metadata_records[existing_entry_id]
+                    if existing_entry_id is not None and 0 <= existing_entry_id < len(metadata_records)
+                    else None
+                )
+                existing_raw_api = (
+                    raw_api_records[existing_entry_id]
+                    if existing_entry_id is not None and 0 <= existing_entry_id < len(raw_api_records)
+                    else None
+                )
+                existing_image_emb = (
+                    image_embs[existing_entry_id]
+                    if existing_entry_id is not None and 0 <= existing_entry_id < len(image_embs)
+                    else None
+                )
+                existing_text_emb_short = (
+                    text_embs_short[existing_entry_id]
+                    if existing_entry_id is not None and 0 <= existing_entry_id < len(text_embs_short)
+                    else None
+                )
+                existing_text_emb_long = (
+                    text_embs_long[existing_entry_id]
+                    if existing_entry_id is not None and 0 <= existing_entry_id < len(text_embs_long)
+                    else None
+                )
+                existing_object_group = (
+                    object_groups_by_entry_id.get(existing_entry_id)
+                    if existing_entry_id is not None
+                    else None
+                )
+                reusable = _should_reuse_existing_entry(
+                    existing_meta=existing_meta,
+                    existing_raw_api=existing_raw_api,
+                    existing_image_emb=existing_image_emb,
+                    existing_text_emb_short=existing_text_emb_short,
+                    existing_text_emb_long=existing_text_emb_long,
+                    existing_object_group=existing_object_group,
+                    expected_file_name=file_name,
+                    require_geometry_fields=bool(OBJECT_GEOMETRY_PIPELINE_ENABLE),
+                )
+                planned_entry_id = int(existing_entry_id) if existing_entry_id is not None else int(next_new_entry_id)
+                if existing_entry_id is None:
+                    next_new_entry_id += 1
+
+                image_path.parent.mkdir(parents=True, exist_ok=True)
+                ok = cv2.imwrite(str(image_path), cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
+                if not ok:
+                    raise RuntimeError(f"Failed to save image to {image_path}")
+
+                frame_jobs.append(
+                    {
+                        "frame_idx": int(frame_idx),
+                        "rgb_image": rgb_image,
+                        "pose": pose,
+                        "world_position": list(world_position),
+                        "x": float(x),
+                        "y": float(y),
+                        "orientation": int(orientation),
+                        "position_id": int(position_id),
+                        "file_name": file_name,
+                        "image_path": str(image_path),
+                        "camera_context": {
+                            "camera_x": float(x),
+                            "camera_z": float(y),
+                            "camera_orientation_deg": float(orientation),
+                        },
+                        "capture_sec": float(time.perf_counter() - capture_job_t0),
+                        "planned_entry_id": int(planned_entry_id),
+                        "existing_entry_id": None if existing_entry_id is None else int(existing_entry_id),
+                        "reused": bool(reusable),
+                        "existing_meta": existing_meta,
+                        "existing_raw_api": existing_raw_api,
+                    }
+                )
+            report["capture_phase_total_sec"] = float(time.perf_counter() - capture_t0)
+
+            for job in frame_jobs:
+                if not job["reused"]:
+                    continue
+                report["resumed_entry_count"] += 1
+                timing_records.append(
+                    {
+                        "frame_idx": int(job["frame_idx"]),
+                        "entry_id": int(job["planned_entry_id"]),
+                        "file_name": str(job["file_name"]),
+                        "route": "resumed",
+                        "resumed": True,
+                        "frame_total_sec": float(job["capture_sec"]),
+                    }
+                )
+                _builder_log(
+                    "frame_resume "
+                    f"frame_idx={int(job['frame_idx'])} "
+                    f"entry_id={int(job['planned_entry_id'])} "
+                    f"file={job['file_name']}"
+                )
+
+            active_jobs = [job for job in frame_jobs if not job["reused"]]
+            parallel_captioner_getter = _make_thread_local_captioner_getter(
+                model_name=vlm_model,
+                use_cache=use_cache,
+                cache_dir=str(cache_dir),
+                object_use_cache=object_use_cache,
+                object_cache_dir=str(object_cache_root),
+            )
+
+            selector_results_by_frame_idx: Dict[int, Dict[str, Any]] = {}
+            if geometry_pipeline is not None and active_jobs:
+                selector_results_by_frame_idx = _run_parallel_vlm_stage(
+                    jobs=active_jobs,
+                    max_in_flight=int(vlm_max_in_flight),
+                    captioner_getter=parallel_captioner_getter,
+                    stage_name="selector",
+                    worker=lambda job, stage_captioner: stage_captioner.select_object_types_with_meta(
+                        image_path=str(job["image_path"]),
+                        camera_context=dict(job["camera_context"]),
+                    ),
+                )
+                report["selector_batch_total_sec"] = float(
+                    sum(float(item.get("elapsed_sec") or 0.0) for item in selector_results_by_frame_idx.values())
+                )
+                for job in active_jobs:
+                    selector_stage = dict(selector_results_by_frame_idx.get(int(job["frame_idx"])) or {})
+                    job["selector_result"] = selector_stage.get("result")
+                    job["selector_sec"] = float(selector_stage.get("elapsed_sec") or 0.0)
+            else:
+                for job in active_jobs:
+                    job["selector_result"] = None
+                    job["selector_sec"] = 0.0
+
+            description_jobs: List[Dict[str, Any]] = []
+            fallback_jobs: List[Dict[str, Any]] = []
+            for job in active_jobs:
+                geometry_result = None
+                if geometry_pipeline is not None:
+                    geometry_result = geometry_pipeline.run_for_view(
+                        entry_id=int(job["planned_entry_id"]),
+                        image_path=str(job["image_path"]),
+                        image_rgb=job["rgb_image"],
+                        camera_x=float(job["x"]),
+                        camera_y=float(job["world_position"][1]),
+                        camera_z=float(job["y"]),
+                        camera_orientation_deg=float(job["orientation"]),
+                        max_objects=int(object_max_per_frame),
+                        selector_result_override=job.get("selector_result"),
+                        defer_object_descriptions=True,
+                    )
+                    geometry_timings = dict(geometry_result.timings or {})
+                    geometry_timings["selector_sec"] = float(job.get("selector_sec") or 0.0)
+                    geometry_timings["total_sec"] = float(geometry_timings.get("total_sec") or 0.0) + float(
+                        job.get("selector_sec") or 0.0
+                    )
+                    geometry_result.timings = geometry_timings
+                    if geometry_result.ok:
+                        report["geometry_ok_count"] = int(report.get("geometry_ok_count", 0)) + 1
+                        description_jobs.append(job)
+                        _builder_log(
+                            "geometry_ok "
+                            f"frame_idx={int(job['frame_idx'])} "
+                            f"file={job['file_name']} "
+                            f"selected_types={len(list(geometry_result.selector_payload.get('selected_object_types') or []))} "
+                            f"objects={len(list(geometry_result.object_rows or []))} "
+                            f"selector_source={str(geometry_result.selector_source or 'unknown')} "
+                            f"selector_sec={float(job.get('selector_sec') or 0.0):.2f} "
+                            f"depth_sec={float(geometry_timings.get('depth_sec') or 0.0):.2f} "
+                            f"angle_sec={float(geometry_timings.get('angle_geometry_total_sec') or 0.0):.2f}"
+                        )
+                    else:
+                        report["geometry_fallback_count"] = int(report.get("geometry_fallback_count", 0)) + 1
+                        fallback_jobs.append(job)
+                        _builder_log(
+                            "geometry_fallback "
+                            f"frame_idx={int(job['frame_idx'])} "
+                            f"file={job['file_name']} "
+                            f"reason={geometry_result.failure_reason or 'unknown'} "
+                            f"selector_sec={float(job.get('selector_sec') or 0.0):.2f} "
+                            f"detector_sec={float(geometry_timings.get('detector_sec') or 0.0):.2f} "
+                            f"depth_sec={float(geometry_timings.get('depth_sec') or 0.0):.2f}"
+                        )
+                else:
+                    fallback_jobs.append(job)
+                job["geometry_result"] = geometry_result
+
+            if description_jobs:
+                description_results_by_frame_idx = _run_parallel_vlm_stage(
+                    jobs=description_jobs,
+                    max_in_flight=int(vlm_max_in_flight),
+                    captioner_getter=parallel_captioner_getter,
+                    stage_name="object_description",
+                    worker=lambda job, stage_captioner: stage_captioner.describe_detected_objects_with_meta(
+                        image_path=str(job["image_path"]),
+                        detections=list(getattr(job["geometry_result"], "description_requests", []) or []),
+                    ),
+                )
+                report["object_description_batch_total_sec"] = float(
+                    sum(float(item.get("elapsed_sec") or 0.0) for item in description_results_by_frame_idx.values())
+                )
+                for job in description_jobs:
+                    description_stage = dict(description_results_by_frame_idx.get(int(job["frame_idx"])) or {})
+                    job["geometry_result"] = _apply_batched_description_result_to_geometry(
+                        job["geometry_result"],
+                        description_result=description_stage.get("result"),
+                        description_total_sec=float(description_stage.get("elapsed_sec") or 0.0),
+                    )
+
+            if fallback_jobs:
+                fallback_results_by_frame_idx = _run_parallel_vlm_stage(
+                    jobs=fallback_jobs,
+                    max_in_flight=int(vlm_max_in_flight),
+                    captioner_getter=parallel_captioner_getter,
+                    stage_name="fallback",
+                    worker=lambda job, stage_captioner: _parse_objects_with_retry(
+                        captioner=stage_captioner,
+                        image_path=str(job["image_path"]),
+                        image_id=str(job["file_name"]),
+                        max_objects=int(object_max_per_frame),
+                        retries=int(object_parse_retries),
+                        prompt_variant=selected_prompt_variant,
+                        camera_context=dict(job["camera_context"]),
+                    ),
+                )
+                report["fallback_batch_total_sec"] = float(
+                    sum(float(item.get("elapsed_sec") or 0.0) for item in fallback_results_by_frame_idx.values())
+                )
+                for job in fallback_jobs:
+                    fallback_stage = dict(fallback_results_by_frame_idx.get(int(job["frame_idx"])) or {})
+                    job["parse_result"] = fallback_stage.get("result")
+                    job["fallback_parse_sec"] = float(fallback_stage.get("elapsed_sec") or 0.0)
+            else:
+                fallback_results_by_frame_idx = {}
+
+            for job in frame_jobs:
+                if job["reused"]:
+                    continue
+                frame_idx = int(job["frame_idx"])
+                rgb_image = job["rgb_image"]
+                world_position = list(job["world_position"])
+                x = float(job["x"])
+                y = float(job["y"])
+                orientation = int(job["orientation"])
+                file_name = str(job["file_name"])
+                image_path = Path(str(job["image_path"]))
+                entry_id = int(job["planned_entry_id"])
+                geometry_result = job.get("geometry_result")
+                geometry_object_rows: List[Dict[str, Any]] = []
+                geometry_timing: Dict[str, Any] = {}
+                fallback_parse_sec = float(job.get("fallback_parse_sec") or 0.0)
+                fallback_angle_geometry_sec = 0.0
+                view_embedding_sec = 0.0
+                object_embedding_total_sec = 0.0
+                parse_warnings: List[str] = []
+                scene_objects = None
+                object_text_pairs: List[Tuple] = []
+                raw_vlm_output = ""
+                raw_api_source = "missing"
+                raw_api_response = None
+                view_attribute = _build_view_attribute(scene_objects=None)
+                parse_status = "fallback"
+                object_texts_short = [UNKNOWN_TEXT_TOKEN]
+                object_texts_long = [UNKNOWN_TEXT_TOKEN]
+                frame_text_short = UNKNOWN_TEXT_TOKEN
+                frame_text_long = UNKNOWN_TEXT_TOKEN
+
+                if geometry_result is not None and getattr(geometry_result, "ok", False):
+                    geometry_object_rows = list(geometry_result.object_rows or [])
+                    geometry_timing = dict(geometry_result.timings or {})
+                    view_attribute = _view_attribute_from_selector_payload(geometry_result.selector_payload)
+                    raw_vlm_output = str(geometry_result.selector_raw_json or "")
+                    raw_api_source = str(geometry_result.selector_source or "")
+                    raw_api_response = geometry_result.selector_raw_api_response
+                    object_texts_short = [
+                        str(row.get("object_text_short") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN
+                        for row in geometry_object_rows
+                    ] or [UNKNOWN_TEXT_TOKEN]
+                    object_texts_long = [
+                        _format_object_text_long(
+                            str(row.get("object_text_long") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN,
+                            angle_bucket=_normalize_angle_bucket(
+                                row.get("laterality"),
+                                angle_split_enable=angle_split_active,
+                            ),
+                            builder_variant=selected_builder_variant,
+                        )
+                        for row in geometry_object_rows
+                    ] or [UNKNOWN_TEXT_TOKEN]
+                    frame_text_short = " | ".join(object_texts_short) if object_texts_short else UNKNOWN_TEXT_TOKEN
+                    frame_text_long = " | ".join(object_texts_long) if object_texts_long else UNKNOWN_TEXT_TOKEN
+                    parse_status = "ok"
+                else:
+                    parse_result = job.get("parse_result")
+                    if geometry_result is not None:
+                        geometry_timing = dict(geometry_result.timings or {})
+                        parse_warnings.append(
+                            f"geometry_pipeline_fallback:{geometry_result.failure_reason or 'unknown'}"
+                        )
+                    if parse_result is not None:
+                        parse_status = parse_result.parse_status
+                        parse_warnings.extend(list(parse_result.warnings))
+                        raw_vlm_output = parse_result.raw_vlm_output
+                        raw_api_source = parse_result.raw_api_source
+                        raw_api_response = parse_result.raw_api_response
+                        scene_objects = parse_result.scene_objects
+                    if scene_objects is not None:
+                        parse_status = "ok"
+                        angle_enrich_t0 = time.perf_counter()
+                        view_attribute = _build_view_attribute(scene_objects=scene_objects)
+                        _enrich_scene_objects_geometry(
+                            scene_objects,
+                            camera_x=float(x),
+                            camera_y=float(world_position[1]),
+                            camera_z=float(y),
+                            camera_orientation_deg=float(orientation),
+                            angle_step=int(angle_step),
+                        )
+                        fallback_angle_geometry_sec = float(time.perf_counter() - angle_enrich_t0)
+                        frame_text_short = compose_frame_text(
+                            scene_objects,
+                            max_objects=int(object_max_per_frame),
+                            mode="short",
+                        )
+                        frame_text_long = compose_frame_text(
+                            scene_objects,
+                            max_objects=int(object_max_per_frame),
+                            mode="long",
+                        )
+                        objs = sorted_objects(scene_objects, max_objects=int(object_max_per_frame))
+                        for obj in objs:
+                            obj_text_short = select_object_text(obj, mode="short", scene_objects=scene_objects)
+                            raw_long = select_object_text(obj, mode="long", scene_objects=scene_objects)
+                            if obj_text_short and raw_long:
+                                angle_bucket = _normalize_angle_bucket(
+                                    obj.relative_position_laterality,
+                                    angle_split_enable=angle_split_active,
+                                )
+                                obj_text_long = _format_object_text_long(
+                                    raw_long,
+                                    angle_bucket=angle_bucket,
+                                    builder_variant=selected_builder_variant,
+                                )
+                                object_text_pairs.append((obj, obj_text_short, raw_long, obj_text_long))
+                        if object_text_pairs:
+                            object_texts_short = [short_text for _, short_text, _, _ in object_text_pairs]
+                            object_texts_long = [long_text for _, _, _, long_text in object_text_pairs]
+
+                embed_view_t0 = time.perf_counter()
+                image_emb = embedder.embed_image(rgb_image).astype("float32")
+                text_emb_short = embedder.embed_text(frame_text_short).astype("float32")
+                text_emb_long = embedder.embed_text(frame_text_long).astype("float32")
+                view_embedding_sec = float(time.perf_counter() - embed_view_t0)
+
+                if image_emb.ndim != 1 or text_emb_short.ndim != 1 or text_emb_long.ndim != 1:
+                    raise ValueError("Embedding must be a 1D vector")
+                if (
+                    image_emb.shape[0] != emb_dim
+                    or text_emb_short.shape[0] != emb_dim
+                    or text_emb_long.shape[0] != emb_dim
+                ):
+                    raise ValueError(
+                        f"Embedding dim mismatch: image={image_emb.shape[0]}, "
+                        f"text_short={text_emb_short.shape[0]}, text_long={text_emb_long.shape[0]}, "
+                        f"expected={emb_dim}"
+                    )
+                if not np.isclose(x, world_position[0]) or not np.isclose(y, world_position[2]):
+                    raise ValueError("2D/3D coordinate consistency check failed")
+
+                entry_object_count = 0
+                metadata_record = {
+                    "id": entry_id,
+                    "frame_id": int(frame_idx),
+                    "x": x,
+                    "y": y,
+                    "world_position": world_position,
+                    "orientation": orientation,
+                    "file_name": file_name,
+                    "text": frame_text_short,
+                    "frame_text_short": frame_text_short,
+                    "frame_text_long": frame_text_long,
+                    "parse_status": parse_status,
+                    "parse_warnings": parse_warnings,
+                    "raw_vlm_output": raw_vlm_output,
+                    "raw_api_source": raw_api_source,
+                    "text_input_for_clip_short": frame_text_short,
+                    "text_input_for_clip_long": frame_text_long,
+                    "object_text_inputs_short": object_texts_short,
+                    "object_text_inputs_long": object_texts_long,
+                    "builder_variant": selected_builder_variant,
+                    "object_prompt_variant": selected_prompt_variant,
+                    "attribute": dict(view_attribute),
+                }
+                raw_api_record = {
+                    "entry_id": int(entry_id),
+                    "frame_id": int(frame_idx),
+                    "file_name": file_name,
+                    "raw_api_source": raw_api_source,
+                    "raw_api_response": raw_api_response,
+                    "object_prompt_variant": selected_prompt_variant,
+                    "geometry_pipeline_used": bool(geometry_object_rows),
+                    "geometry_fallback_reason": None
+                    if geometry_result is None or geometry_result.ok
+                    else geometry_result.failure_reason,
+                    "selected_object_types": []
+                    if geometry_result is None
+                    else list(geometry_result.selector_payload.get("selected_object_types") or []),
+                    "geometry_artifacts": {}
+                    if geometry_result is None
+                    else {
+                        "detections_path": geometry_result.artifacts.detections_path,
+                        "detection_overlay_path": geometry_result.artifacts.detection_overlay_path,
+                        "depth_map_path": geometry_result.artifacts.depth_map_path,
+                        "depth_preview_path": geometry_result.artifacts.depth_preview_path,
+                    },
+                    "timing": {
+                        "frame_total_sec": 0.0,
+                        "geometry_pipeline_total_sec": float(geometry_timing.get("total_sec") or 0.0),
+                        "selector_sec": float(geometry_timing.get("selector_sec") or 0.0),
+                        "dependency_setup_sec": float(geometry_timing.get("dependency_setup_sec") or 0.0),
+                        "detector_sec": float(geometry_timing.get("detector_sec") or 0.0),
+                        "depth_sec": float(geometry_timing.get("depth_sec") or 0.0),
+                        "mask_total_sec": float(geometry_timing.get("mask_total_sec") or 0.0),
+                        "angle_geometry_total_sec": float(geometry_timing.get("angle_geometry_total_sec") or 0.0),
+                        "crop_vlm_description_total_sec": float(
+                            geometry_timing.get("crop_vlm_description_total_sec") or 0.0
+                        ),
+                        "crop_vlm_description_avg_sec": float(
+                            geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
+                        ),
+                        "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
+                        "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
+                        "view_embedding_sec": float(view_embedding_sec),
+                        "object_embedding_total_sec": float(object_embedding_total_sec),
+                    },
+                }
+                existing_entry_id = job.get("existing_entry_id")
+                if existing_entry_id is None:
+                    metadata_records.append(metadata_record)
+                    raw_api_records.append(raw_api_record)
+                    image_embs.append(image_emb)
+                    text_embs_short.append(text_emb_short)
+                    text_embs_long.append(text_emb_long)
+                    report["generated_entry_count"] += 1
+                else:
+                    if _response_has_length_finish_reason((job.get("existing_raw_api") or {}).get("raw_api_response")):
+                        report["regenerated_length_entry_count"] += 1
+                    metadata_records[entry_id] = metadata_record
+                    raw_api_records[entry_id] = raw_api_record
+                    image_embs[entry_id] = image_emb
+                    text_embs_short[entry_id] = text_emb_short
+                    text_embs_long[entry_id] = text_emb_long
+                file_name_to_entry_id[file_name] = int(entry_id)
+                entry_object_records: List[Tuple[Dict, np.ndarray, np.ndarray]] = []
+
+                if geometry_object_rows:
+                    for geo_row, line_short, line_long in zip(geometry_object_rows, object_texts_short, object_texts_long):
+                        object_embed_t0 = time.perf_counter()
+                        obj_emb_short = embedder.embed_text(line_short).astype("float32")
+                        obj_emb_long = embedder.embed_text(line_long).astype("float32")
+                        object_embedding_total_sec += float(time.perf_counter() - object_embed_t0)
+                        record = _make_object_record(
+                            object_global_id=0,
+                            frame_id=frame_idx,
+                            entry_id=entry_id,
+                            file_name=file_name,
+                            x=x,
+                            y=y,
+                            world_position=world_position,
+                            orientation=orientation,
+                            parse_status=parse_status,
+                            builder_variant=selected_builder_variant,
+                            angle_split_enable=angle_split_active,
+                            angle_step=angle_step,
+                            object_local_id=str(geo_row.get("object_local_id") or "det_000"),
+                            label=str(geo_row.get("label") or "unknown"),
+                            object_confidence=float(geo_row.get("object_confidence") or 0.0),
+                            description=line_short,
+                            long_form_open_description=str(
+                                geo_row.get("long_form_open_description") or geo_row.get("object_text_long") or line_short
+                            ),
+                            attributes=list(geo_row.get("attributes") or []),
+                            laterality=str(geo_row.get("laterality") or "center"),
+                            distance_bin=str(geo_row.get("distance_bin") or "middle"),
+                            verticality=str(geo_row.get("verticality") or "middle"),
+                            distance_from_camera_m=geo_row.get("distance_from_camera_m"),
+                            relative_height_from_camera_m=geo_row.get("relative_height_from_camera_m"),
+                            relative_bearing_deg=geo_row.get("relative_bearing_deg"),
+                            estimated_global_x=geo_row.get("estimated_global_x"),
+                            estimated_global_y=geo_row.get("estimated_global_y"),
+                            estimated_global_z=geo_row.get("estimated_global_z"),
+                            any_text=str(geo_row.get("any_text") or ""),
+                            location_relative_to_other_objects=str(
+                                geo_row.get("location_relative_to_other_objects") or ""
+                            ),
+                            surrounding_context=list(geo_row.get("surrounding_context") or []),
+                            scene_attributes=list(view_attribute.get("scene_attributes") or []),
+                            object_text_short=line_short,
+                            object_text_long=line_long,
+                            precise_orientation_from_bearing=True,
+                            geometry_source=str(geo_row.get("geometry_source") or "mask_depth"),
+                            geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
+                            detector_label=geo_row.get("detector_label"),
+                            detector_confidence=geo_row.get("detector_confidence"),
+                            bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
+                            bbox_xyxy=geo_row.get("bbox_xyxy"),
+                            mask_area_px=geo_row.get("mask_area_px"),
+                            mask_area_ratio=geo_row.get("mask_area_ratio"),
+                            mask_centroid_x_px=geo_row.get("mask_centroid_x_px"),
+                            mask_centroid_y_px=geo_row.get("mask_centroid_y_px"),
+                            mask_centroid_x_norm=geo_row.get("mask_centroid_x_norm"),
+                            mask_centroid_y_norm=geo_row.get("mask_centroid_y_norm"),
+                            depth_stat_median_m=geo_row.get("depth_stat_median_m"),
+                            depth_stat_p10_m=geo_row.get("depth_stat_p10_m"),
+                            depth_stat_p90_m=geo_row.get("depth_stat_p90_m"),
+                            projected_planar_distance_m=geo_row.get("projected_planar_distance_m"),
+                            vertical_angle_deg=geo_row.get("vertical_angle_deg"),
+                            vlm_distance_from_camera_m=geo_row.get("vlm_distance_from_camera_m"),
+                            vlm_relative_bearing_deg=geo_row.get("vlm_relative_bearing_deg"),
+                            crop_path=geo_row.get("crop_path"),
+                            mask_path=geo_row.get("mask_path"),
+                            mask_overlay_path=geo_row.get("mask_overlay_path"),
+                            depth_map_path=geo_row.get("depth_map_path"),
+                            crop_vlm_label=geo_row.get("crop_vlm_label"),
+                        )
+                        record["view_type"] = str(view_attribute.get("view_type") or "unknown")
+                        record["room_function"] = str(view_attribute.get("room_function") or "unknown")
+                        record["style_hint"] = str(view_attribute.get("style_hint") or "unknown")
+                        record["clutter_level"] = str(view_attribute.get("clutter_level") or "unknown")
+                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
+                        report[bucket_key] = int(report.get(bucket_key, 0)) + 1
+                        entry_object_count += 1
+                elif scene_objects is not None and object_text_pairs:
+                    for obj, line_short, raw_long, line_long in object_text_pairs:
+                        object_embed_t0 = time.perf_counter()
+                        obj_emb_short = embedder.embed_text(line_short).astype("float32")
+                        obj_emb_long = embedder.embed_text(line_long).astype("float32")
+                        object_embedding_total_sec += float(time.perf_counter() - object_embed_t0)
+                        record = _make_object_record(
+                            object_global_id=0,
+                            frame_id=frame_idx,
+                            entry_id=entry_id,
+                            file_name=file_name,
+                            x=x,
+                            y=y,
+                            world_position=world_position,
+                            orientation=orientation,
+                            parse_status=parse_status,
+                            builder_variant=selected_builder_variant,
+                            angle_split_enable=angle_split_active,
+                            angle_step=angle_step,
+                            scene_objects=scene_objects,
+                            obj=obj,
+                            object_local_id=obj.feature_id,
+                            label=obj.type,
+                            object_confidence=1.0,
+                            description=line_short,
+                            long_form_open_description=raw_long,
+                            attributes=list(obj.attributes or []),
+                            laterality=obj.relative_position_laterality,
+                            distance_bin=obj.relative_position_distance,
+                            verticality=obj.relative_position_verticality,
+                            distance_from_camera_m=obj.distance_from_camera_m,
+                            relative_height_from_camera_m=getattr(obj, "relative_height_from_camera_m", None),
+                            relative_bearing_deg=obj.relative_bearing_deg,
+                            estimated_global_x=obj.estimated_global_x,
+                            estimated_global_y=getattr(obj, "estimated_global_y", None),
+                            estimated_global_z=obj.estimated_global_z,
+                            any_text=obj.any_text,
+                            location_relative_to_other_objects=obj.location_relative_to_other_objects,
+                            surrounding_context=_serialize_surrounding_context(obj.surrounding_context),
+                            scene_attributes=list(scene_objects.scene_attributes or []),
+                            object_text_short=line_short,
+                            object_text_long=line_long,
+                            precise_orientation_from_bearing=True,
+                            geometry_source="vlm_fallback",
+                            geometry_fallback_reason=None
+                            if geometry_result is None
+                            else geometry_result.failure_reason,
+                            detector_label=None,
+                            detector_confidence=None,
+                            vlm_distance_from_camera_m=obj.distance_from_camera_m,
+                            vlm_relative_bearing_deg=obj.relative_bearing_deg,
+                        )
+                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
+                        report[bucket_key] = int(report.get(bucket_key, 0)) + 1
+                        entry_object_count += 1
+                else:
+                    angle_bucket = _normalize_angle_bucket("center", angle_split_enable=angle_split_active)
+                    line_short = UNKNOWN_TEXT_TOKEN
+                    line_long = _format_object_text_long(
+                        UNKNOWN_TEXT_TOKEN,
+                        angle_bucket=angle_bucket,
+                        builder_variant=selected_builder_variant,
+                    )
+                    object_embed_t0 = time.perf_counter()
+                    obj_emb_short = embedder.embed_text(line_short).astype("float32")
+                    obj_emb_long = embedder.embed_text(line_long).astype("float32")
+                    object_embedding_total_sec += float(time.perf_counter() - object_embed_t0)
+                    record = _make_object_record(
+                        object_global_id=0,
+                        frame_id=frame_idx,
+                        entry_id=entry_id,
+                        file_name=file_name,
+                        x=x,
+                        y=y,
+                        world_position=world_position,
+                        orientation=orientation,
+                        parse_status=parse_status,
+                        builder_variant=selected_builder_variant,
+                        angle_split_enable=angle_split_active,
+                        angle_step=angle_step,
+                        object_local_id="none_000",
+                        label="none",
+                        object_confidence=0.0,
+                        laterality=angle_bucket,
+                        object_text_short=line_short,
+                        object_text_long=line_long,
+                        geometry_source="vlm_fallback",
+                        geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                    )
+                    entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                    report["total_center_bucket_objects"] = int(report.get("total_center_bucket_objects", 0)) + 1
+                    entry_object_count += 1
+                object_groups_by_entry_id[int(entry_id)] = entry_object_records
+
+                if parse_status == "ok":
+                    report["parse_ok_count"] += 1
+                elif parse_status == "fallback":
+                    report["parse_fallback_count"] += 1
+                else:
+                    report["parse_failed_count"] += 1
+
+                metadata_records[entry_id]["object_count"] = int(entry_object_count)
+                frame_total_sec = float(
+                    float(job.get("capture_sec") or 0.0)
+                    + float(job.get("selector_sec") or 0.0)
+                    + float(geometry_timing.get("dependency_setup_sec") or 0.0)
+                    + float(geometry_timing.get("detector_sec") or 0.0)
+                    + float(geometry_timing.get("depth_sec") or 0.0)
+                    + float(geometry_timing.get("mask_total_sec") or 0.0)
+                    + float(geometry_timing.get("angle_geometry_total_sec") or 0.0)
+                    + float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0)
+                    + float(fallback_parse_sec)
+                    + float(fallback_angle_geometry_sec)
+                    + float(view_embedding_sec)
+                    + float(object_embedding_total_sec)
+                )
+                raw_api_record["timing"]["view_embedding_sec"] = float(view_embedding_sec)
+                raw_api_record["timing"]["object_embedding_total_sec"] = float(object_embedding_total_sec)
+                raw_api_record["timing"]["frame_total_sec"] = frame_total_sec
+                timing_records.append(
+                    {
+                        "frame_idx": int(frame_idx),
+                        "entry_id": int(entry_id),
+                        "file_name": file_name,
+                        "route": "mask_depth" if geometry_object_rows else "vlm_fallback",
+                        "parse_status": parse_status,
+                        "object_count": int(entry_object_count),
+                        "raw_api_source": raw_api_source,
+                        "frame_total_sec": frame_total_sec,
+                        "geometry_pipeline_total_sec": float(geometry_timing.get("total_sec") or 0.0),
+                        "selector_sec": float(geometry_timing.get("selector_sec") or 0.0),
+                        "dependency_setup_sec": float(geometry_timing.get("dependency_setup_sec") or 0.0),
+                        "detector_sec": float(geometry_timing.get("detector_sec") or 0.0),
+                        "depth_sec": float(geometry_timing.get("depth_sec") or 0.0),
+                        "mask_total_sec": float(geometry_timing.get("mask_total_sec") or 0.0),
+                        "angle_geometry_total_sec": float(geometry_timing.get("angle_geometry_total_sec") or 0.0),
+                        "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
+                        "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
+                        "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
+                        "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
+                        "view_embedding_sec": float(view_embedding_sec),
+                        "object_embedding_total_sec": float(object_embedding_total_sec),
+                    }
+                )
+                _builder_log(
+                    "frame_done "
+                    f"frame_idx={int(frame_idx)} "
+                    f"entry_id={int(entry_id)} "
+                    f"file={file_name} "
+                    f"route={'mask_depth' if geometry_object_rows else 'vlm_fallback'} "
+                    f"parse_status={parse_status} "
+                    f"object_count={int(entry_object_count)} "
+                    f"raw_api_source={raw_api_source} "
+                    f"frame_total_sec={frame_total_sec:.2f} "
+                    f"depth_sec={float(geometry_timing.get('depth_sec') or 0.0):.2f} "
+                    f"angle_sec={float(geometry_timing.get('angle_geometry_total_sec') or 0.0):.2f} "
+                    f"crop_vlm_sec={float(geometry_timing.get('crop_vlm_description_total_sec') or 0.0):.2f} "
+                    f"fallback_vlm_sec={fallback_parse_sec:.2f}"
+                )
 
         frame_iter = tqdm(
             zip(frames, poses),
             total=len(frames),
             desc="Building spatial DB",
-        )
-
-        valid_orientation_set = set(normalized_scan_angles)
+        ) if legacy_mode else []
 
         for frame_idx, (rgb_image, pose) in enumerate(frame_iter):
             frame_t0 = time.perf_counter()
@@ -1609,6 +2473,7 @@ def _build_spatial_database_core(
                         "crop_vlm_description_avg_sec": float(
                             geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
                         ),
+                        "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -1837,6 +2702,7 @@ def _build_spatial_database_core(
                         "angle_geometry_total_sec": float(geometry_timing.get("angle_geometry_total_sec") or 0.0),
                         "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
                         "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
+                        "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -2053,6 +2919,9 @@ def build_spatial_database(
     random_max_attempts_per_step: int = 32,
     random_include_start_scan: bool = True,
     run_polar_surrounding_postprocess: bool = False,
+    execution_mode: str = "capture_then_parallel_vlm",
+    vlm_max_in_flight: int = 4,
+    legacy_per_frame: bool = False,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -2078,6 +2947,9 @@ def build_spatial_database(
         angle_split_enable=False,
         angle_step=int(VLM_ANGLE_STEP),
         run_polar_surrounding_postprocess=bool(run_polar_surrounding_postprocess),
+        execution_mode=str(execution_mode),
+        vlm_max_in_flight=int(vlm_max_in_flight),
+        legacy_per_frame=bool(legacy_per_frame),
     )
 
 
@@ -2102,6 +2974,9 @@ def build_spatial_database_angle_split(
     angle_split_enable: bool = VLM_ANGLE_SPLIT_ENABLE,
     angle_step: int = VLM_ANGLE_STEP,
     run_polar_surrounding_postprocess: bool = False,
+    execution_mode: str = "capture_then_parallel_vlm",
+    vlm_max_in_flight: int = 4,
+    legacy_per_frame: bool = False,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -2127,6 +3002,9 @@ def build_spatial_database_angle_split(
         angle_split_enable=bool(angle_split_enable),
         angle_step=int(angle_step),
         run_polar_surrounding_postprocess=bool(run_polar_surrounding_postprocess),
+        execution_mode=str(execution_mode),
+        vlm_max_in_flight=int(vlm_max_in_flight),
+        legacy_per_frame=bool(legacy_per_frame),
     )
 
 
@@ -2228,9 +3106,47 @@ def main() -> None:
         default=False,
         help="Whether to rebuild polar surrounding context after DB build (true/false)",
     )
+    parser.add_argument(
+        "--builder_variant",
+        type=str,
+        default="standard",
+        choices=["standard", "angle_split"],
+        help="Database builder variant to run",
+    )
+    parser.add_argument(
+        "--angle_split_enable",
+        type=_str_to_bool,
+        default=VLM_ANGLE_SPLIT_ENABLE,
+        help="Whether to offset object orientation by left/center/right angle buckets in angle-split mode",
+    )
+    parser.add_argument(
+        "--angle_step",
+        type=int,
+        default=VLM_ANGLE_STEP,
+        help="Angle offset in degrees for left/right buckets in angle-split mode",
+    )
+    parser.add_argument(
+        "--execution_mode",
+        type=str,
+        default="capture_then_parallel_vlm",
+        choices=["capture_then_parallel_vlm", "legacy_per_frame"],
+        help="Builder execution mode",
+    )
+    parser.add_argument(
+        "--vlm_max_in_flight",
+        type=int,
+        default=4,
+        help="Maximum number of concurrent VLM requests in staged execution mode",
+    )
+    parser.add_argument(
+        "--legacy_per_frame",
+        type=_str_to_bool,
+        default=False,
+        help="Force legacy per-frame execution even if execution_mode is capture_then_parallel_vlm",
+    )
     args = parser.parse_args()
 
-    report = build_spatial_database(
+    common_kwargs = dict(
         scene_path=args.scene_path,
         meters_per_step=args.meters_per_step,
         max_positions=args.max_positions,
@@ -2249,7 +3165,18 @@ def main() -> None:
         random_max_attempts_per_step=args.random_max_attempts_per_step,
         random_include_start_scan=args.random_include_start_scan,
         run_polar_surrounding_postprocess=args.run_polar_surrounding_postprocess,
+        execution_mode=args.execution_mode,
+        vlm_max_in_flight=args.vlm_max_in_flight,
+        legacy_per_frame=args.legacy_per_frame,
     )
+    if args.builder_variant == "angle_split":
+        report = build_spatial_database_angle_split(
+            **common_kwargs,
+            angle_split_enable=args.angle_split_enable,
+            angle_step=args.angle_step,
+        )
+    else:
+        report = build_spatial_database(**common_kwargs)
     print(json.dumps(report, indent=2, ensure_ascii=True))
 
 

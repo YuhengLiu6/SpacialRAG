@@ -27,6 +27,7 @@ from spatial_rag.object_instance_clustering import (
     _truncate_heatmap_label,
     _to_serializable,
     _write_json,
+    estimate_cluster_count_eigengap,
     plot_similarity_heatmap,
     run_spectral_clustering,
 )
@@ -38,9 +39,35 @@ DEFAULT_WEIGHT_TEXT = 0.70
 DEFAULT_WEIGHT_GLOBAL_GEO = 0.20
 DEFAULT_WEIGHT_POLAR = 0.10
 DEFAULT_GLOBAL_SIGMA_M = 2.0
-DEFAULT_CROSS_AFFINITY_MIN = 0.35
+DEFAULT_CROSS_AFFINITY_MIN = 0.25
 DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY = 0.75
+DEFAULT_SIMILARITY_MODE = "cosine_geo_gate"
+DEFAULT_DISTANCE_GATE_DSQ0 = 2.0
+DEFAULT_DISTANCE_GATE_DSQ0_SWEEP = (0.5, 1.0, 2.0, 4.0, 8.0)
+DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS = 2
 EXCLUDED_LABELS = {"", "unknown", "other", "none"}
+OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
+    "object_global_id",
+    "label",
+    "view_id",
+    "entry_id",
+    "step_index",
+    "assignment_reason",
+    "final_cluster_id",
+    "cluster_id_at_assignment",
+    "similarity_reference_cluster_id",
+    "estimated_global_x",
+    "estimated_global_y",
+    "estimated_global_z",
+    "term1_cosine",
+    "xz_distance_m",
+    "dsq",
+    "distance_gate_dsq0",
+    "distance_gate",
+    "distance_gate_exponent",
+    "combined_similarity",
+    "similarity_detail_status",
+)
 SEQUENTIAL_PROGRESS_COLORS_BGR = (
     (32, 119, 238),
     (70, 190, 255),
@@ -78,6 +105,21 @@ def _normalize_view_ids(view_ids: Optional[Sequence[str]]) -> List[str]:
             if cleaned:
                 out.append(cleaned)
     return out or list(DEFAULT_VIEW_IDS)
+
+
+def _normalize_float_list(values: Optional[Sequence[Any]]) -> List[float]:
+    if values is None:
+        return []
+    out: List[float] = []
+    for item in values:
+        if item is None:
+            continue
+        for token in str(item).split(","):
+            cleaned = _safe_text(token)
+            if not cleaned:
+                continue
+            out.append(float(cleaned))
+    return out
 
 
 def _view_id_for_entry(entry_id: int) -> str:
@@ -249,6 +291,8 @@ def _cross_detail_for_pair(
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
+    similarity_mode: str,
+    distance_gate_dsq0: float,
 ) -> Dict[str, Any]:
     if 0 <= int(cur_idx) < len(cross_details):
         row_details = cross_details[int(cur_idx)]
@@ -261,6 +305,8 @@ def _cross_detail_for_pair(
         cluster,
         weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
         global_sigma_m=global_sigma_m,
+        similarity_mode=similarity_mode,
+        distance_gate_dsq0=distance_gate_dsq0,
     )
 
 
@@ -272,6 +318,8 @@ def _best_live_memory_match(
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
+    similarity_mode: str,
+    distance_gate_dsq0: float,
 ) -> Optional[Tuple[float, int, Dict[str, Any]]]:
     best: Optional[Tuple[float, int, Dict[str, Any]]] = None
     weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar)
@@ -283,6 +331,8 @@ def _best_live_memory_match(
             cluster,
             weights=weights,
             global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
         )
         score = float(detail.get("combined_similarity") or 0.0)
         candidate = (score, int(mem_idx), detail)
@@ -323,12 +373,17 @@ def _detail_summary(detail: Optional[Mapping[str, Any]]) -> Optional[Dict[str, A
     if not detail:
         return None
     return {
+        "similarity_mode": _safe_text(detail.get("similarity_mode")),
         "combined_similarity": _safe_float(detail.get("combined_similarity")),
         "text_similarity": _safe_float(detail.get("text_similarity")),
         "global_geo_similarity": _safe_float(detail.get("global_geo_similarity")),
         "polar_similarity": _safe_float(detail.get("polar_similarity")),
         "global_geo_distance_m": _safe_float(detail.get("global_geo_distance_m")),
         "used_3d_global_geo": bool(detail.get("used_3d_global_geo")),
+        "distance_gate": _safe_float(detail.get("distance_gate")),
+        "xz_distance_m": _safe_float(detail.get("xz_distance_m")),
+        "xz_distance_sq_m2": _safe_float(detail.get("xz_distance_sq_m2")),
+        "distance_gate_dsq0": _safe_float(detail.get("distance_gate_dsq0")),
     }
 
 
@@ -388,11 +443,154 @@ def _tail_spawn_case_summary(case: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _assignment_detail_status(reason: str, detail: Optional[Mapping[str, Any]]) -> str:
+    reason_clean = _safe_text(reason)
+    if reason_clean == "initial_seed":
+        return "initial_seed"
+    if not detail:
+        return "no_candidate_detail"
+    if reason_clean in {
+        "component_best_append",
+        "same_view_hard_block_competition_append",
+        "current_only_high_score_reattach",
+    }:
+        return "assigned_match"
+    return "best_rejected_candidate"
+
+
+def _object_assignment_record(
+    row: Mapping[str, Any],
+    *,
+    step_index: int,
+    assignment_reason: str,
+    cluster_id_at_assignment: Optional[int],
+    similarity_reference_cluster_id: Optional[int],
+    detail: Optional[Mapping[str, Any]],
+    similarity_detail_status: Optional[str] = None,
+) -> Dict[str, Any]:
+    status = similarity_detail_status or _assignment_detail_status(assignment_reason, detail)
+    term1_cosine = _safe_float(detail.get("text_similarity")) if detail else None
+    xz_distance_m = _safe_float(detail.get("xz_distance_m")) if detail else None
+    dsq = _safe_float(detail.get("xz_distance_sq_m2")) if detail else None
+    distance_gate_dsq0 = _safe_float(detail.get("distance_gate_dsq0")) if detail else None
+    distance_gate = _safe_float(detail.get("distance_gate")) if detail else None
+    exponent = None
+    if dsq is not None and distance_gate_dsq0 not in (None, 0.0):
+        exponent = -float(dsq) / (2.0 * float(distance_gate_dsq0))
+    return {
+        "object_global_id": _safe_int(row.get("object_global_id"), -1),
+        "label": _safe_text(row.get("label")),
+        "view_id": _safe_text(row.get("view_id")),
+        "entry_id": _safe_int(row.get("entry_id"), -1),
+        "step_index": int(step_index),
+        "assignment_reason": _safe_text(assignment_reason),
+        "final_cluster_id": None,
+        "cluster_id_at_assignment": None if cluster_id_at_assignment is None else int(cluster_id_at_assignment),
+        "similarity_reference_cluster_id": None
+        if similarity_reference_cluster_id is None
+        else int(similarity_reference_cluster_id),
+        "estimated_global_x": _safe_float(row.get("estimated_global_x")),
+        "estimated_global_y": _safe_float(row.get("estimated_global_y")),
+        "estimated_global_z": _safe_float(row.get("estimated_global_z")),
+        "term1_cosine": term1_cosine,
+        "xz_distance_m": xz_distance_m,
+        "dsq": dsq,
+        "distance_gate_dsq0": distance_gate_dsq0,
+        "distance_gate": distance_gate,
+        "distance_gate_exponent": exponent,
+        "combined_similarity": _safe_float(detail.get("combined_similarity")) if detail else None,
+        "similarity_detail_status": status,
+    }
+
+
+def _final_cluster_id_by_object(clusters: Sequence[Mapping[str, Any]]) -> Dict[int, int]:
+    mapping: Dict[int, int] = {}
+    for cluster in clusters:
+        cluster_id = _safe_int(cluster.get("cluster_id"), -1)
+        if cluster_id < 0:
+            continue
+        for row in list(cluster.get("member_rows", [])):
+            object_id = _safe_int(row.get("object_global_id"), -1)
+            if object_id >= 0:
+                mapping[int(object_id)] = int(cluster_id)
+    return mapping
+
+
+def _materialize_object_cluster_similarity_rows(
+    assignment_records: Sequence[Mapping[str, Any]],
+    *,
+    final_cluster_id_by_object: Mapping[int, int],
+) -> List[Dict[str, Any]]:
+    ordered_records = sorted(
+        (dict(record) for record in assignment_records),
+        key=lambda item: (
+            _safe_int(item.get("step_index"), 10**9),
+            _safe_int(item.get("object_global_id"), 10**9),
+        ),
+    )
+    materialized: List[Dict[str, Any]] = []
+    for record in ordered_records:
+        object_id = _safe_int(record.get("object_global_id"), -1)
+        final_cluster_id = final_cluster_id_by_object.get(int(object_id))
+        row = dict(record)
+        row["final_cluster_id"] = None if final_cluster_id is None else int(final_cluster_id)
+        materialized.append(row)
+    return materialized
+
+
+def _write_object_cluster_similarity_table(
+    path: Path,
+    rows: Sequence[Mapping[str, Any]],
+) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS))
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(
+                {
+                    key: "" if row.get(key) is None else row.get(key)
+                    for key in OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS
+                }
+            )
+    return str(path)
+
+
+def _write_object_cluster_similarity_tables_by_step(
+    root: Path,
+    rows: Sequence[Mapping[str, Any]],
+) -> List[Dict[str, Any]]:
+    grouped: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        grouped[_safe_int(row.get("step_index"), -1)].append(dict(row))
+    outputs: List[Dict[str, Any]] = []
+    for step_index in sorted(grouped):
+        step_rows = sorted(
+            grouped[step_index],
+            key=lambda item: _safe_int(item.get("object_global_id"), 10**9),
+        )
+        path = root / f"step_{int(step_index):02d}_object_assignment_table.csv"
+        _write_object_cluster_similarity_table(path, step_rows)
+        outputs.append(
+            {
+                "step_index": int(step_index),
+                "view_id": _safe_text(step_rows[0].get("view_id")) if step_rows else "",
+                "path": str(path),
+                "num_rows": len(step_rows),
+            }
+        )
+    return outputs
+
+
 def _spectral_result_summary(result: Mapping[str, Any]) -> Dict[str, Any]:
     labels = result.get("labels")
     return {
         "n_clusters": _safe_int(result.get("n_clusters"), -1),
         "cluster_count_mode": _safe_text(result.get("cluster_count_mode")),
+        "requested_n_clusters": _safe_int(result.get("requested_n_clusters"), -1),
+        "eigengap_n_clusters": _safe_int(result.get("eigengap_n_clusters"), -1),
+        "connected_component_count": _safe_int(result.get("connected_component_count"), -1),
+        "max_allowed_n_clusters": _safe_int(result.get("max_allowed_n_clusters"), -1),
         "backend": _safe_text(result.get("backend")),
         "fallback_reason": result.get("fallback_reason"),
         "num_nodes": int(len(labels) if labels is not None else 0),
@@ -484,6 +682,81 @@ def _resolve_detection_overlay_path(db_root: Path, view_id: str) -> Optional[Pat
     return None
 
 
+def _load_image_bgr(path: Path) -> Optional[np.ndarray]:
+    image = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    if image is None:
+        return None
+    return image
+
+
+def _overlay_text_for_object(row: Mapping[str, Any]) -> Optional[str]:
+    object_id = _safe_int(row.get("object_global_id"), -1)
+    if object_id < 0:
+        return None
+    label = _safe_text(row.get("label"))
+    if label:
+        return f"obj{object_id} {_truncate_heatmap_label(label, max_chars=24)}"
+    return f"obj{object_id}"
+
+
+def _render_selected_view_detection_overlay(
+    source_image_path: Path,
+    output_path: Path,
+    objects: Sequence[Mapping[str, Any]],
+) -> bool:
+    canvas = _load_image_bgr(source_image_path)
+    if canvas is None:
+        return False
+    height, width = canvas.shape[:2]
+    for row in objects:
+        bbox = row.get("bbox_xyxy")
+        if bbox is None:
+            bbox = row.get("bbox")
+        if bbox is None:
+            continue
+        bbox_values = np.asarray(bbox).reshape(-1)
+        if bbox_values.size < 4:
+            continue
+        label_text = _overlay_text_for_object(row)
+        if not label_text:
+            continue
+        x1, y1, x2, y2 = [int(round(float(v))) for v in bbox_values[:4]]
+        x1 = max(0, min(width - 1, x1))
+        x2 = max(0, min(width - 1, x2))
+        y1 = max(0, min(height - 1, y1))
+        y2 = max(0, min(height - 1, y2))
+        if x2 <= x1 or y2 <= y1:
+            continue
+        cv2.rectangle(canvas, (x1, y1), (x2, y2), (40, 200, 40), 2)
+
+        text = label_text[:40]
+        (text_w, text_h), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
+        text_x = max(0, min(width - text_w - 6, x1))
+        text_y = y1 - 8
+        if text_y - text_h - baseline < 0:
+            text_y = min(height - baseline - 4, y1 + text_h + 8)
+        bg_left = max(0, text_x - 3)
+        bg_top = max(0, text_y - text_h - baseline - 3)
+        bg_right = min(width - 1, text_x + text_w + 3)
+        bg_bottom = min(height - 1, text_y + baseline + 3)
+        cv2.rectangle(canvas, (bg_left, bg_top), (bg_right, bg_bottom), (20, 20, 20), -1)
+        cv2.putText(
+            canvas,
+            text,
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (245, 245, 245),
+            1,
+            cv2.LINE_AA,
+        )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    ok = cv2.imwrite(str(output_path), canvas)
+    if not ok:
+        raise RuntimeError(f"Failed to save detection overlay to {output_path}")
+    return True
+
+
 def _store_selected_view_images(root: Path, db_dir: str, views: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     out_dir = root / "selected_view_images"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -506,12 +779,11 @@ def _store_selected_view_images(root: Path, db_dir: str, views: Sequence[Mapping
         shutil.copy2(source_path, destination)
         overlay_path = _resolve_detection_overlay_path(db_root, view_id)
         stored_overlay_path = None
-        overlay_status = "missing_detection_overlay"
-        if overlay_path is not None:
-            overlay_destination = out_dir / f"{view_id}_yolo_overlay{overlay_path.suffix or '.jpg'}"
-            shutil.copy2(overlay_path, overlay_destination)
+        overlay_status = "overlay_source_unreadable"
+        overlay_destination = out_dir / f"{view_id}_yolo_overlay{source_path.suffix or '.jpg'}"
+        if _render_selected_view_detection_overlay(source_path, overlay_destination, view.get("objects") or []):
             stored_overlay_path = str(overlay_destination)
-            overlay_status = "copied"
+            overlay_status = "rendered"
         stored.append(
             {
                 "view_id": view_id,
@@ -604,6 +876,11 @@ def _gaussian_similarity(distance: float, sigma: float) -> float:
     return float(math.exp(-((float(distance) ** 2) / (sigma_value ** 2))))
 
 
+def _distance_gate_from_dsq(distance_sq: float, dsq0: float) -> float:
+    dsq0_value = max(float(dsq0), 1e-6)
+    return float(math.exp(-(float(distance_sq) / (2.0 * dsq0_value))))
+
+
 def _text_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Optional[float]:
     row_vec = row.get("embedding")
     proto_vec = cluster.get("prototype_embedding")
@@ -632,6 +909,19 @@ def _global_geo_similarity(
     return _gaussian_similarity(float(np.linalg.norm(delta)), sigma_m), float(np.linalg.norm(delta)), False
 
 
+def _xz_distance(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Tuple[Optional[float], Optional[float]]:
+    row_x, _row_y, row_z = _row_xyz(row)
+    proto_xyz = dict(cluster.get("prototype_xyz") or {})
+    cluster_x = _safe_float(proto_xyz.get("x"))
+    cluster_z = _safe_float(proto_xyz.get("z"))
+    if row_x is None or row_z is None or cluster_x is None or cluster_z is None:
+        return None, None
+    dx = float(row_x) - float(cluster_x)
+    dz = float(row_z) - float(cluster_z)
+    distance_sq = float(dx * dx + dz * dz)
+    return float(math.sqrt(distance_sq)), distance_sq
+
+
 def _polar_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Optional[float]:
     row_distance, row_bearing, row_height = _row_polar(row)
     proto_polar = dict(cluster.get("prototype_polar") or {})
@@ -657,34 +947,68 @@ def _pair_affinity_detail(
     *,
     weights: Mapping[str, float],
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
+    similarity_mode: str = DEFAULT_SIMILARITY_MODE,
+    distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
 ) -> Dict[str, Any]:
     text_sim = _text_similarity(row, cluster)
-    geo_sim, geo_distance, used_3d_geo = _global_geo_similarity(row, cluster, sigma_m=global_sigma_m)
-    polar_sim = _polar_similarity(row, cluster)
-    raw_scores = {
-        "text_similarity": text_sim,
-        "global_geo_similarity": geo_sim,
-        "polar_similarity": polar_sim,
-    }
-    available_weights = {
-        "text": weights["text"] if text_sim is not None else 0.0,
-        "global_geo": weights["global_geo"] if geo_sim is not None else 0.0,
-        "polar": weights["polar"] if polar_sim is not None else 0.0,
-    }
-    weight_total = sum(available_weights.values())
-    if weight_total <= 0.0:
+    similarity_mode_clean = _safe_text(similarity_mode) or DEFAULT_SIMILARITY_MODE
+    if similarity_mode_clean == "legacy_weighted_fusion":
+        geo_sim, geo_distance, used_3d_geo = _global_geo_similarity(row, cluster, sigma_m=global_sigma_m)
+        polar_sim = _polar_similarity(row, cluster)
+        available_weights = {
+            "text": weights["text"] if text_sim is not None else 0.0,
+            "global_geo": weights["global_geo"] if geo_sim is not None else 0.0,
+            "polar": weights["polar"] if polar_sim is not None else 0.0,
+        }
+        weight_total = sum(available_weights.values())
+        if weight_total <= 0.0:
+            combined = 0.0
+            normalized_weights = {key: 0.0 for key in available_weights}
+        else:
+            normalized_weights = {key: value / weight_total for key, value in available_weights.items()}
+            combined = 0.0
+            if text_sim is not None:
+                combined += normalized_weights["text"] * float(text_sim)
+            if geo_sim is not None:
+                combined += normalized_weights["global_geo"] * float(geo_sim)
+            if polar_sim is not None:
+                combined += normalized_weights["polar"] * float(polar_sim)
+        return {
+            "similarity_mode": similarity_mode_clean,
+            "combined_similarity": float(combined),
+            "text_similarity": text_sim,
+            "global_geo_similarity": geo_sim,
+            "polar_similarity": polar_sim,
+            "global_geo_distance_m": geo_distance,
+            "used_3d_global_geo": bool(used_3d_geo),
+            "normalized_weights": normalized_weights,
+            "distance_gate": None,
+            "xz_distance_m": None,
+            "xz_distance_sq_m2": None,
+            "distance_gate_dsq0": None,
+        }
+
+    xz_distance_m, xz_distance_sq_m2 = _xz_distance(row, cluster)
+    geo_sim = None
+    polar_sim = None
+    used_3d_geo = False
+    if text_sim is None:
         combined = 0.0
-        normalized_weights = {key: 0.0 for key in available_weights}
+        distance_gate = None
+        geo_distance = xz_distance_m
+        normalized_weights = {"text": 0.0, "global_geo": 0.0, "polar": 0.0}
+    elif xz_distance_sq_m2 is None:
+        distance_gate = 1.0
+        combined = float(text_sim)
+        geo_distance = None
+        normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
     else:
-        normalized_weights = {key: value / weight_total for key, value in available_weights.items()}
-        combined = 0.0
-        if text_sim is not None:
-            combined += normalized_weights["text"] * float(text_sim)
-        if geo_sim is not None:
-            combined += normalized_weights["global_geo"] * float(geo_sim)
-        if polar_sim is not None:
-            combined += normalized_weights["polar"] * float(polar_sim)
+        distance_gate = _distance_gate_from_dsq(xz_distance_sq_m2, distance_gate_dsq0)
+        combined = float(text_sim) * float(distance_gate)
+        geo_distance = xz_distance_m
+        normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
     return {
+        "similarity_mode": similarity_mode_clean,
         "combined_similarity": float(combined),
         "text_similarity": text_sim,
         "global_geo_similarity": geo_sim,
@@ -692,6 +1016,10 @@ def _pair_affinity_detail(
         "global_geo_distance_m": geo_distance,
         "used_3d_global_geo": bool(used_3d_geo),
         "normalized_weights": normalized_weights,
+        "distance_gate": None if distance_gate is None else float(distance_gate),
+        "xz_distance_m": xz_distance_m,
+        "xz_distance_sq_m2": xz_distance_sq_m2,
+        "distance_gate_dsq0": float(distance_gate_dsq0),
     }
 
 
@@ -703,6 +1031,8 @@ def build_cross_affinity_matrix(
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
+    similarity_mode: str = DEFAULT_SIMILARITY_MODE,
+    distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
 ) -> Tuple[np.ndarray, List[List[Dict[str, Any]]]]:
     weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar)
     matrix = np.zeros((len(current_rows), len(memory_clusters)), dtype=np.float32)
@@ -710,7 +1040,14 @@ def build_cross_affinity_matrix(
     for row in current_rows:
         row_details: List[Dict[str, Any]] = []
         for cluster in memory_clusters:
-            detail = _pair_affinity_detail(row, cluster, weights=weights, global_sigma_m=global_sigma_m)
+            detail = _pair_affinity_detail(
+                row,
+                cluster,
+                weights=weights,
+                global_sigma_m=global_sigma_m,
+                similarity_mode=similarity_mode,
+                distance_gate_dsq0=distance_gate_dsq0,
+            )
             row_details.append(detail)
         details.append(row_details)
     for row_index, row_details in enumerate(details):
@@ -740,6 +1077,38 @@ def _connectivity_labels(affinity: np.ndarray) -> np.ndarray:
     graph = csr_matrix(adjacency)
     _n_components, labels = connected_components(graph, directed=False, connection="weak")
     return np.asarray(labels, dtype=np.int32)
+
+
+def _run_capped_sequential_spectral_clustering(
+    affinity_matrix: np.ndarray,
+    *,
+    object_ids: Optional[Sequence[int]] = None,
+    random_state: int = 0,
+    max_extra_clusters: int = DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS,
+) -> Dict[str, Any]:
+    size = int(affinity_matrix.shape[0])
+    connectivity_labels = _connectivity_labels(affinity_matrix)
+    connected_component_count = int(len(set(connectivity_labels.tolist()))) if connectivity_labels.size else 0
+    eigengap_n_clusters = int(estimate_cluster_count_eigengap(affinity_matrix, max_clusters=size))
+    max_allowed_n_clusters = max(
+        1,
+        min(size, int(connected_component_count) + max(0, int(max_extra_clusters))),
+    )
+    requested_n_clusters = max(1, min(int(eigengap_n_clusters), int(max_allowed_n_clusters)))
+    spectral_result = run_spectral_clustering(
+        affinity_matrix,
+        object_ids=object_ids,
+        cluster_count_mode="fixed",
+        n_clusters=requested_n_clusters,
+        random_state=random_state,
+    )
+    updated_result = dict(spectral_result)
+    updated_result["cluster_count_mode"] = "eigengap_capped"
+    updated_result["requested_n_clusters"] = int(requested_n_clusters)
+    updated_result["eigengap_n_clusters"] = int(eigengap_n_clusters)
+    updated_result["connected_component_count"] = int(connected_component_count)
+    updated_result["max_allowed_n_clusters"] = int(max_allowed_n_clusters)
+    return updated_result
 
 
 def _node_labels(memory_clusters: Sequence[Mapping[str, Any]], current_rows: Sequence[Mapping[str, Any]]) -> List[str]:
@@ -1303,6 +1672,8 @@ def apply_incremental_step(
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
+    similarity_mode: str = DEFAULT_SIMILARITY_MODE,
+    distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
 ) -> Dict[str, Any]:
     slots: List[Optional[Dict[str, Any]]] = [deepcopy(dict(cluster)) for cluster in memory_clusters]
@@ -1312,6 +1683,7 @@ def apply_incremental_step(
     current_only_reattach_cases: List[Dict[str, Any]] = []
     same_view_block_cases: List[Dict[str, Any]] = []
     tail_spawn_cases: List[Dict[str, Any]] = []
+    assignment_diagnostics: List[Dict[str, Any]] = []
     processed_current_indices: set[int] = set()
 
     spectral_labels = np.asarray(spectral_result.get("labels", []), dtype=np.int32)
@@ -1358,6 +1730,8 @@ def apply_incremental_step(
                             weight_global_geo=weight_global_geo,
                             weight_polar=weight_polar,
                             global_sigma_m=global_sigma_m,
+                            similarity_mode=similarity_mode,
+                            distance_gate_dsq0=distance_gate_dsq0,
                         )
                         edge_score = float(detail.get("combined_similarity") or 0.0)
                         if (
@@ -1382,6 +1756,9 @@ def apply_incremental_step(
                         int(item[1]),
                     )
                 )
+                best_rejected_by_cur_idx: Dict[int, Tuple[float, int, Dict[str, Any]]] = {}
+                for score, cur_idx, mem_idx, detail in candidate_edges:
+                    best_rejected_by_cur_idx.setdefault(int(cur_idx), (float(score), int(mem_idx), dict(detail)))
 
                 assigned_cur_indices: set[int] = set()
                 assigned_mem_indices: set[int] = set()
@@ -1410,7 +1787,18 @@ def apply_incremental_step(
                             "reason": "same_view_hard_block_competition_append",
                             "score": float(score),
                             "detail": detail,
+                            "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
                         }
+                    )
+                    assignment_diagnostics.append(
+                        _object_assignment_record(
+                            best_row,
+                            step_index=int(step_index),
+                            assignment_reason="same_view_hard_block_competition_append",
+                            cluster_id_at_assignment=int(updated_cluster["cluster_id"]),
+                            similarity_reference_cluster_id=int(updated_cluster["cluster_id"]),
+                            detail=detail,
+                        )
                     )
 
                 unassigned_cur_indices = [int(cur_idx) for cur_idx in cur_indices if int(cur_idx) not in assigned_cur_indices]
@@ -1419,6 +1807,14 @@ def apply_incremental_step(
                     running_cluster_id += 1
                     tail_clusters.append(new_cluster)
                     processed_current_indices.add(int(cur_idx))
+                    rejected = best_rejected_by_cur_idx.get(int(cur_idx))
+                    rejected_detail = dict(rejected[2]) if rejected is not None else None
+                    rejected_mem_idx = rejected[1] if rejected is not None else None
+                    rejected_cluster_id = (
+                        int(cluster_id_by_slot.get(int(rejected_mem_idx), -1))
+                        if rejected_mem_idx is not None
+                        else None
+                    )
                     tail_spawn_cases.append(
                         {
                             "step_index": int(step_index),
@@ -1426,7 +1822,19 @@ def apply_incremental_step(
                             "reason": "tail_after_same_view_hard_block_competition",
                             "object_ids": [_safe_int(current_rows[cur_idx].get("object_global_id"), -1)],
                             "view_ids": [_safe_text(current_rows[cur_idx].get("view_id"))],
+                            "detail": rejected_detail,
+                            "similarity_reference_cluster_id": rejected_cluster_id,
                         }
+                    )
+                    assignment_diagnostics.append(
+                        _object_assignment_record(
+                            current_rows[cur_idx],
+                            step_index=int(step_index),
+                            assignment_reason="tail_after_same_view_hard_block_competition",
+                            cluster_id_at_assignment=int(new_cluster["cluster_id"]),
+                            similarity_reference_cluster_id=rejected_cluster_id,
+                            detail=rejected_detail,
+                        )
                     )
 
                 same_view_block_cases.append(
@@ -1478,6 +1886,7 @@ def apply_incremental_step(
         if base_cluster is None:
             reattached_cur_indices: set[int] = set()
             reattach_candidates: List[Tuple[float, int, int, Dict[str, Any]]] = []
+            best_match_by_cur_idx: Dict[int, Tuple[float, int, Dict[str, Any]]] = {}
             for cur_idx in cur_indices:
                 row = dict(current_rows[cur_idx])
                 best_match = _best_live_memory_match(
@@ -1487,9 +1896,16 @@ def apply_incremental_step(
                     weight_global_geo=weight_global_geo,
                     weight_polar=weight_polar,
                     global_sigma_m=global_sigma_m,
+                    similarity_mode=similarity_mode,
+                    distance_gate_dsq0=distance_gate_dsq0,
                 )
                 if best_match is None:
                     continue
+                best_match_by_cur_idx[int(cur_idx)] = (
+                    float(best_match[0]),
+                    int(best_match[1]),
+                    dict(best_match[2]),
+                )
                 best_score, best_mem_idx, best_detail = best_match
                 if float(best_score) < float(current_only_reattach_min_affinity):
                     continue
@@ -1516,7 +1932,18 @@ def apply_incremental_step(
                         "reason": "current_only_high_score_reattach",
                         "score": float(score),
                         "detail": detail,
+                        "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
                     }
+                )
+                assignment_diagnostics.append(
+                    _object_assignment_record(
+                        row,
+                        step_index=int(step_index),
+                        assignment_reason="current_only_high_score_reattach",
+                        cluster_id_at_assignment=int(updated_cluster["cluster_id"]),
+                        similarity_reference_cluster_id=int(updated_cluster["cluster_id"]),
+                        detail=detail,
+                    )
                 )
                 current_only_reattach_cases.append(
                     {
@@ -1527,17 +1954,48 @@ def apply_incremental_step(
                         "reason": "current_only_high_score_reattach",
                         "score": float(score),
                         "detail": detail,
+                        "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
                     }
                 )
 
-            residual_rows = [dict(current_rows[idx]) for idx in cur_indices if int(idx) not in reattached_cur_indices]
+            residual_indices = [int(idx) for idx in cur_indices if int(idx) not in reattached_cur_indices]
+            residual_rows = [dict(current_rows[idx]) for idx in residual_indices]
             if residual_rows:
-                for idx in cur_indices:
-                    if int(idx) not in reattached_cur_indices:
-                        processed_current_indices.add(int(idx))
+                for idx in residual_indices:
+                    processed_current_indices.add(int(idx))
                 new_cluster = _create_new_cluster_from_rows(residual_rows, running_cluster_id)
                 running_cluster_id += 1
                 tail_clusters.append(new_cluster)
+                details_by_object: List[Dict[str, Any]] = []
+                for idx in residual_indices:
+                    best_rejected = best_match_by_cur_idx.get(int(idx))
+                    rejected_detail = dict(best_rejected[2]) if best_rejected is not None else None
+                    rejected_mem_idx = best_rejected[1] if best_rejected is not None else None
+                    rejected_cluster = slots[rejected_mem_idx] if rejected_mem_idx is not None and 0 <= int(rejected_mem_idx) < len(slots) else None
+                    rejected_cluster_id = (
+                        _safe_int(rejected_cluster.get("cluster_id"), -1)
+                        if rejected_cluster is not None
+                        else None
+                    )
+                    details_by_object.append(
+                        {
+                            "object_id": _safe_int(current_rows[idx].get("object_global_id"), -1),
+                            "view_id": _safe_text(current_rows[idx].get("view_id")),
+                            "similarity_reference_cluster_id": rejected_cluster_id,
+                            "score": None if best_rejected is None else float(best_rejected[0]),
+                            "detail": rejected_detail,
+                        }
+                    )
+                    assignment_diagnostics.append(
+                        _object_assignment_record(
+                            current_rows[idx],
+                            step_index=int(step_index),
+                            assignment_reason="current_only_component",
+                            cluster_id_at_assignment=int(new_cluster["cluster_id"]),
+                            similarity_reference_cluster_id=rejected_cluster_id,
+                            detail=rejected_detail,
+                        )
+                    )
                 tail_spawn_cases.append(
                     {
                         "step_index": int(step_index),
@@ -1545,6 +2003,7 @@ def apply_incremental_step(
                         "reason": "current_only_component",
                         "object_ids": [_safe_int(row.get("object_global_id"), -1) for row in residual_rows],
                         "view_ids": sorted({_safe_text(row.get("view_id")) for row in residual_rows}),
+                        "details_by_object": details_by_object,
                     }
                 )
             continue
@@ -1557,6 +2016,8 @@ def apply_incremental_step(
                 base_cluster,
                 weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
                 global_sigma_m=global_sigma_m,
+                similarity_mode=similarity_mode,
+                distance_gate_dsq0=distance_gate_dsq0,
             )
             scored_candidates.append((float(detail["combined_similarity"]), int(cur_idx), detail))
         scored_candidates.sort(key=lambda item: (-item[0], item[1]))
@@ -1577,7 +2038,18 @@ def apply_incremental_step(
                 "reason": "component_best_append",
                 "score": float(best_score),
                 "detail": best_detail,
+                "similarity_reference_cluster_id": int(base_cluster["cluster_id"]),
             }
+        )
+        assignment_diagnostics.append(
+            _object_assignment_record(
+                best_row,
+                step_index=int(step_index),
+                assignment_reason="component_best_append",
+                cluster_id_at_assignment=int(base_cluster["cluster_id"]),
+                similarity_reference_cluster_id=int(base_cluster["cluster_id"]),
+                detail=best_detail,
+            )
         )
 
         for _score, cur_idx, detail in scored_candidates[1:]:
@@ -1593,15 +2065,47 @@ def apply_incremental_step(
                     "object_ids": [_safe_int(current_rows[cur_idx].get("object_global_id"), -1)],
                     "view_ids": [_safe_text(current_rows[cur_idx].get("view_id"))],
                     "detail": detail,
+                    "similarity_reference_cluster_id": int(base_cluster["cluster_id"]),
                 }
+            )
+            assignment_diagnostics.append(
+                _object_assignment_record(
+                    current_rows[cur_idx],
+                    step_index=int(step_index),
+                    assignment_reason="tail_after_competing_for_existing_cluster",
+                    cluster_id_at_assignment=int(new_cluster["cluster_id"]),
+                    similarity_reference_cluster_id=int(base_cluster["cluster_id"]),
+                    detail=detail,
+                )
             )
 
     for cur_index, row in enumerate(current_rows):
         if cur_index in processed_current_indices:
             continue
+        best_match = _best_live_memory_match(
+            row,
+            slots,
+            weight_text=weight_text,
+            weight_global_geo=weight_global_geo,
+            weight_polar=weight_polar,
+            global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
+        )
         new_cluster = _create_new_cluster_from_rows([row], running_cluster_id)
         running_cluster_id += 1
         tail_clusters.append(new_cluster)
+        fallback_detail = dict(best_match[2]) if best_match is not None else None
+        fallback_cluster = (
+            slots[int(best_match[1])]
+            if best_match is not None and 0 <= int(best_match[1]) < len(slots)
+            else None
+        )
+        fallback_cluster_id = (
+            _safe_int(fallback_cluster.get("cluster_id"), -1)
+            if fallback_cluster is not None
+            else None
+        )
         tail_spawn_cases.append(
             {
                 "step_index": int(step_index),
@@ -1609,7 +2113,19 @@ def apply_incremental_step(
                 "reason": "unprocessed_current_singleton",
                 "object_ids": [_safe_int(row.get("object_global_id"), -1)],
                 "view_ids": [_safe_text(row.get("view_id"))],
+                "detail": fallback_detail,
+                "similarity_reference_cluster_id": fallback_cluster_id,
             }
+        )
+        assignment_diagnostics.append(
+            _object_assignment_record(
+                row,
+                step_index=int(step_index),
+                assignment_reason="unprocessed_current_singleton",
+                cluster_id_at_assignment=int(new_cluster["cluster_id"]),
+                similarity_reference_cluster_id=fallback_cluster_id,
+                detail=fallback_detail,
+            )
         )
 
     next_memory = [cluster for cluster in slots if cluster is not None]
@@ -1624,6 +2140,7 @@ def apply_incremental_step(
         "merge_cases": merge_cases,
         "same_view_block_cases": same_view_block_cases,
         "tail_spawn_cases": tail_spawn_cases,
+        "assignment_diagnostics": assignment_diagnostics,
         "num_appended": len(append_cases),
         "num_current_only_reattached": len(current_only_reattach_cases),
         "num_merged_clusters": len(merge_cases),
@@ -1650,7 +2167,7 @@ def _label_jitter_examples(clusters: Sequence[Mapping[str, Any]], max_examples: 
     return examples[:max_examples]
 
 
-def run_sequential_spectral_experiment(
+def _run_single_sequential_spectral_experiment(
     db_dir: str = DEFAULT_DB_DIR,
     *,
     output_dir: Optional[str] = None,
@@ -1660,6 +2177,8 @@ def run_sequential_spectral_experiment(
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
+    similarity_mode: str = DEFAULT_SIMILARITY_MODE,
+    distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
     min_cross_affinity: float = DEFAULT_CROSS_AFFINITY_MIN,
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
 ) -> Dict[str, Any]:
@@ -1693,6 +2212,18 @@ def run_sequential_spectral_experiment(
     for row in initial_view["objects"]:
         memory_clusters.append(_create_new_cluster_from_rows([row], next_cluster_id))
         next_cluster_id += 1
+    assignment_records: List[Dict[str, Any]] = [
+        _object_assignment_record(
+            row,
+            step_index=0,
+            assignment_reason="initial_seed",
+            cluster_id_at_assignment=_safe_int(cluster.get("cluster_id"), -1),
+            similarity_reference_cluster_id=None,
+            detail=None,
+            similarity_detail_status="initial_seed",
+        )
+        for row, cluster in zip(initial_view["objects"], memory_clusters)
+    ]
 
     _write_json(
         root / "step_00_initial_registry.json",
@@ -1715,6 +2246,8 @@ def run_sequential_spectral_experiment(
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
         )
         full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=min_cross_affinity)
         axis_labels = _node_labels(memory_clusters, current_view["objects"])
@@ -1747,10 +2280,9 @@ def run_sequential_spectral_experiment(
             annotate_values=False,
         )
 
-        spectral_result = run_spectral_clustering(
+        spectral_result = _run_capped_sequential_spectral_clustering(
             full_affinity,
             object_ids=list(range(full_affinity.shape[0])),
-            cluster_count_mode="eigengap",
         )
         co_cluster_matrix, component_groups = _co_cluster_matrix(
             spectral_result=spectral_result,
@@ -1808,6 +2340,8 @@ def run_sequential_spectral_experiment(
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
         )
         memory_clusters = update["memory_clusters"]
@@ -1815,6 +2349,7 @@ def run_sequential_spectral_experiment(
         all_append_cases.extend(update["append_cases"])
         all_same_view_block_cases.extend(update["same_view_block_cases"])
         all_tail_spawn_cases.extend(update["tail_spawn_cases"])
+        assignment_records.extend(update["assignment_diagnostics"])
 
         step_report = {
             "step_index": int(step_offset),
@@ -1842,6 +2377,18 @@ def run_sequential_spectral_experiment(
 
     final_registry = [_cluster_output_summary(cluster) for cluster in memory_clusters]
     _write_json(root / "global_object_list_final.json", final_registry)
+    materialized_assignment_rows = _materialize_object_cluster_similarity_rows(
+        assignment_records,
+        final_cluster_id_by_object=_final_cluster_id_by_object(memory_clusters),
+    )
+    object_cluster_similarity_table_path = _write_object_cluster_similarity_table(
+        root / "object_cluster_similarity_table.csv",
+        materialized_assignment_rows,
+    )
+    object_cluster_similarity_tables_by_step = _write_object_cluster_similarity_tables_by_step(
+        root,
+        materialized_assignment_rows,
+    )
 
     report = {
         "db_dir": str(db_dir),
@@ -1856,6 +2403,8 @@ def run_sequential_spectral_experiment(
             "normalized": _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
         },
         "global_sigma_m": float(global_sigma_m),
+        "similarity_mode": str(similarity_mode),
+        "distance_gate_dsq0": float(distance_gate_dsq0),
         "min_cross_affinity": float(min_cross_affinity),
         "current_only_reattach_min_affinity": float(current_only_reattach_min_affinity),
         "step_summaries": [_step_report_summary(step_report) for step_report in step_reports],
@@ -1875,12 +2424,114 @@ def run_sequential_spectral_experiment(
         "append_case_examples": [_append_case_summary(case) for case in all_append_cases[:12]],
         "same_view_block_case_examples": [_same_view_block_case_summary(case) for case in all_same_view_block_cases[:12]],
         "tail_spawn_case_examples": [_tail_spawn_case_summary(case) for case in all_tail_spawn_cases[:12]],
+        "object_cluster_similarity_table": str(object_cluster_similarity_table_path),
+        "object_cluster_similarity_tables_by_step": object_cluster_similarity_tables_by_step,
     }
     progression_manifest = generate_cumulative_cluster_progression_artifacts(str(root))
     report["cumulative_cluster_progression_manifest"] = str(root / "cumulative_cluster_progression_manifest.json")
     report["cumulative_cluster_progression_overview"] = progression_manifest.get("overview_path")
     _write_json(root / "experiment_report.json", report)
     return report
+
+
+def _distance_gate_dir_token(value: float) -> str:
+    token = f"{float(value):g}"
+    token = token.replace("-", "neg_").replace(".", "p")
+    return token
+
+
+def run_sequential_spectral_experiment(
+    db_dir: str = DEFAULT_DB_DIR,
+    *,
+    output_dir: Optional[str] = None,
+    entry_ids: Optional[Sequence[Any]] = None,
+    view_ids: Optional[Sequence[str]] = None,
+    weight_text: float = DEFAULT_WEIGHT_TEXT,
+    weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
+    weight_polar: float = DEFAULT_WEIGHT_POLAR,
+    global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
+    similarity_mode: str = DEFAULT_SIMILARITY_MODE,
+    distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
+    distance_gate_dsq0_values: Optional[Sequence[Any]] = None,
+    min_cross_affinity: float = DEFAULT_CROSS_AFFINITY_MIN,
+    current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
+) -> Dict[str, Any]:
+    normalized_dsq0_values = _normalize_float_list(distance_gate_dsq0_values)
+    if distance_gate_dsq0_values is not None and not normalized_dsq0_values:
+        normalized_dsq0_values = [float(v) for v in DEFAULT_DISTANCE_GATE_DSQ0_SWEEP]
+    if not normalized_dsq0_values:
+        return _run_single_sequential_spectral_experiment(
+            db_dir=db_dir,
+            output_dir=output_dir,
+            entry_ids=entry_ids,
+            view_ids=view_ids,
+            weight_text=weight_text,
+            weight_global_geo=weight_global_geo,
+            weight_polar=weight_polar,
+            global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
+            min_cross_affinity=min_cross_affinity,
+            current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+        )
+    if len(normalized_dsq0_values) == 1:
+        return _run_single_sequential_spectral_experiment(
+            db_dir=db_dir,
+            output_dir=output_dir,
+            entry_ids=entry_ids,
+            view_ids=view_ids,
+            weight_text=weight_text,
+            weight_global_geo=weight_global_geo,
+            weight_polar=weight_polar,
+            global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=float(normalized_dsq0_values[0]),
+            min_cross_affinity=min_cross_affinity,
+            current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+        )
+
+    base_root = Path(output_dir) if output_dir else Path(db_dir) / "sequential_spectral_experiment_sweep"
+    sweep_root = _make_run_output_dir(base_root)
+    sweep_runs: List[Dict[str, Any]] = []
+    for dsq0 in normalized_dsq0_values:
+        run_report = _run_single_sequential_spectral_experiment(
+            db_dir=db_dir,
+            output_dir=str(sweep_root / f"dsq0_{_distance_gate_dir_token(float(dsq0))}"),
+            entry_ids=entry_ids,
+            view_ids=view_ids,
+            weight_text=weight_text,
+            weight_global_geo=weight_global_geo,
+            weight_polar=weight_polar,
+            global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=float(dsq0),
+            min_cross_affinity=min_cross_affinity,
+            current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+        )
+        sweep_runs.append(
+            {
+                "dsq0": float(dsq0),
+                "output_dir": str(run_report.get("output_dir") or ""),
+                "final_cluster_count": int(run_report.get("final_cluster_count") or 0),
+                "total_appended": int(run_report.get("total_appended") or 0),
+                "total_current_only_reattached": int(run_report.get("total_current_only_reattached") or 0),
+                "total_new_tail_clusters": int(run_report.get("total_new_tail_clusters") or 0),
+                "total_merged_clusters": int(run_report.get("total_merged_clusters") or 0),
+                "total_same_view_blocked_components": int(
+                    run_report.get("total_same_view_blocked_components") or 0
+                ),
+                "object_cluster_similarity_table": str(run_report.get("object_cluster_similarity_table") or ""),
+            }
+        )
+    summary = {
+        "db_dir": str(db_dir),
+        "output_dir": str(sweep_root),
+        "similarity_mode": str(similarity_mode),
+        "distance_gate_dsq0_values": [float(v) for v in normalized_dsq0_values],
+        "runs": sweep_runs,
+    }
+    _write_json(sweep_root / "sweep_summary.json", summary)
+    return summary
 
 
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -1901,6 +2552,23 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--weight_global_geo", type=float, default=DEFAULT_WEIGHT_GLOBAL_GEO, help="Global xyz branch weight")
     parser.add_argument("--weight_polar", type=float, default=DEFAULT_WEIGHT_POLAR, help="Polar branch weight")
     parser.add_argument("--global_sigma_m", type=float, default=DEFAULT_GLOBAL_SIGMA_M, help="Global xyz gaussian sigma")
+    parser.add_argument(
+        "--similarity_mode",
+        default=DEFAULT_SIMILARITY_MODE,
+        choices=["cosine_geo_gate", "legacy_weighted_fusion"],
+        help="Similarity computation mode",
+    )
+    parser.add_argument(
+        "--distance_gate_dsq0",
+        type=float,
+        default=DEFAULT_DISTANCE_GATE_DSQ0,
+        help="Distance-gating constant for cosine_geo_gate mode",
+    )
+    parser.add_argument(
+        "--distance_gate_dsq0_values",
+        default=None,
+        help="Comma-separated dsq0 values for sweep mode",
+    )
     parser.add_argument(
         "--min_cross_affinity",
         type=float,
@@ -1927,6 +2595,11 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         weight_global_geo=float(args.weight_global_geo),
         weight_polar=float(args.weight_polar),
         global_sigma_m=float(args.global_sigma_m),
+        similarity_mode=str(args.similarity_mode),
+        distance_gate_dsq0=float(args.distance_gate_dsq0),
+        distance_gate_dsq0_values=_normalize_float_list([args.distance_gate_dsq0_values])
+        if args.distance_gate_dsq0_values
+        else None,
         min_cross_affinity=float(args.min_cross_affinity),
         current_only_reattach_min_affinity=float(args.current_only_reattach_min_affinity),
     )

@@ -21,6 +21,7 @@ from spatial_rag.config import (
 )
 from spatial_rag.detector import Detector
 from spatial_rag.household_taxonomy import canonicalize_household_object_label, normalize_selector_subset
+from spatial_rag.vlm_captioner import VLMCaptioner
 
 
 class GeometryPipelineUnavailable(RuntimeError):
@@ -440,6 +441,7 @@ class GeometryPipelineResult:
     selector_raw_api_response: Optional[Dict[str, Any]]
     selector_source: str
     object_rows: List[Dict[str, Any]]
+    description_requests: List[Dict[str, Any]]
     artifacts: GeometryPipelineArtifacts
     timings: Dict[str, Any]
 
@@ -581,6 +583,9 @@ class ObjectGeometryPipeline:
         camera_z: float,
         camera_orientation_deg: float,
         max_objects: int,
+        selector_result_override: Optional[Mapping[str, Any]] = None,
+        defer_object_descriptions: bool = False,
+        precomputed_description_result: Optional[Mapping[str, Any]] = None,
     ) -> GeometryPipelineResult:
         total_t0 = time.perf_counter()
         timings: Dict[str, Any] = {
@@ -591,6 +596,7 @@ class ObjectGeometryPipeline:
             "mask_total_sec": 0.0,
             "angle_geometry_total_sec": 0.0,
             "crop_vlm_description_total_sec": 0.0,
+            "object_description_call_count": 0,
             "mask_per_object_sec": [],
             "angle_geometry_per_object_sec": [],
             "crop_vlm_description_per_object_sec": [],
@@ -620,6 +626,7 @@ class ObjectGeometryPipeline:
                 selector_raw_api_response=result_selector.get("raw_api_response"),
                 selector_source=str(result_selector.get("source") or ""),
                 object_rows=[],
+                description_requests=[],
                 artifacts=artifacts_out or GeometryPipelineArtifacts(),
                 timings=_finalize_timings(),
             )
@@ -629,12 +636,16 @@ class ObjectGeometryPipeline:
             "camera_z": float(camera_z),
             "camera_orientation_deg": float(camera_orientation_deg),
         }
-        selector_t0 = time.perf_counter()
-        selector_result = self.captioner.select_object_types_with_meta(
-            image_path=image_path,
-            camera_context=camera_context,
-        )
-        timings["selector_sec"] = float(time.perf_counter() - selector_t0)
+        if isinstance(selector_result_override, Mapping):
+            selector_result = dict(selector_result_override)
+            timings["selector_sec"] = 0.0
+        else:
+            selector_t0 = time.perf_counter()
+            selector_result = self.captioner.select_object_types_with_meta(
+                image_path=image_path,
+                camera_context=camera_context,
+            )
+            timings["selector_sec"] = float(time.perf_counter() - selector_t0)
         selector_payload = dict(selector_result.get("payload") or {})
         selected_object_types = _selector_source_object_types(selector_result)
         timings["selected_object_type_count"] = int(len(selected_object_types))
@@ -746,6 +757,63 @@ class ObjectGeometryPipeline:
             artifacts.depth_map_path = str(depth_path)
             artifacts.depth_preview_path = _save_image_bgr(view_dir / "depth_preview.jpg", depth_preview_u8(depth_map_m))
 
+        description_requests: List[Dict[str, Any]] = []
+        for local_index, det in enumerate(normalized_detections):
+            bbox_xyxy = list(det["bbox_xyxy"])
+            description_requests.append(
+                {
+                    "object_local_id": f"det_{local_index:03d}",
+                    "detector_label": str(det["label"]),
+                    "detector_confidence": det.get("confidence"),
+                    "bbox_xyxy": [float(v) for v in bbox_xyxy],
+                    "bbox_xywh_norm": bbox_xywh_norm_from_xyxy(
+                        bbox_xyxy,
+                        width_px=image_rgb.shape[1],
+                        height_px=image_rgb.shape[0],
+                    ),
+                }
+            )
+        description_by_local_id: Dict[str, Dict[str, Any]] = {}
+        use_batched_descriptions = hasattr(self.captioner, "describe_detected_objects_with_meta")
+        batch_description_per_object_sec = 0.0
+        if defer_object_descriptions:
+            use_batched_descriptions = False
+        if (
+            not defer_object_descriptions
+            and isinstance(precomputed_description_result, Mapping)
+            and description_requests
+        ):
+            for item in list(precomputed_description_result.get("objects") or []):
+                if not isinstance(item, Mapping):
+                    continue
+                object_local_id = str(item.get("object_local_id") or "").strip()
+                if not object_local_id or object_local_id in description_by_local_id:
+                    continue
+                description_by_local_id[object_local_id] = dict(item)
+            use_batched_descriptions = True
+        if use_batched_descriptions and description_requests and not description_by_local_id:
+            description_t0 = time.perf_counter()
+            description_result = self.captioner.describe_detected_objects_with_meta(
+                image_path=str(image_path),
+                detections=description_requests,
+            )
+            description_sec = float(time.perf_counter() - description_t0)
+            timings["crop_vlm_description_total_sec"] = float(
+                timings["crop_vlm_description_total_sec"] + description_sec
+            )
+            timings["object_description_call_count"] = 1
+            batch_description_per_object_sec = float(description_sec / max(len(description_requests), 1))
+            timings["crop_vlm_description_per_object_sec"] = [
+                batch_description_per_object_sec for _ in description_requests
+            ]
+            for item in list(description_result.get("objects") or []):
+                if not isinstance(item, Mapping):
+                    continue
+                object_local_id = str(item.get("object_local_id") or "").strip()
+                if not object_local_id or object_local_id in description_by_local_id:
+                    continue
+                description_by_local_id[object_local_id] = dict(item)
+
         object_rows: List[Dict[str, Any]] = []
         for local_index, det in enumerate(normalized_detections):
             bbox_xyxy = list(det["bbox_xyxy"])
@@ -835,20 +903,32 @@ class ObjectGeometryPipeline:
                 _save_image_bgr(mask_rel, np.asarray(mask.astype(np.uint8) * 255, dtype=np.uint8))
                 _save_mask_overlay(image_rgb, mask, bbox_xyxy, overlay_rel)
 
-            crop_t0 = time.perf_counter()
-            crop_description = self.captioner.describe_object_crop_with_meta(
-                str(crop_rel or image_path),
-                yolo_label=det["label"],
-                yolo_confidence=det.get("confidence"),
-            )
-            crop_sec = float(time.perf_counter() - crop_t0)
-            timings["crop_vlm_description_total_sec"] = float(timings["crop_vlm_description_total_sec"] + crop_sec)
-            timings["crop_vlm_description_per_object_sec"].append(crop_sec)
+            object_local_id = f"det_{local_index:03d}"
+            crop_sec = batch_description_per_object_sec
+            if defer_object_descriptions:
+                crop_description = VLMCaptioner._normalize_object_description_payload(
+                    {},
+                    default_payload=VLMCaptioner._default_object_crop_description(),
+                    label_hint=str(det["label"]),
+                )
+            elif use_batched_descriptions:
+                crop_description = dict(description_by_local_id.get(object_local_id) or {})
+            else:
+                crop_t0 = time.perf_counter()
+                crop_description = self.captioner.describe_object_crop_with_meta(
+                    str(crop_rel or image_path),
+                    yolo_label=det["label"],
+                    yolo_confidence=det.get("confidence"),
+                )
+                crop_sec = float(time.perf_counter() - crop_t0)
+                timings["crop_vlm_description_total_sec"] = float(timings["crop_vlm_description_total_sec"] + crop_sec)
+                timings["crop_vlm_description_per_object_sec"].append(crop_sec)
+                timings["object_description_call_count"] = int(timings.get("object_description_call_count") or 0) + 1
             detector_label = str(det["label"])
             crop_label = canonicalize_household_object_label(crop_description.get("label"), default=detector_label)
             final_label = detector_label if crop_label != detector_label else crop_label
             row = {
-                "object_local_id": f"det_{local_index:03d}",
+                "object_local_id": object_local_id,
                 "label": final_label,
                 "detector_label": detector_label,
                 "crop_vlm_label": crop_description.get("label"),
@@ -924,6 +1004,7 @@ class ObjectGeometryPipeline:
             selector_raw_api_response=selector_result.get("raw_api_response"),
             selector_source=str(selector_result.get("source") or ""),
             object_rows=object_rows,
+            description_requests=list(description_requests),
             artifacts=artifacts,
             timings=_finalize_timings(),
         )

@@ -6,7 +6,7 @@ import re
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from spatial_rag.config import FOV, OBJECT_SURROUNDING_MAX
 from spatial_rag.household_taxonomy import (
@@ -200,6 +200,51 @@ class VLMCaptioner:
         legacy_path = self._legacy_object_crop_cache_path(image_path)
         return self._resolve_cache_path(target_path, legacy_path)
 
+    @staticmethod
+    def _normalize_detection_signature(detections: Sequence[Mapping[str, Any]]) -> str:
+        normalized: List[Dict[str, Any]] = []
+        for det in list(detections or []):
+            bbox_xyxy = [round(float(v), 3) for v in list(det.get("bbox_xyxy") or [])[:4]]
+            confidence = det.get("detector_confidence", det.get("confidence"))
+            normalized.append(
+                {
+                    "object_local_id": str(det.get("object_local_id") or "").strip(),
+                    "detector_label": str(det.get("detector_label", det.get("label")) or "").strip(),
+                    "detector_confidence": None if confidence is None else round(float(confidence), 3),
+                    "bbox_xyxy": bbox_xyxy,
+                }
+            )
+        return json.dumps(normalized, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+
+    @staticmethod
+    def _batched_object_description_prompt_version() -> str:
+        return "object_detection_batch_descriptor_aligned_v1"
+
+    def _detected_objects_batch_cache_path(
+        self,
+        image_path: str,
+        detections: Sequence[Mapping[str, Any]],
+    ) -> Path:
+        image_hash = self._md5_file(image_path)
+        prompt_version = self._batched_object_description_prompt_version()
+        detection_signature = self._normalize_detection_signature(detections)
+        cache_key_src = f"{image_hash}|{self.model_name}|{prompt_version}|{detection_signature}"
+        cache_key = hashlib.md5(cache_key_src.encode("utf-8")).hexdigest()
+        return self._structured_object_cache_path(
+            image_path=image_path,
+            cache_kind="detected_objects_batch",
+            prompt_version=prompt_version,
+            cache_key=cache_key,
+            suffix=".detected.json",
+        )
+
+    def _resolve_detected_objects_batch_cache_path(
+        self,
+        image_path: str,
+        detections: Sequence[Mapping[str, Any]],
+    ) -> Path:
+        return self._detected_objects_batch_cache_path(image_path, detections)
+
     def _legacy_selector_cache_path(
         self,
         image_path: str,
@@ -308,15 +353,8 @@ class VLMCaptioner:
         )
 
     @staticmethod
-    def _object_crop_user_prompt(yolo_label_clean: str, yolo_conf_text: str) -> str:
+    def _object_description_requirements_prompt() -> str:
         return (
-            f'A detector has identified the object in this crop as "{yolo_label_clean or "unknown"}" '
-            f"(confidence: {yolo_conf_text}). "
-            "Treat this detected class as the object category to describe. "
-            "Describe this specific object instance visible in the cropped image in the same style as the database builder's "
-            "object fields: short_description should correspond to a short precise object description, and long_description "
-            "should correspond to a detailed long-form open description. "
-            "Ignore the wider room and focus on the object itself. "
             "Return a compact label for that detected category, a short description useful for retrieval, "
             "a richer long description, a list of notable visual attributes, and an approximate distance "
             "from the camera in meters when you can infer it. Mention the approximate distance directly "
@@ -333,6 +371,68 @@ class VLMCaptioner:
             "If the crop is partial or clipped by the image border, explicitly include words like partial, cropped, edge, "
             "or cut off. If you are uncertain, describe what is visible rather than refusing. "
             "attributes should list concise visible cues, not generic words. "
+        )
+
+    @staticmethod
+    def _object_crop_user_prompt(yolo_label_clean: str, yolo_conf_text: str) -> str:
+        return (
+            f'A detector has identified the object in this crop as "{yolo_label_clean or "unknown"}" '
+            f"(confidence: {yolo_conf_text}). "
+            "Treat this detected class as the object category to describe. "
+            "Describe this specific object instance visible in the cropped image in the same style as the database builder's "
+            "object fields: short_description should correspond to a short precise object description, and long_description "
+            "should correspond to a detailed long-form open description. "
+            "Ignore the wider room and focus on the object itself. "
+            f"{VLMCaptioner._object_description_requirements_prompt()}"
+            "Output JSON only."
+        )
+
+    @staticmethod
+    def _batched_detected_objects_system_prompt() -> str:
+        return (
+            "You are a strict vision parser for detector-guided whole-image object description. "
+            "Return JSON only, matching the schema exactly. "
+            "Describe each listed detector-localized object separately. "
+            "Use the detector-provided class as the object category you must describe for that listed object. "
+            "Match the style of object descriptions used in a spatial database builder: "
+            "the short description should read like a concise object instance description, "
+            "and the long description should read like a detailed open-form object description. "
+            "Do not return generic placeholders when any visible cue is available. "
+            "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
+        )
+
+    @staticmethod
+    def _batched_detected_objects_user_prompt(detections: Sequence[Mapping[str, Any]]) -> str:
+        lines: List[str] = []
+        for det in list(detections or []):
+            object_local_id = str(det.get("object_local_id") or "unknown").strip() or "unknown"
+            detector_label = str(det.get("detector_label", det.get("label")) or "unknown").strip() or "unknown"
+            confidence = det.get("detector_confidence", det.get("confidence"))
+            confidence_text = "unknown" if confidence is None else f"{float(confidence):.3f}"
+            bbox_xyxy = [round(float(v), 1) for v in list(det.get("bbox_xyxy") or [])[:4]]
+            bbox_xywh_norm = [round(float(v), 4) for v in list(det.get("bbox_xywh_norm") or [])[:4]]
+            lines.append(
+                f'- object_local_id="{object_local_id}", '
+                f'detector_label="{detector_label}", '
+                f"confidence={confidence_text}, "
+                f"bbox_xyxy={bbox_xyxy}, "
+                f"bbox_xywh_norm={bbox_xywh_norm}"
+            )
+        detections_block = "\n".join(lines) if lines else "- none"
+        return (
+            "I am going to show you a whole image and a list of detector-localized objects in that image. "
+            "Your job is to describe each listed object instance separately. "
+            "Treat the detector class for each listed object as the object category to describe. "
+            "Use the provided bounding box coordinates only as localization hints to anchor which visible object instance each item refers to. "
+            "Do not invent extra objects and do not omit listed object_local_id values. "
+            "The listed detections are:\n"
+            f"{detections_block}\n\n"
+            "For each listed object, describe that specific object instance visible in the image in the same style as the database builder's "
+            "object fields: short_description should correspond to a short precise object description, and long_description "
+            "should correspond to a detailed long-form open description. "
+            "Ignore the wider room except where it helps disambiguate the listed object. "
+            f"{VLMCaptioner._object_description_requirements_prompt()}"
+            "Return one JSON object per listed object_local_id. "
             "Output JSON only."
         )
 
@@ -819,32 +919,86 @@ class VLMCaptioner:
         }
 
     @staticmethod
+    def _object_description_item_schema(*, include_object_local_id: bool = False) -> dict:
+        required = [
+            "label",
+            "short_description",
+            "long_description",
+            "attributes",
+            "distance_from_camera_m",
+        ]
+        properties: Dict[str, Any] = {
+            "label": {"type": "string"},
+            "short_description": {"type": "string"},
+            "long_description": {"type": "string"},
+            "attributes": {
+                "type": "array",
+                "items": {"type": "string"},
+                "maxItems": 12,
+            },
+            "distance_from_camera_m": {"type": ["number", "null"]},
+        }
+        if include_object_local_id:
+            required = ["object_local_id"] + required
+            properties["object_local_id"] = {"type": "string"}
+        return {
+            "type": "object",
+            "additionalProperties": False,
+            "required": required,
+            "properties": properties,
+        }
+
+    @staticmethod
     def _object_crop_response_schema() -> dict:
         return {
             "name": "object_crop_description",
             "strict": True,
+            "schema": VLMCaptioner._object_description_item_schema(include_object_local_id=False),
+        }
+
+    @staticmethod
+    def _batched_detected_objects_response_schema(max_objects: int) -> dict:
+        return {
+            "name": "detected_objects_batch",
+            "strict": True,
             "schema": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": [
-                    "label",
-                    "short_description",
-                    "long_description",
-                    "attributes",
-                    "distance_from_camera_m",
-                ],
+                "required": ["objects"],
                 "properties": {
-                    "label": {"type": "string"},
-                    "short_description": {"type": "string"},
-                    "long_description": {"type": "string"},
-                    "attributes": {
+                    "objects": {
                         "type": "array",
-                        "items": {"type": "string"},
-                        "maxItems": 12,
-                    },
-                    "distance_from_camera_m": {"type": ["number", "null"]},
+                        "maxItems": int(max_objects),
+                        "items": VLMCaptioner._object_description_item_schema(include_object_local_id=True),
+                    }
                 },
             },
+        }
+
+    @staticmethod
+    def _normalize_object_description_payload(
+        payload: Optional[Mapping[str, Any]],
+        *,
+        default_payload: Optional[Mapping[str, Any]] = None,
+        label_hint: str = "",
+    ) -> Dict[str, Any]:
+        fallback = dict(default_payload or VLMCaptioner._default_object_crop_description())
+        raw = dict(payload or {})
+        result_label = str(raw.get("label") or fallback["label"]).strip() or "unknown"
+        result_short = str(raw.get("short_description") or fallback["short_description"]).strip() or "unknown"
+        result_long = str(raw.get("long_description") or fallback["long_description"]).strip()
+        if (not result_label or result_label.lower() == "unknown") and label_hint:
+            result_label = label_hint
+        if (not result_short or result_short.lower() == "unknown") and label_hint:
+            result_short = label_hint
+        if not result_long:
+            result_long = result_short
+        return {
+            "label": result_label,
+            "short_description": result_short,
+            "long_description": result_long,
+            "attributes": [str(v).strip() for v in list(raw.get("attributes") or []) if str(v).strip()],
+            "distance_from_camera_m": raw.get("distance_from_camera_m"),
         }
 
     @staticmethod
@@ -1241,6 +1395,163 @@ class VLMCaptioner:
         )
         return str(result.get("raw_json") or self._default_object_json())
 
+    def describe_detected_objects_with_meta(
+        self,
+        image_path: str,
+        detections: Sequence[Mapping[str, Any]],
+        force_refresh: bool = False,
+    ) -> Dict[str, Any]:
+        """Describe multiple detector-localized objects in one image-level VLM call."""
+        normalized_detections: List[Dict[str, Any]] = []
+        for det in list(detections or []):
+            object_local_id = str(det.get("object_local_id") or "").strip()
+            if not object_local_id:
+                continue
+            normalized_detections.append(
+                {
+                    "object_local_id": object_local_id,
+                    "detector_label": str(det.get("detector_label", det.get("label")) or "").strip() or "unknown",
+                    "detector_confidence": det.get("detector_confidence", det.get("confidence")),
+                    "bbox_xyxy": [float(v) for v in list(det.get("bbox_xyxy") or [])[:4]],
+                    "bbox_xywh_norm": [float(v) for v in list(det.get("bbox_xywh_norm") or [])[:4]],
+                }
+            )
+        cache_path = (
+            self._resolve_detected_objects_batch_cache_path(image_path, normalized_detections)
+            if self.object_use_cache
+            else None
+        )
+        default_payload = self._default_object_crop_description()
+
+        if cache_path and cache_path.exists() and not force_refresh:
+            self._log(f"detected_batch cache_hit image={image_path} cache={cache_path}")
+            raw_cache = cache_path.read_text(encoding="utf-8")
+            try:
+                loaded = json.loads(raw_cache) if raw_cache.strip() else {}
+            except Exception:
+                loaded = {}
+            payload = loaded.get("payload") if isinstance(loaded, dict) else {}
+            raw_objects = list(payload.get("objects") or []) if isinstance(payload, Mapping) else []
+            objects: List[Dict[str, Any]] = []
+            seen_ids = set()
+            for item in raw_objects:
+                if not isinstance(item, Mapping):
+                    continue
+                object_local_id = str(item.get("object_local_id") or "").strip()
+                if not object_local_id or object_local_id in seen_ids:
+                    continue
+                seen_ids.add(object_local_id)
+                hint = ""
+                for det in normalized_detections:
+                    if det["object_local_id"] == object_local_id:
+                        hint = str(det["detector_label"] or "")
+                        break
+                normalized_item = self._normalize_object_description_payload(item, default_payload=default_payload, label_hint=hint)
+                normalized_item["object_local_id"] = object_local_id
+                objects.append(normalized_item)
+            return {
+                "objects": objects,
+                "raw_response": loaded.get("raw_response") if isinstance(loaded, dict) else None,
+                "source": "cache",
+            }
+
+        if self.client is None:
+            self._log("detected_batch client_unavailable -> return default payload")
+            return {
+                "objects": [],
+                "raw_response": None,
+                "source": "default-no-client",
+            }
+
+        try:
+            self._log(
+                f"detected_batch request_start model={self.model_name} image={image_path} "
+                f"force_refresh={bool(force_refresh)} detection_count={len(normalized_detections)}"
+            )
+            t0 = time.perf_counter()
+            encoded_string = self._encode_image_to_base64(image_path)
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": self._batched_detected_objects_response_schema(len(normalized_detections)),
+                },
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self._batched_detected_objects_system_prompt(),
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": self._batched_detected_objects_user_prompt(normalized_detections),
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{encoded_string}",
+                                    "detail": "low",
+                                },
+                            },
+                        ],
+                    },
+                ],
+                max_completion_tokens=max(4000, 800 * max(len(normalized_detections), 1)),
+            )
+            raw_content = (response.choices[0].message.content or "").strip()
+            payload = json.loads(raw_content) if raw_content else {"objects": []}
+            if not isinstance(payload, dict):
+                payload = {"objects": []}
+            raw_objects = list(payload.get("objects") or [])
+            objects: List[Dict[str, Any]] = []
+            seen_ids = set()
+            by_local_id = {str(det["object_local_id"]): det for det in normalized_detections}
+            for item in raw_objects:
+                if not isinstance(item, Mapping):
+                    continue
+                object_local_id = str(item.get("object_local_id") or "").strip()
+                if not object_local_id or object_local_id in seen_ids:
+                    continue
+                seen_ids.add(object_local_id)
+                hint = str(by_local_id.get(object_local_id, {}).get("detector_label") or "")
+                normalized_item = self._normalize_object_description_payload(item, default_payload=default_payload, label_hint=hint)
+                normalized_item["object_local_id"] = object_local_id
+                objects.append(normalized_item)
+            result = {
+                "objects": objects,
+                "raw_response": self._serialize_api_response(response),
+                "source": "api",
+            }
+            self._log(
+                f"detected_batch request_done chars={len(raw_content)} "
+                f"elapsed_sec={time.perf_counter() - t0:.2f}"
+            )
+
+            if cache_path:
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                cache_payload = {
+                    "payload": {"objects": objects},
+                    "raw_response": result["raw_response"],
+                    "cached_at_unix_s": int(time.time()),
+                    "model": self.model_name,
+                    "prompt_version": self._batched_object_description_prompt_version(),
+                    "detection_count": len(normalized_detections),
+                }
+                cache_path.write_text(json.dumps(cache_payload, ensure_ascii=True), encoding="utf-8")
+                self._log(f"detected_batch cache_write cache={cache_path}")
+
+            return result
+        except Exception as exc:
+            self._log_exception("describe_detected_objects_with_meta", image_path, exc)
+            self._log("detected_batch request_failed -> return default payload")
+            return {
+                "objects": [],
+                "raw_response": None,
+                "source": "default-exception",
+            }
+
     def describe_object_crop_with_meta(
         self,
         image_path: str,
@@ -1277,21 +1588,11 @@ class VLMCaptioner:
                 payload = loaded.get("payload", loaded)
                 if isinstance(payload, dict):
                     return {
-                        "label": str(payload.get("label") or default_payload["label"]).strip() or "unknown",
-                        "short_description": str(
-                            payload.get("short_description") or default_payload["short_description"]
-                        ).strip()
-                        or "unknown",
-                        "long_description": str(
-                            payload.get("long_description") or default_payload["long_description"]
-                        ).strip()
-                        or "unknown",
-                        "attributes": [
-                            str(v).strip()
-                            for v in list(payload.get("attributes") or [])
-                            if str(v).strip()
-                        ],
-                        "distance_from_camera_m": payload.get("distance_from_camera_m"),
+                        **self._normalize_object_description_payload(
+                            payload,
+                            default_payload=default_payload,
+                            label_hint=yolo_label_clean,
+                        ),
                         "raw_response": loaded.get("raw_response"),
                         "source": "cache",
                     }
@@ -1343,32 +1644,7 @@ class VLMCaptioner:
                         "content": [
                             {
                                 "type": "text",
-                                "text": (
-                                    f'A detector has identified the object in this crop as "{yolo_label_clean or "unknown"}" '
-                                    f"(confidence: {yolo_conf_text}). "
-                                    "Treat this detected class as the object category to describe. "
-                                    "Describe this specific object instance visible in the cropped image in the same style as the database builder's "
-                                    "object fields: short_description should correspond to a short precise object description, and long_description "
-                                    "should correspond to a detailed long-form open description. "
-                                    "Ignore the wider room and focus on the object itself. "
-                                    "Return a compact label for that detected category, a short description useful for retrieval, "
-                                    "a richer long description, a list of notable visual attributes, and an approximate distance "
-                                    "from the camera in meters when you can infer it. Mention the approximate distance directly "
-                                    "in the short or long description when possible. "
-                                    "Requirements: "
-                                    "short_description must be 3 to 8 words and must include at least one visible cue beyond the class name, "
-                                    "such as color, material, shape, state, position in crop, or partial visibility. "
-                                    "Prefer noun phrases like 'dark wooden chair edge crop' or 'gold-framed wall picture' over generic labels. "
-                                    "Do not use only the bare class name for short_description unless absolutely nothing except the class is visible. "
-                                    "long_description must be a concrete sentence or phrase with all visible cues you can infer, and should not be "
-                                    "\"unknown\" unless the crop is too poor to identify any visual property at all. "
-                                    "Include visible properties that also help matching against database object text, such as color, material, texture, "
-                                    "shape, condition, approximate size cues, and whether the object appears partial or cut off. "
-                                    "If the crop is partial or clipped by the image border, explicitly include words like partial, cropped, edge, "
-                                    "or cut off. If you are uncertain, describe what is visible rather than refusing. "
-                                    "attributes should list concise visible cues, not generic words. "
-                                    "Output JSON only."
-                                ),
+                                "text": self._object_crop_user_prompt(yolo_label_clean, yolo_conf_text),
                             },
                             {
                                 "type": "image_url",
@@ -1387,30 +1663,13 @@ class VLMCaptioner:
             if not isinstance(payload, dict):
                 payload = dict(default_payload)
 
-            result_label = str(payload.get("label") or default_payload["label"]).strip() or "unknown"
-            result_short = str(
-                payload.get("short_description") or default_payload["short_description"]
-            ).strip() or "unknown"
-            result_long = str(
-                payload.get("long_description") or default_payload["long_description"]
-            ).strip()
-            if (not result_label or result_label.lower() == "unknown") and yolo_label_clean:
-                result_label = yolo_label_clean
-            if (not result_short or result_short.lower() == "unknown") and yolo_label_clean:
-                result_short = yolo_label_clean
-            if not result_long:
-                result_long = result_short
-
+            normalized_payload = self._normalize_object_description_payload(
+                payload,
+                default_payload=default_payload,
+                label_hint=yolo_label_clean,
+            )
             result = {
-                "label": result_label,
-                "short_description": result_short,
-                "long_description": result_long,
-                "attributes": [
-                    str(v).strip()
-                    for v in list(payload.get("attributes") or [])
-                    if str(v).strip()
-                ],
-                "distance_from_camera_m": payload.get("distance_from_camera_m"),
+                **normalized_payload,
                 "raw_response": self._serialize_api_response(response),
                 "source": "api",
                 "yolo_label_hint": yolo_label_clean or None,
