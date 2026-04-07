@@ -93,6 +93,7 @@ class PlaceObjectEdgeRecord:
     object_orientation_deg: Optional[float]
     distance_from_camera_m: Optional[float]
     projected_x: Optional[float]
+    projected_y: Optional[float]
     projected_z: Optional[float]
 
 
@@ -102,7 +103,7 @@ class DirectionEdgeRecord:
     target_place_id: str
     relation_type: str
     dx: float
-    dz: float
+    dy: float
     distance_m: float
 
 
@@ -185,7 +186,7 @@ def _safe_world_position(row: Mapping[str, Any]) -> Tuple[float, float, float]:
     world_position = row.get("world_position")
     if isinstance(world_position, (list, tuple)) and len(world_position) == 3:
         return float(world_position[0]), float(world_position[1]), float(world_position[2])
-    return float(row["x"]), 0.0, float(row["y"])
+    return float(row["x"]), float(row.get("y") or 0.0), float(row.get("z") or 0.0)
 
 
 def _place_group_key(row: Mapping[str, Any], decimals: int = 4) -> Tuple[float, float, float]:
@@ -204,7 +205,7 @@ def _majority_value(rows: Sequence[Mapping[str, Any]], key: str, default: str = 
 
 def _project_object_position(
     origin_x: float,
-    origin_z: float,
+    origin_y: float,
     orientation_deg: Optional[float],
     distance_m: Optional[float],
 ) -> Tuple[Optional[float], Optional[float]]:
@@ -215,28 +216,28 @@ def _project_object_position(
         return None, None
     yaw = math.radians(float(orientation_deg))
     projected_x = float(origin_x - math.sin(yaw) * dist)
-    projected_z = float(origin_z - math.cos(yaw) * dist)
-    return projected_x, projected_z
+    projected_y = float(origin_y - math.cos(yaw) * dist)
+    return projected_x, projected_y
 
 
 def _classify_view_aligned_direction(
     dx: float,
-    dz: float,
+    dy: float,
     view_orientation_deg: float,
     same_axis_eps: float = 0.25,
 ) -> Optional[str]:
-    distance = float(math.hypot(float(dx), float(dz)))
+    distance = float(math.hypot(float(dx), float(dy)))
     if distance <= float(same_axis_eps):
         return None
 
     yaw = math.radians(float(view_orientation_deg))
     forward_x = -math.sin(yaw)
-    forward_z = -math.cos(yaw)
+    forward_y = -math.cos(yaw)
     right_x = math.cos(yaw)
-    right_z = -math.sin(yaw)
+    right_y = -math.sin(yaw)
 
-    local_forward = float(dx) * forward_x + float(dz) * forward_z
-    local_right = float(dx) * right_x + float(dz) * right_z
+    local_forward = float(dx) * forward_x + float(dy) * forward_y
+    local_right = float(dx) * right_x + float(dy) * right_y
     if abs(local_right) >= abs(local_forward):
         if local_right > float(same_axis_eps):
             return "right"
@@ -258,11 +259,11 @@ def _classify_vertical_direction(dy: float, vertical_eps: float = OBJECT_VERTICA
     return "level"
 
 
-def _classify_direction(dx: float, dz: float, same_axis_eps: float) -> Optional[str]:
-    if abs(dx) <= float(same_axis_eps) and abs(dz) <= float(same_axis_eps):
+def _classify_direction(dx: float, dy: float, same_axis_eps: float) -> Optional[str]:
+    if abs(dx) <= float(same_axis_eps) and abs(dy) <= float(same_axis_eps):
         return None
-    if abs(dz) >= abs(dx):
-        return "NORTH_OF" if dz > 0.0 else "SOUTH_OF"
+    if abs(dy) >= abs(dx):
+        return "NORTH_OF" if dy > 0.0 else "SOUTH_OF"
     return "EAST_OF" if dx > 0.0 else "WEST_OF"
 
 
@@ -368,10 +369,10 @@ def _build_object_records_full(
         projected_x = _safe_float(row.get("estimated_global_x"))
         projected_y = _safe_float(row.get("estimated_global_y"))
         projected_z = _safe_float(row.get("estimated_global_z"))
-        if projected_x is None or projected_z is None:
-            projected_x, projected_z = _project_object_position(
+        if projected_x is None or projected_y is None:
+            projected_x, projected_y = _project_object_position(
                 origin_x=place.x,
-                origin_z=place.z,
+                origin_y=place.y,
                 orientation_deg=float(orientation) if orientation is not None else None,
                 distance_m=float(distance) if distance is not None else None,
             )
@@ -409,6 +410,7 @@ def _build_object_records_full(
                 object_orientation_deg=observation.object_orientation_deg,
                 distance_from_camera_m=observation.distance_from_camera_m,
                 projected_x=projected_x,
+                projected_y=projected_y,
                 projected_z=projected_z,
             )
         )
@@ -446,8 +448,8 @@ def build_direction_edges(
             if source.place_id == target.place_id:
                 continue
             dx = float(target.x - source.x)
-            dz = float(target.z - source.z)
-            distance = float(math.hypot(dx, dz))
+            dy = float(target.y - source.y)
+            distance = float(math.hypot(dx, dy))
             if radius_m is not None and distance > float(radius_m):
                 continue
             candidates.append((distance, target))
@@ -455,8 +457,8 @@ def build_direction_edges(
         candidates.sort(key=lambda item: (item[0], item[1].place_id))
         for distance, target in candidates[: max(0, int(k_neighbors))]:
             dx = float(target.x - source.x)
-            dz = float(target.z - source.z)
-            direction = _classify_direction(dx=dx, dz=dz, same_axis_eps=same_axis_eps)
+            dy = float(target.y - source.y)
+            direction = _classify_direction(dx=dx, dy=dy, same_axis_eps=same_axis_eps)
             if direction is None:
                 continue
             forward_key = (source.place_id, target.place_id, direction)
@@ -466,7 +468,7 @@ def build_direction_edges(
                     target_place_id=target.place_id,
                     relation_type=direction,
                     dx=dx,
-                    dz=dz,
+                    dy=dy,
                     distance_m=distance,
                 )
 
@@ -478,7 +480,7 @@ def build_direction_edges(
                     target_place_id=source.place_id,
                     relation_type=reverse,
                     dx=-dx,
-                    dz=-dz,
+                    dy=-dy,
                     distance_m=distance,
                 )
 
@@ -528,19 +530,19 @@ def _build_view_object_edges_from_rows(
         if entry is None:
             continue
         object_x = _safe_float(row.get("estimated_global_x"))
-        object_z = _safe_float(row.get("estimated_global_z"))
-        if object_x is None or object_z is None:
-            object_x = _safe_float(row.get("projected_x"))
-            object_z = _safe_float(row.get("projected_z"))
-        view_x = _safe_float(entry.get("x"))
-        _view_y = _safe_world_position(entry)[1]
-        view_z = _safe_float(entry.get("y"))
-        if object_x is None or object_z is None or view_x is None or view_z is None:
-            continue
         object_y = _safe_float(row.get("estimated_global_y"))
+        if object_x is None or object_y is None:
+            object_x = _safe_float(row.get("projected_x"))
+            object_y = _safe_float(row.get("projected_y"))
+        view_x = _safe_float(entry.get("x"))
+        view_y = _safe_float(entry.get("y"))
+        view_z = _safe_world_position(entry)[2]
+        if object_x is None or object_y is None or view_x is None or view_y is None:
+            continue
+        object_z = _safe_float(row.get("estimated_global_z"))
         dx = float(object_x - view_x)
-        dy = float(object_y - _view_y) if object_y is not None else 0.0
-        dz = float(object_z - view_z)
+        dy = float(object_y - view_y)
+        dz = float(object_z - view_z) if object_z is not None else 0.0
         rows.append(
             {
                 "entry_id": entry_id,
@@ -549,7 +551,7 @@ def _build_view_object_edges_from_rows(
                 "obs_id": _obs_id_for_object_global_id(row["object_global_id"]),
                 "label": str(row.get("label") or "unknown"),
                 "view_x": view_x,
-                "view_y": _view_y,
+                "view_y": view_y,
                 "view_z": view_z,
                 "object_x": object_x,
                 "object_y": object_y,
@@ -557,11 +559,11 @@ def _build_view_object_edges_from_rows(
                 "dx": dx,
                 "dy": dy,
                 "dz": dz,
-                "distance_m": float(math.hypot(dx, dz)),
+                "distance_m": float(math.hypot(dx, dy)),
                 "distance_3d_m": float(math.sqrt(dx * dx + dy * dy + dz * dz)),
                 "direction": "in",
                 "direction_frame": "view_aligned",
-                "vertical_direction": _classify_vertical_direction(dy=dy),
+                "vertical_direction": _classify_vertical_direction(dy=dz),
                 "relation_type": "ViewObject",
             }
         )
@@ -577,15 +579,15 @@ def _build_object_object_edges_from_rows(
     grouped: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
     for row in object_rows:
         object_x = _safe_float(row.get("estimated_global_x"))
-        object_z = _safe_float(row.get("estimated_global_z"))
-        if object_x is None or object_z is None:
+        object_y = _safe_float(row.get("estimated_global_y"))
+        if object_x is None or object_y is None:
             object_x = _safe_float(row.get("projected_x"))
-            object_z = _safe_float(row.get("projected_z"))
-        if object_x is None or object_z is None:
+            object_y = _safe_float(row.get("projected_y"))
+        if object_x is None or object_y is None:
             continue
         cloned = dict(row)
         cloned["_resolved_x"] = object_x
-        cloned["_resolved_z"] = object_z
+        cloned["_resolved_y"] = object_y
         grouped[int(row["entry_id"])].append(cloned)
 
     rows: List[Dict[str, Any]] = []
@@ -599,20 +601,20 @@ def _build_object_object_edges_from_rows(
         ordered = sorted(group_rows, key=lambda item: int(item["object_global_id"]))
         for source in ordered:
             source_x = float(source["_resolved_x"])
-            source_y = _safe_float(source.get("estimated_global_y"))
-            source_z = float(source["_resolved_z"])
+            source_y = float(source["_resolved_y"])
+            source_z = _safe_float(source.get("estimated_global_z"))
             for target in ordered:
                 if int(source["object_global_id"]) == int(target["object_global_id"]):
                     continue
                 target_x = float(target["_resolved_x"])
-                target_y = _safe_float(target.get("estimated_global_y"))
-                target_z = float(target["_resolved_z"])
+                target_y = float(target["_resolved_y"])
+                target_z = _safe_float(target.get("estimated_global_z"))
                 dx = float(target_x - source_x)
-                dy = float(target_y - source_y) if source_y is not None and target_y is not None else 0.0
-                dz = float(target_z - source_z)
+                dy = float(target_y - source_y)
+                dz = float(target_z - source_z) if source_z is not None and target_z is not None else 0.0
                 direction = _classify_view_aligned_direction(
                     dx=dx,
-                    dz=dz,
+                    dy=dy,
                     view_orientation_deg=view_orientation,
                     same_axis_eps=same_axis_eps,
                 )
@@ -637,11 +639,11 @@ def _build_object_object_edges_from_rows(
                         "dx": dx,
                         "dy": dy,
                         "dz": dz,
-                        "distance_m": float(math.hypot(dx, dz)),
+                        "distance_m": float(math.hypot(dx, dy)),
                         "distance_3d_m": float(math.sqrt(dx * dx + dy * dy + dz * dz)),
                         "direction": direction,
                         "direction_frame": "view_aligned",
-                        "vertical_direction": _classify_vertical_direction(dy=dy),
+                        "vertical_direction": _classify_vertical_direction(dy=dz),
                         "relation_type": "ObjectObject",
                         "relation_source": "geometry_postprocess",
                     }
@@ -919,6 +921,7 @@ def load_graph_to_neo4j(
                 SET r.object_orientation_deg = row.object_orientation_deg,
                     r.distance_from_camera_m = row.distance_from_camera_m,
                     r.projected_x = row.projected_x,
+                    r.projected_y = row.projected_y,
                     r.projected_z = row.projected_z
                 """,
                 rows=batch,
@@ -937,7 +940,7 @@ def load_graph_to_neo4j(
                     MATCH (dst:Place {{place_id: row.target_place_id}})
                     MERGE (src)-[r:{relation_type}]->(dst)
                     SET r.dx = row.dx,
-                        r.dz = row.dz,
+                        r.dy = row.dy,
                         r.distance_m = row.distance_m
                     """,
                     rows=batch,
@@ -1101,7 +1104,7 @@ def query_direction_neighbors(
                    n.room_function AS room_function,
                    n.view_type AS view_type,
                    r.dx AS dx,
-                   r.dz AS dz,
+                   r.dy AS dy,
                    r.distance_m AS distance_m
             ORDER BY r.distance_m ASC, n.place_id ASC
             """,
@@ -1129,6 +1132,7 @@ def query_place_objects(
                r.object_orientation_deg AS object_orientation_deg,
                r.distance_from_camera_m AS distance_from_camera_m,
                r.projected_x AS projected_x,
+               r.projected_y AS projected_y,
                r.projected_z AS projected_z
         ORDER BY o.obs_id
     """
@@ -1190,7 +1194,7 @@ def query_direction_objects(
                o.label AS label,
                o.description AS description,
                d.dx AS dx,
-               d.dz AS dz,
+               d.dy AS dy,
                d.distance_m AS distance_m,
                r.view_id AS view_id,
                r.object_orientation_deg AS object_orientation_deg,

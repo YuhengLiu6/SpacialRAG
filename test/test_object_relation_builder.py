@@ -37,7 +37,7 @@ def test_build_object_relations_from_existing_metadata(tmp_path):
     object_rows = [json.loads(line) for line in (db_dir / "object_object_relations.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     assert view_rows[0]["vertical_direction"] == "below"
     assert "distance_3d_m" in view_rows[0]
-    assert object_rows[0]["vertical_direction"] == "above"
+    assert object_rows[0]["vertical_direction"] == "level"
     assert "distance_3d_m" in object_rows[0]
     updated_report = json.loads((db_dir / "build_report.json").read_text(encoding="utf-8"))
     assert updated_report["total_view_object_relations"] == 3

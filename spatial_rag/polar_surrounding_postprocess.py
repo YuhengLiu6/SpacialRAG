@@ -82,17 +82,17 @@ def classify_local_semantic_relation(
 
 def _bearing_from_global_positions(
     source_x: Optional[float],
-    source_z: Optional[float],
+    source_y: Optional[float],
     target_x: Optional[float],
-    target_z: Optional[float],
+    target_y: Optional[float],
 ) -> Optional[float]:
-    if source_x is None or source_z is None or target_x is None or target_z is None:
+    if source_x is None or source_y is None or target_x is None or target_y is None:
         return None
     dx = float(target_x) - float(source_x)
-    dz = float(target_z) - float(source_z)
-    if abs(dx) < 1e-9 and abs(dz) < 1e-9:
+    dy = float(target_y) - float(source_y)
+    if abs(dx) < 1e-9 and abs(dy) < 1e-9:
         return None
-    return (math.degrees(math.atan2(dx, -dz)) + 360.0) % 360.0
+    return (math.degrees(math.atan2(dx, -dy)) + 360.0) % 360.0
 
 
 def _bearing_from_camera_fallback(
@@ -248,9 +248,9 @@ def build_polar_surroundings(
                 )
                 allocentric_bearing_deg = _bearing_from_global_positions(
                     _safe_float(source.get("estimated_global_x")),
-                    _safe_float(source.get("estimated_global_z")),
+                    _safe_float(source.get("estimated_global_y")),
                     _safe_float(target.get("estimated_global_x")),
-                    _safe_float(target.get("estimated_global_z")),
+                    _safe_float(target.get("estimated_global_y")),
                 )
                 if allocentric_bearing_deg is None:
                     allocentric_bearing_deg = _bearing_from_camera_fallback(

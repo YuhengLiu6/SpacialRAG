@@ -1,0 +1,24 @@
+{
+  "image_file": "images/pose_00003_o270_000015.jpg",
+  "camera": {
+    "entry_id": 15,
+    "x": -9.447001457214355,
+    "z": -2.4728803634643555,
+    "orientation_deg": 270.0
+  },
+  "oven_metadata": {
+    "object_global_id": 212,
+    "description": "stainless steel range/oven with towel on handle (right side)",
+    "laterality": "right",
+    "distance_from_camera_m": 5.0,
+    "object_orientation_deg": 300.0
+  },
+  "estimated_oven_position": {
+    "x": -5.116874438292163,
+    "z": -4.9728803634643555
+  },
+  "camera_to_oven_planar_distance_m": 5.0,
+  "artifacts": {
+    "floorplan_png": "/Users/liuyuheng/Desktop/antigravityTest/object_vpr_results/manual_floorplan/pose_00003_o270_000015_oven_floorplan.png"
+  }
+}

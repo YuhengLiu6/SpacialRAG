@@ -30,7 +30,8 @@ def test_canonicalize_is_deterministic_and_includes_anchor_fields():
                 "distance_from_camera_m": 2.0,
                 "relative_bearing_deg": -15.0,
                 "estimated_global_x": 1.2,
-                "estimated_global_z": -2.4,
+                "estimated_global_y": -2.4,
+                "estimated_global_z": 0.8,
                 "support_relation": "freestanding",
                 "any_text": "",
                 "long_form_open_description": "A wooden chair.",
@@ -48,7 +49,8 @@ def test_canonicalize_is_deterministic_and_includes_anchor_fields():
                 "distance_from_camera_m": 1.2,
                 "relative_bearing_deg": 20.0,
                 "estimated_global_x": 0.5,
-                "estimated_global_z": -1.0,
+                "estimated_global_y": -1.0,
+                "estimated_global_z": 1.2,
                 "support_relation": "attached_to",
                 "any_text": "PULL",
                 "long_form_open_description": "Door with metal handle.",
@@ -61,7 +63,8 @@ def test_canonicalize_is_deterministic_and_includes_anchor_fields():
                         "distance_from_camera_m": 2.0,
                         "relative_bearing_deg": -15.0,
                         "estimated_global_x": 1.2,
-                        "estimated_global_z": -2.4,
+                        "estimated_global_y": -2.4,
+                        "estimated_global_z": 0.8,
                         "relation_to_primary": "right of door",
                     }
                 ],
@@ -94,6 +97,7 @@ def test_canonicalize_is_deterministic_and_includes_anchor_fields():
     assert "support=attached_to" in lines_a[0]
     assert "bearing=20.0" in lines_a[0]
     assert "gx=0.5" in lines_a[0]
+    assert "gy=-1.0" in lines_a[0]
     assert "ctx=chair@1.0,-2.5~1.4#right of door" in lines_a[0]
     assert "scene_attributes=painted trim" in text_a
 
@@ -134,10 +138,10 @@ def test_object_text_mode_long_generates_hierarchy_with_na_anchor_when_missing()
     obj = parsed.scene_objects.visual_feature[0]
     line_short = canonical_object_line(obj, object_text_mode="short")
     line_long = canonical_object_line(obj, object_text_mode="long")
-    assert "desc=object: table / attrs: round, wooden / anchor: x=na, z=na / nearby: none" in line_short
+    assert "desc=object: table / attrs: round, wooden / anchor: x=na, y=na / nearby: none" in line_short
     assert "desc=object: table / attributes: round, wooden / camera_relation: distance=1.0, bearing=na" in line_long
     assert select_object_text(obj, mode="short").startswith("object: table | attrs: round, wooden")
-    assert "global_anchor: x=na, z=na" in select_object_text(obj, mode="long")
+    assert "global_anchor: x=na, y=na" in select_object_text(obj, mode="long")
 
 
 def test_collect_and_compose_use_generated_short_long_hierarchy_text():
@@ -159,7 +163,8 @@ def test_collect_and_compose_use_generated_short_long_hierarchy_text():
                 "distance_from_camera_m": 2.0,
                 "relative_bearing_deg": -10.0,
                 "estimated_global_x": 1.0,
-                "estimated_global_z": -2.0,
+                "estimated_global_y": -2.0,
+                "estimated_global_z": 0.8,
                 "support_relation": "freestanding",
                 "any_text": "",
                 "long_form_open_description": "A bright blue chair with curved back.",
@@ -177,7 +182,8 @@ def test_collect_and_compose_use_generated_short_long_hierarchy_text():
                 "distance_from_camera_m": 1.2,
                 "relative_bearing_deg": 15.0,
                 "estimated_global_x": 0.5,
-                "estimated_global_z": -1.0,
+                "estimated_global_y": -1.0,
+                "estimated_global_z": 1.2,
                 "support_relation": "attached_to",
                 "any_text": "PULL",
                 "long_form_open_description": "A gray wooden door with metal handle.",
@@ -198,8 +204,8 @@ def test_collect_and_compose_use_generated_short_long_hierarchy_text():
     long_texts = collect_object_texts(parsed.scene_objects, max_objects=24, mode="long")
 
     assert short_texts == [
-        "object: door | attrs: gray | anchor: x=0.5, z=-1.0 | nearby: none",
-        "object: chair | attrs: blue, curved back | anchor: x=1.0, z=-2.0 | nearby: none",
+        "object: door | attrs: gray | anchor: x=0.5, y=-1.0 | nearby: none",
+        "object: chair | attrs: blue, curved back | anchor: x=1.0, y=-2.0 | nearby: none",
     ]
     assert long_texts[0].startswith(
         "object: door | attributes: gray | camera_relation: distance=1.2, bearing=15.0"
@@ -208,7 +214,7 @@ def test_collect_and_compose_use_generated_short_long_hierarchy_text():
         "object: chair | attributes: blue, curved back | camera_relation: distance=2.0, bearing=-10.0"
     )
     assert compose_frame_text(parsed.scene_objects, max_objects=24, mode="short").startswith(
-        "object: door | attrs: gray | anchor: x=0.5, z=-1.0 | nearby: none | object: chair"
+        "object: door | attrs: gray | anchor: x=0.5, y=-1.0 | nearby: none | object: chair"
     )
 
 

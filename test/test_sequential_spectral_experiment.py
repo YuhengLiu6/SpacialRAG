@@ -353,7 +353,7 @@ def test_run_capped_sequential_spectral_clustering_caps_eigengap_to_cc_plus_two(
     assert result["n_clusters"] <= result["requested_n_clusters"]
 
 
-def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xz_distance():
+def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xy_distance():
     memory_clusters = [
         _build_cluster(
             0,
@@ -364,8 +364,8 @@ def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xz_distance():
                     "label": "chair",
                     "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
                     "estimated_global_x": 0.0,
-                    "estimated_global_y": 10.0,
-                    "estimated_global_z": 0.0,
+                    "estimated_global_y": 0.0,
+                    "estimated_global_z": 10.0,
                     "distance_from_camera_m": 1.0,
                     "relative_bearing_deg": 0.0,
                     "relative_height_from_camera_m": 0.0,
@@ -380,8 +380,8 @@ def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xz_distance():
             "label": "chair",
             "embedding": np.asarray([0.8, 0.6], dtype=np.float32),
             "estimated_global_x": 3.0,
-            "estimated_global_y": -10.0,
-            "estimated_global_z": 4.0,
+            "estimated_global_y": 4.0,
+            "estimated_global_z": -10.0,
             "distance_from_camera_m": 5.0,
             "relative_bearing_deg": 15.0,
             "relative_height_from_camera_m": 0.0,
@@ -402,8 +402,8 @@ def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xz_distance():
     detail = details[0][0]
     assert detail["similarity_mode"] == "cosine_geo_gate"
     assert np.isclose(detail["distance_gate"], expected_gate)
-    assert detail["xz_distance_m"] == 5.0
-    assert detail["xz_distance_sq_m2"] == expected_dsq
+    assert detail["xy_distance_m"] == 5.0
+    assert detail["xy_distance_sq_m2"] == expected_dsq
     assert detail["polar_similarity"] is None
 
 

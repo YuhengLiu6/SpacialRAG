@@ -38,7 +38,7 @@ def _load_saved_projection(db_dir: Path) -> Optional[Dict[str, float]]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None
-    required = ("view_min_x", "view_max_x", "view_min_z", "view_max_z")
+    required = ("view_min_x", "view_max_x", "view_min_y", "view_max_y")
     if not isinstance(payload, dict):
         return None
     try:
@@ -61,20 +61,20 @@ def _safe_float(value: Any) -> Optional[float]:
 
 def _world_to_pixel_floor(
     x: float,
-    z: float,
+    y: float,
     width: int,
     height: int,
     projection: Dict[str, float],
 ) -> Tuple[int, int]:
     min_x = float(projection["view_min_x"])
     max_x = float(projection["view_max_x"])
-    min_z = float(projection["view_min_z"])
-    max_z = float(projection["view_max_z"])
+    min_y = float(projection["view_min_y"])
+    max_y = float(projection["view_max_y"])
 
     denom_x = max(max_x - min_x, 1e-6)
-    denom_z = max(max_z - min_z, 1e-6)
+    denom_y = max(max_y - min_y, 1e-6)
     px = int(np.clip((x - min_x) / denom_x * (width - 1), 0, width - 1))
-    py = int(np.clip((z - min_z) / denom_z * (height - 1), 0, height - 1))
+    py = int(np.clip((y - min_y) / denom_y * (height - 1), 0, height - 1))
     return px, py
 
 
@@ -84,34 +84,34 @@ def _projection_from_rows(
     pad_m: float = 0.5,
 ) -> Dict[str, float]:
     xs: List[float] = []
-    zs: List[float] = []
+    ys: List[float] = []
     for row in meta_rows:
         x = _safe_float(row.get("x"))
-        z = _safe_float(row.get("y"))
-        if x is not None and z is not None:
+        y = _safe_float(row.get("y"))
+        if x is not None and y is not None:
             xs.append(x)
-            zs.append(z)
+            ys.append(y)
     for row in object_rows:
         x = _safe_float(row.get("estimated_global_x"))
-        z = _safe_float(row.get("estimated_global_z"))
-        if x is not None and z is not None:
+        y = _safe_float(row.get("estimated_global_y"))
+        if x is not None and y is not None:
             xs.append(x)
-            zs.append(z)
-    if not xs or not zs:
-        return {"view_min_x": -1.0, "view_max_x": 1.0, "view_min_z": -1.0, "view_max_z": 1.0}
+            ys.append(y)
+    if not xs or not ys:
+        return {"view_min_x": -1.0, "view_max_x": 1.0, "view_min_y": -1.0, "view_max_y": 1.0}
     min_x = min(xs) - float(pad_m)
     max_x = max(xs) + float(pad_m)
-    min_z = min(zs) - float(pad_m)
-    max_z = max(zs) + float(pad_m)
+    min_y = min(ys) - float(pad_m)
+    max_y = max(ys) + float(pad_m)
     if max_x <= min_x:
         max_x = min_x + 1.0
-    if max_z <= min_z:
-        max_z = min_z + 1.0
+    if max_y <= min_y:
+        max_y = min_y + 1.0
     return {
         "view_min_x": float(min_x),
         "view_max_x": float(max_x),
-        "view_min_z": float(min_z),
-        "view_max_z": float(max_z),
+        "view_min_y": float(min_y),
+        "view_max_y": float(max_y),
     }
 
 
@@ -131,8 +131,8 @@ def _try_scene_projection(db_dir: Path) -> Optional[Dict[str, float]]:
                 return {
                     "view_min_x": float(projection["view_min_x"]),
                     "view_max_x": float(projection["view_max_x"]),
-                    "view_min_z": float(projection["view_min_z"]),
-                    "view_max_z": float(projection["view_max_z"]),
+                    "view_min_y": float(projection["view_min_y"]),
+                    "view_max_y": float(projection["view_max_y"]),
                 }
         finally:
             explorer.close()
@@ -224,7 +224,7 @@ def render_object_nodes_birdview(
         for row in object_rows
         if int(row.get("entry_id", -1)) == int(entry_id)
         and _safe_float(row.get("estimated_global_x")) is not None
-        and _safe_float(row.get("estimated_global_z")) is not None
+        and _safe_float(row.get("estimated_global_y")) is not None
     ]
     if not objects:
         raise ValueError(f"No plottable objects found for entry_id={entry_id} in {db_path / 'object_meta.jsonl'}")
@@ -245,16 +245,19 @@ def render_object_nodes_birdview(
     canvas = base.copy()
     height, width = canvas.shape[:2]
     camera_x = float(entry["x"])
-    camera_y = float(entry["world_position"][1]) if isinstance(entry.get("world_position"), (list, tuple)) and len(entry.get("world_position")) >= 2 else 0.0
-    camera_z = float(entry["y"])
-    camera_px, camera_py = _world_to_pixel_floor(camera_x, camera_z, width, height, projection)
+    camera_y = float(entry["y"])
+    camera_z = float(entry["z"]) if entry.get("z") is not None else (
+        float(entry["world_position"][2]) if isinstance(entry.get("world_position"), (list, tuple)) and len(entry.get("world_position")) >= 3 else 0.0
+    )
+    camera_px, camera_py = _world_to_pixel_floor(camera_x, camera_y, width, height, projection)
 
     plotted_objects: List[Dict[str, Any]] = []
     object_pixels: Dict[int, Tuple[int, int]] = {}
     for row in objects:
         obj_x = float(row["estimated_global_x"])
-        obj_z = float(row["estimated_global_z"])
-        px, py = _world_to_pixel_floor(obj_x, obj_z, width, height, projection)
+        obj_y = float(row["estimated_global_y"])
+        obj_z = _safe_float(row.get("estimated_global_z"))
+        px, py = _world_to_pixel_floor(obj_x, obj_y, width, height, projection)
         object_global_id = int(row["object_global_id"])
         object_pixels[object_global_id] = (px, py)
         plotted_objects.append(
@@ -262,7 +265,7 @@ def render_object_nodes_birdview(
                 "object_global_id": object_global_id,
                 "label": str(row.get("label") or "unknown"),
                 "x": obj_x,
-                "y": _safe_float(row.get("estimated_global_y")),
+                "y": obj_y,
                 "z": obj_z,
                 "pixel": [int(px), int(py)],
             }
@@ -271,8 +274,7 @@ def render_object_nodes_birdview(
         cv2.circle(canvas, (px, py), 7, (40, 40, 220), -1, cv2.LINE_AA)
         label = f"{row.get('label') or 'unknown'} #{object_global_id}"
         if show_heights:
-            object_y = _safe_float(row.get("estimated_global_y"))
-            label = f"{label} y={object_y:.2f}" if object_y is not None else f"{label} y=na"
+            label = f"{label} z={obj_z:.2f}" if obj_z is not None else f"{label} z=na"
         cv2.putText(canvas, label, (px + 8, py - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (20, 20, 20), 2, cv2.LINE_AA)
         cv2.putText(canvas, label, (px + 8, py - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (245, 245, 245), 1, cv2.LINE_AA)
 
@@ -362,7 +364,7 @@ def render_all_object_nodes_birdview(
         dict(row)
         for row in _load_jsonl(db_path / "object_meta.jsonl")
         if _safe_float(row.get("estimated_global_x")) is not None
-        and _safe_float(row.get("estimated_global_z")) is not None
+        and _safe_float(row.get("estimated_global_y")) is not None
     ]
     if not object_rows:
         raise ValueError(f"No plottable objects found in {db_path / 'object_meta.jsonl'}")
@@ -385,17 +387,18 @@ def render_all_object_nodes_birdview(
     if draw_cameras:
         for entry in meta_rows:
             camera_x = _safe_float(entry.get("x"))
-            camera_z = _safe_float(entry.get("y"))
-            if camera_x is None or camera_z is None:
+            camera_y = _safe_float(entry.get("y"))
+            if camera_x is None or camera_y is None:
                 continue
-            px, py = _world_to_pixel_floor(camera_x, camera_z, width, height, projection)
+            px, py = _world_to_pixel_floor(camera_x, camera_y, width, height, projection)
             cv2.circle(canvas, (px, py), 3, (0, 215, 255), -1, cv2.LINE_AA)
 
     plotted_objects: List[Dict[str, Any]] = []
     for row in object_rows:
         obj_x = float(row["estimated_global_x"])
-        obj_z = float(row["estimated_global_z"])
-        px, py = _world_to_pixel_floor(obj_x, obj_z, width, height, projection)
+        obj_y = float(row["estimated_global_y"])
+        obj_z = _safe_float(row.get("estimated_global_z"))
+        px, py = _world_to_pixel_floor(obj_x, obj_y, width, height, projection)
         object_global_id = int(row["object_global_id"])
         label = str(row.get("label") or "unknown")
         plotted_objects.append(
@@ -404,7 +407,7 @@ def render_all_object_nodes_birdview(
                 "entry_id": int(row.get("entry_id", -1)),
                 "label": label,
                 "x": obj_x,
-                "y": _safe_float(row.get("estimated_global_y")),
+                "y": obj_y,
                 "z": obj_z,
                 "pixel": [int(px), int(py)],
             }
@@ -413,8 +416,7 @@ def render_all_object_nodes_birdview(
         if effective_draw_labels:
             text = f"{label} #{object_global_id}"
             if show_heights:
-                object_y = _safe_float(row.get("estimated_global_y"))
-                text = f"{text} y={object_y:.2f}" if object_y is not None else f"{text} y=na"
+                text = f"{text} z={obj_z:.2f}" if obj_z is not None else f"{text} z=na"
             cv2.putText(canvas, text, (px + 6, py - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (20, 20, 20), 2, cv2.LINE_AA)
             cv2.putText(canvas, text, (px + 6, py - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (245, 245, 245), 1, cv2.LINE_AA)
 

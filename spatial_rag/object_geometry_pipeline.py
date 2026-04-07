@@ -84,11 +84,11 @@ def project_global_xyz_from_geometry(
     global_bearing = (float(camera_orientation_deg) - float(bearing)) % 360.0
     yaw = math.radians(global_bearing)
     projected_x = float(camera_x - math.sin(yaw) * dist)
-    projected_z = float(camera_z - math.cos(yaw) * dist)
-    projected_y = None
+    projected_y = float(camera_y - math.cos(yaw) * dist)
+    projected_z = None
     rel_h = _safe_float(relative_height_from_camera_m)
     if rel_h is not None:
-        projected_y = float(camera_y + rel_h)
+        projected_z = float(camera_z + rel_h)
     return projected_x, projected_y, projected_z
 
 
@@ -633,7 +633,7 @@ class ObjectGeometryPipeline:
 
         camera_context = {
             "camera_x": float(camera_x),
-            "camera_z": float(camera_z),
+            "camera_y": float(camera_y),
             "camera_orientation_deg": float(camera_orientation_deg),
         }
         if isinstance(selector_result_override, Mapping):

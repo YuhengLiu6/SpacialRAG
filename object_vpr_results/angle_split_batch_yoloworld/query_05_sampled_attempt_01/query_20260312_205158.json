@@ -1,0 +1,405 @@
+{
+  "timestamp": "20260312_205158",
+  "pose": {
+    "x0": 0.3682917654514313,
+    "y0": 8.27234935760498,
+    "theta0": 317.0,
+    "actual_world_position": [
+      0.3682917654514313,
+      -0.39008140563964844,
+      8.27234935760498
+    ],
+    "used_snap_fallback": false
+  },
+  "query": {
+    "query_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/query_image.jpg",
+    "query_object_crop_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/query_object_crop.jpg",
+    "query_object_text": "square gold-framed floral picture",
+    "query_object_text_long": "Square gold-gilded framed botanical image showing a single orange-red flower with green stems and leaves on a cream background; narrow gilded frame appears intact, the image is slightly dim/soft-focused and wall-mounted in the crop, estimated ~2.0 meters from the camera.",
+    "query_text_used_for_retrieval": "square gold-framed floral picture",
+    "query_object_text_source": "api",
+    "yolo_label_hint": "picture",
+    "yolo_confidence_hint": 0.3807260990142822,
+    "query_bbox_laterality": "right",
+    "query_object_orientation_deg_approx": 347.0,
+    "query_object_distance_from_camera_m": 2.0,
+    "query_object_xy_approx": [
+      0.8181938741391619,
+      6.32360922803451
+    ],
+    "object_text_mode": "short",
+    "selection_seed": 50043
+  },
+  "selected_detection": {
+    "label": "picture",
+    "confidence": 0.3807260990142822,
+    "bbox_xyxy": [
+      1591,
+      425,
+      1703,
+      535
+    ],
+    "area_ratio": 0.005941358024691358,
+    "crop_bbox_xyxy": [
+      1563,
+      397,
+      1731,
+      563
+    ]
+  },
+  "valid_detections": [
+    {
+      "label": "chair",
+      "confidence": 0.6517878770828247,
+      "bbox_xyxy": [
+        949,
+        480,
+        1105,
+        695
+      ],
+      "area_ratio": 0.01617476851851852
+    },
+    {
+      "label": "chair",
+      "confidence": 0.5776803493499756,
+      "bbox_xyxy": [
+        1119,
+        494,
+        1223,
+        665
+      ],
+      "area_ratio": 0.008576388888888889
+    },
+    {
+      "label": "chair",
+      "confidence": 0.4896989166736603,
+      "bbox_xyxy": [
+        1205,
+        486,
+        1324,
+        673
+      ],
+      "area_ratio": 0.010731577932098765
+    },
+    {
+      "label": "picture",
+      "confidence": 0.8552677631378174,
+      "bbox_xyxy": [
+        623,
+        245,
+        816,
+        475
+      ],
+      "area_ratio": 0.02140721450617284
+    },
+    {
+      "label": "picture",
+      "confidence": 0.7418574690818787,
+      "bbox_xyxy": [
+        1105,
+        204,
+        1224,
+        381
+      ],
+      "area_ratio": 0.010157696759259259
+    },
+    {
+      "label": "picture",
+      "confidence": 0.7342105507850647,
+      "bbox_xyxy": [
+        574,
+        1,
+        828,
+        198
+      ],
+      "area_ratio": 0.024130979938271607
+    },
+    {
+      "label": "picture",
+      "confidence": 0.7132227420806885,
+      "bbox_xyxy": [
+        1225,
+        142,
+        1381,
+        353
+      ],
+      "area_ratio": 0.015873842592592592
+    },
+    {
+      "label": "picture",
+      "confidence": 0.6224404573440552,
+      "bbox_xyxy": [
+        1287,
+        381,
+        1416,
+        523
+      ],
+      "area_ratio": 0.008833912037037038
+    },
+    {
+      "label": "picture",
+      "confidence": 0.3807260990142822,
+      "bbox_xyxy": [
+        1591,
+        425,
+        1703,
+        535
+      ],
+      "area_ratio": 0.005941358024691358
+    }
+  ],
+  "prediction": {
+    "id": 5,
+    "x": -6.759200572967529,
+    "y": 7.482508659362793,
+    "orientation": 90,
+    "file_name": "images/pose_00001_o090_000005.jpg",
+    "object_score": 0.7792418599128723
+  },
+  "metrics": {
+    "pos_error": 7.171122322399799,
+    "yaw_error": 133.0,
+    "num_valid_detections": 9,
+    "selected_detection_confidence": 0.3807260990142822,
+    "selected_detection_label": "picture",
+    "selected_detection_bbox_xyxy": [
+      1591,
+      425,
+      1703,
+      535
+    ],
+    "top1_object_score": 0.7792418599128723,
+    "top1_distance_to_query_entry_m": 7.171122322399799,
+    "top1_distance_to_query_object_m_approx": 9.448734016182296
+  },
+  "top_k": [
+    {
+      "rank": 1,
+      "id": 5,
+      "x": -6.759200572967529,
+      "y": 7.482508659362793,
+      "orientation": 90,
+      "file_name": "images/pose_00001_o090_000005.jpg",
+      "object_score": 0.7792418599128723,
+      "distance_to_query_entry_m": 7.171122322399799,
+      "distance_to_query_object_m_approx": 9.448734016182296,
+      "query_object_xy_approx": [
+        0.8181938741391619,
+        6.32360922803451
+      ],
+      "matched_object_xy_approx": [
+        -8.55920057296753,
+        7.482508659362793
+      ],
+      "matched_object": {
+        "object_index": 59,
+        "label": "art",
+        "description": "large framed oil painting with ornate gold frame",
+        "long_form_open_description": "A large, dark-toned framed painting mounted on the wall behind the chairs. The visible portion shows an aged canvas with muted, dark blues and greys; the frame is wide and gilt with classical moulding. Only the lower and right portions of the painting/frame are visible above the wainscot and behind the chair backs. The canvas appears old with patina and slight wrinkling.",
+        "laterality": "center",
+        "distance_from_camera_m": 1.8,
+        "object_orientation_deg": 90,
+        "score": 0.7792418599128723
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p7792.jpg"
+    },
+    {
+      "rank": 2,
+      "id": 24,
+      "x": -4.186160087585449,
+      "y": 6.27672004699707,
+      "orientation": 0,
+      "file_name": "images/pose_00006_o000_000024.jpg",
+      "object_score": 0.759875476360321,
+      "distance_to_query_entry_m": 4.972481073567649,
+      "distance_to_query_object_m_approx": 6.40890065938473,
+      "query_object_xy_approx": [
+        0.8181938741391619,
+        6.32360922803451
+      ],
+      "matched_object_xy_approx": [
+        -5.286160087585449,
+        4.371464158671305
+      ],
+      "matched_object": {
+        "object_index": 327,
+        "label": "art",
+        "description": "framed portrait painting in a gilded frame",
+        "long_form_open_description": "Classical portrait painting in a gold-toned ornate frame mounted on the wall to the right of the central window/curtain. Dark-toned subject and background; frame is wide with decorative moulding. The painting hangs above the painted wall panels and partially overlaps the floral wallpaper pattern.",
+        "laterality": "right",
+        "distance_from_camera_m": 2.2,
+        "object_orientation_deg": 30,
+        "score": 0.759875476360321
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_02_id_000024_ori_000_score_0p7599.jpg"
+    },
+    {
+      "rank": 3,
+      "id": 40,
+      "x": -4.674384117126465,
+      "y": 6.331386566162109,
+      "orientation": 0,
+      "file_name": "images/pose_00010_o000_000040.jpg",
+      "object_score": 0.7547702789306641,
+      "distance_to_query_entry_m": 5.403324589037611,
+      "distance_to_query_object_m_approx": 6.57805947987624,
+      "query_object_xy_approx": [
+        0.8181938741391619,
+        6.32360922803451
+      ],
+      "matched_object_xy_approx": [
+        -5.574384117126465,
+        4.772540839350119
+      ],
+      "matched_object": {
+        "object_index": 578,
+        "label": "art",
+        "description": "framed portrait painting in gilt frame",
+        "long_form_open_description": "Rectangular portrait painting in an ornate gold/gilt frame hung on the upper right wall. Dark-toned portrait figure with indistinct facial details due to lighting and viewpoint. Frame is thick, carved and finished in warm gold.",
+        "laterality": "right",
+        "distance_from_camera_m": 1.8,
+        "object_orientation_deg": 30,
+        "score": 0.7547702789306641
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_03_id_000040_ori_000_score_0p7548.jpg"
+    },
+    {
+      "rank": 4,
+      "id": 21,
+      "x": -5.180624008178711,
+      "y": 6.171643257141113,
+      "orientation": 90,
+      "file_name": "images/pose_00005_o090_000021.jpg",
+      "object_score": 0.7291761636734009,
+      "distance_to_query_entry_m": 5.933248046674562,
+      "distance_to_query_object_m_approx": 7.723285179606251,
+      "query_object_xy_approx": [
+        0.8181938741391619,
+        6.32360922803451
+      ],
+      "matched_object_xy_approx": [
+        -6.826072275369144,
+        5.221643257141113
+      ],
+      "matched_object": {
+        "object_index": 271,
+        "label": "picture frame",
+        "description": "partial gilt frame of a second painting at far left edge",
+        "long_form_open_description": "Edge of another ornate gold picture frame visible at the far left border of the image, suggesting an adjacent painting. Only the vertical frame profile and a small portion of the canvas are visible; frame matches gilded decorative language of central portrait.",
+        "laterality": "left",
+        "distance_from_camera_m": 1.9,
+        "object_orientation_deg": 60,
+        "score": 0.7291761636734009
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_04_id_000021_ori_090_score_0p7292.jpg"
+    },
+    {
+      "rank": 5,
+      "id": 12,
+      "x": -5.289779186248779,
+      "y": 6.151058673858643,
+      "orientation": 0,
+      "file_name": "images/pose_00003_o000_000012.jpg",
+      "object_score": 0.7232037782669067,
+      "distance_to_query_entry_m": 6.0426518234482725,
+      "distance_to_query_object_m_approx": 7.01408352394048,
+      "query_object_xy_approx": [
+        0.8181938741391619,
+        6.32360922803451
+      ],
+      "matched_object_xy_approx": [
+        -6.039779186248779,
+        4.852020568181985
+      ],
+      "matched_object": {
+        "object_index": 163,
+        "label": "picture frame",
+        "description": "gold framed artwork partially visible on right wall",
+        "long_form_open_description": "A gilded rectangular picture frame with a muted dark/blue interior or mat, hung on the right wall above the skirting. Only part of the frame and corner are visible; frame edge is ornate with a warm gold finish.",
+        "laterality": "right",
+        "distance_from_camera_m": 1.5,
+        "object_orientation_deg": 30,
+        "score": 0.7232037782669067
+      },
+      "retrieved_image_path": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_05_id_000012_ori_000_score_0p7232.jpg"
+    }
+  ],
+  "artifacts": {
+    "query_detection_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/query_detection_overlay.jpg",
+    "retrieval_topk_overlay": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/retrieval_topk_overlay.jpg",
+    "top_k_dir": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k",
+    "top_k_images": [
+      "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_01_id_000005_ori_090_score_0p7792.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_02_id_000024_ori_000_score_0p7599.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_03_id_000040_ori_000_score_0p7548.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_04_id_000021_ori_090_score_0p7292.jpg",
+      "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k/rank_05_id_000012_ori_000_score_0p7232.jpg"
+    ],
+    "top_k_contact_sheet": "object_vpr_results/angle_split_batch_yoloworld/query_05_sampled_attempt_01/top_k_contact_sheet.jpg"
+  },
+  "debug": {
+    "object_candidate_pool": 256,
+    "ranked_entry_scores_top10": [
+      {
+        "entry_id": 5,
+        "score": 0.7792418599128723
+      },
+      {
+        "entry_id": 24,
+        "score": 0.759875476360321
+      },
+      {
+        "entry_id": 40,
+        "score": 0.7547702789306641
+      },
+      {
+        "entry_id": 21,
+        "score": 0.7291761636734009
+      },
+      {
+        "entry_id": 43,
+        "score": 0.7256958484649658
+      },
+      {
+        "entry_id": 12,
+        "score": 0.7232037782669067
+      },
+      {
+        "entry_id": 35,
+        "score": 0.7191218733787537
+      },
+      {
+        "entry_id": 28,
+        "score": 0.7181829810142517
+      },
+      {
+        "entry_id": 2,
+        "score": 0.7170796394348145
+      },
+      {
+        "entry_id": 32,
+        "score": 0.716522216796875
+      }
+    ],
+    "crop_description": {
+      "label": "picture",
+      "short_description": "square gold-framed floral picture",
+      "long_description": "Square gold-gilded framed botanical image showing a single orange-red flower with green stems and leaves on a cream background; narrow gilded frame appears intact, the image is slightly dim/soft-focused and wall-mounted in the crop, estimated ~2.0 meters from the camera.",
+      "attributes": [
+        "gold-gilded frame",
+        "square shape",
+        "cream background",
+        "orange-red flower",
+        "green stems and leaves",
+        "botanical print or painting",
+        "narrow frame",
+        "wall-mounted",
+        "slightly blurred/low light"
+      ],
+      "distance_from_camera_m": 2.0,
+      "source": "api",
+      "yolo_label_hint": "picture",
+      "yolo_confidence_hint": 0.3807260990142822
+    }
+  }
+}

@@ -199,20 +199,20 @@ def _prepare_overlay_base(explorer, floor_height: Optional[float] = None):
 
 def _world_to_pixel_floor(
     x: float,
-    z: float,
+    y: float,
     width: int,
     height: int,
     projection: Dict,
 ) -> Tuple[int, int]:
     min_x = float(projection["view_min_x"])
     max_x = float(projection["view_max_x"])
-    min_z = float(projection["view_min_z"])
-    max_z = float(projection["view_max_z"])
+    min_y = float(projection["view_min_y"])
+    max_y = float(projection["view_max_y"])
 
     denom_x = max(max_x - min_x, 1e-6)
-    denom_z = max(max_z - min_z, 1e-6)
+    denom_y = max(max_y - min_y, 1e-6)
     px = int(np.clip((x - min_x) / denom_x * (width - 1), 0, width - 1))
-    py = int(np.clip((z - min_z) / denom_z * (height - 1), 0, height - 1))
+    py = int(np.clip((y - min_y) / denom_y * (height - 1), 0, height - 1))
     return px, py
 
 
@@ -305,7 +305,7 @@ def draw_query_overlay(
     def world_to_pixel(wx: float, wy: float, wz: float) -> Optional[Tuple[int, int]]:
         mode, pinfo = proj
         if mode == "floor":
-            return _world_to_pixel_floor(wx, wz, w, h, pinfo)
+            return _world_to_pixel_floor(wx, wy, w, h, pinfo)
         return _world_to_pixel_center(wx, wy, wz, w, h, pinfo)
 
     def orientation_arrow_tip(
@@ -401,8 +401,9 @@ def draw_query_overlay(
 
     # Draw all retrieved Top-K local orientation arrows and rank labels.
     query_world_x = float(actual_query_world_position[0]) if actual_query_world_position is not None else float(x0)
+    query_world_y_plane = float(actual_query_world_position[1]) if actual_query_world_position is not None else float(query_world_y)
     query_world_z = float(actual_query_world_position[2]) if actual_query_world_position is not None else float(y0)
-    p_gt = world_to_pixel(query_world_x, float(query_world_y), query_world_z)
+    p_gt = world_to_pixel(query_world_x, query_world_y_plane, query_world_z)
     if top_k_entries:
         for rank, entry in enumerate(top_k_entries, start=1):
             rwx, rwy, rwz = _entry_world_position(entry, default_world_y=query_world_y)
@@ -430,7 +431,7 @@ def draw_query_overlay(
     if p_gt is not None:
         cv2.circle(canvas, p_gt, 16, (0, 255, 0), 3)
         cv2.circle(canvas, p_gt, 4, (0, 255, 0), -1)
-        gt_tip = orientation_arrow_tip(query_world_x, float(query_world_y), query_world_z, float(theta0), world_len=1.25)
+        gt_tip = orientation_arrow_tip(query_world_x, query_world_y_plane, query_world_z, float(theta0), world_len=1.25)
         if gt_tip is not None:
             cv2.arrowedLine(canvas, p_gt, gt_tip, (0, 255, 0), 3, tipLength=0.35)
         cv2.putText(canvas, "GT", (p_gt[0] + 8, p_gt[1] - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (0, 255, 0), 2)

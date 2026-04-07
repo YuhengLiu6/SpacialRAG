@@ -7,7 +7,7 @@ UNKNOWN_TEXT_TOKEN = "unknown"
 
 EMPTY_OBJECT_SENTINEL = (
     "feature=none;type=unknown;lat=center;dist=far;vert=middle;support=unknown;"
-    "dcam=na;bearing=na;gx=na;gz=na;attrs=none;ctx=none;text=;desc=none"
+    "dcam=na;bearing=na;gx=na;gy=na;attrs=none;ctx=none;text=;desc=none"
 )
 
 
@@ -83,12 +83,12 @@ def _top_surroundings(ctx_list: List[SurroundingObject], limit: int) -> List[Sur
     return items[: max(0, int(limit))]
 
 
-def _format_anchor(x: Optional[float], z: Optional[float]) -> str:
-    return f"x={_round_coord(x)}, z={_round_coord(z)}"
+def _format_anchor(x: Optional[float], y: Optional[float]) -> str:
+    return f"x={_round_coord(x)}, y={_round_coord(y)}"
 
 
 def _format_nearby_item(ctx: SurroundingObject) -> str:
-    return f"{ctx.label}@({_round_coord(ctx.estimated_global_x)},{_round_coord(ctx.estimated_global_z)})"
+    return f"{ctx.label}@({_round_coord(ctx.estimated_global_x)},{_round_coord(ctx.estimated_global_y)})"
 
 
 def _format_nearby_list(ctx_list: List[SurroundingObject], limit: int) -> str:
@@ -107,7 +107,7 @@ def _format_long_surroundings(ctx_list: List[SurroundingObject], limit: int = OB
         rendered.append(
             f"{item.label} | relation={str(item.relation_to_primary or '').strip() or 'unknown'} "
             f"| primary_dist={_round_dist(item.distance_from_primary_m)} "
-            f"| global=({_round_coord(item.estimated_global_x)},{_round_coord(item.estimated_global_z)})"
+            f"| global=({_round_coord(item.estimated_global_x)},{_round_coord(item.estimated_global_y)})"
         )
     return "; ".join(rendered)
 
@@ -129,7 +129,7 @@ def _compose_short_object_text(obj: VisualFeature) -> str:
     return (
         f"object: {obj.type} | "
         f"attrs: {attrs} | "
-        f"anchor: {_format_anchor(obj.estimated_global_x, obj.estimated_global_z)} | "
+        f"anchor: {_format_anchor(obj.estimated_global_x, obj.estimated_global_y)} | "
         f"nearby: {nearby}"
     )
 
@@ -143,7 +143,7 @@ def _compose_long_object_text(obj: VisualFeature, scene_objects: Optional[SceneO
         f"bearing={_round_dist(obj.relative_bearing_deg)}, "
         f"laterality={obj.relative_position_laterality}, "
         f"verticality={obj.relative_position_verticality} | "
-        f"global_anchor: {_format_anchor(obj.estimated_global_x, obj.estimated_global_z)} | "
+        f"global_anchor: {_format_anchor(obj.estimated_global_x, obj.estimated_global_y)} | "
         f"surroundings: {_format_long_surroundings(obj.surrounding_context, limit=int(OBJECT_SURROUNDING_MAX))} | "
         f"scene_context: {_scene_context_text(scene_objects)}"
     )
@@ -220,7 +220,7 @@ def _canonical_ctx(obj: VisualFeature) -> str:
     for item in items:
         relation = _sanitize_text(str(item.relation_to_primary or "").strip() or "unknown", max_chars=40)
         rendered.append(
-            f"{_sanitize_text(item.label, max_chars=40)}@{_round_coord(item.estimated_global_x)},{_round_coord(item.estimated_global_z)}"
+            f"{_sanitize_text(item.label, max_chars=40)}@{_round_coord(item.estimated_global_x)},{_round_coord(item.estimated_global_y)}"
             f"~{_round_dist(item.distance_from_primary_m)}#{relation}"
         )
     return ",".join(rendered)
@@ -240,7 +240,7 @@ def canonical_object_line(obj: VisualFeature, object_text_mode: str = "short") -
         f"dcam={dcam};"
         f"bearing={bearing};"
         f"gx={_round_coord(obj.estimated_global_x)};"
-        f"gz={_round_coord(obj.estimated_global_z)};"
+        f"gy={_round_coord(obj.estimated_global_y)};"
         f"attrs={_canonical_attrs(obj)};"
         f"ctx={_canonical_ctx(obj)};"
         f"text={_sanitize_text(obj.any_text, max_chars=120)};"

@@ -17,12 +17,13 @@ from spatial_rag.graph_builder import (
 )
 
 
-def _meta_row(entry_id, x, z, orientation, room_function="resting", view_type="living room"):
+def _meta_row(entry_id, x, y, orientation, room_function="resting", view_type="living room", z=0.0):
     return {
         "id": entry_id,
         "x": float(x),
-        "y": float(z),
-        "world_position": [float(x), 0.0, float(z)],
+        "y": float(y),
+        "z": float(z),
+        "world_position": [float(x), float(y), float(z)],
         "orientation": int(orientation),
         "file_name": f"images/view_{entry_id:05d}.jpg",
         "parse_status": "ok",
@@ -127,8 +128,8 @@ def test_build_direction_edges_creates_cardinal_and_reverse_edges():
         PlaceRecord(
             place_id="place_north",
             x=0.0,
-            y=0.0,
-            z=2.0,
+            y=2.0,
+            z=0.0,
             point={"x": 0.0, "y": 2.0, "crs": "cartesian"},
             room_function="resting",
             view_type="living room",
@@ -172,16 +173,19 @@ def test_build_graph_payload_creates_places_views_objects_and_direction_edges(tm
         {
             **_object_row(0, 0, "chair", 0.0, 1.5),
             "estimated_global_x": 0.0,
+            "estimated_global_y": 0.6,
             "estimated_global_z": -1.5,
         },
         {
             **_object_row(1, 0, "table", 0.0, 2.0),
             "estimated_global_x": 1.0,
+            "estimated_global_y": 1.1,
             "estimated_global_z": -1.5,
         },
         {
             **_object_row(2, 4, "lamp", 90.0, 2.0),
             "estimated_global_x": 0.0,
+            "estimated_global_y": 1.1,
             "estimated_global_z": 0.0,
         },
     ]
@@ -205,6 +209,7 @@ def test_build_graph_payload_creates_places_views_objects_and_direction_edges(tm
     assert any(edge["relation_type"] == "EAST_OF" for edge in payload["direction_edges"])
     assert any(edge["relation_type"] == "WEST_OF" for edge in payload["direction_edges"])
     assert payload["place_object_edges"][0]["projected_x"] == 0.0
+    assert payload["place_object_edges"][0]["projected_y"] == 0.6
     assert payload["place_object_edges"][0]["projected_z"] == -1.5
     assert payload["view_nodes"][0]["node_type"] == "View"
     assert payload["view_nodes"][0]["desc_emb"] == [2.0, 2.0, 2.0, 2.0]
@@ -287,7 +292,7 @@ def test_query_same_node_returns_views_and_objects():
 def test_query_direction_neighbors_uses_explicit_direction_relationship():
     driver = _FakeDriver(
         responses=[
-            [{"place_id": "place_00001", "x": 0.0, "y": 0.0, "z": 2.0, "room_function": "resting", "view_type": "living room", "dx": 0.0, "dz": 2.0, "distance_m": 2.0}]
+            [{"place_id": "place_00001", "x": 0.0, "y": 2.0, "z": 0.0, "room_function": "resting", "view_type": "living room", "dx": 0.0, "dy": 2.0, "distance_m": 2.0}]
         ]
     )
 
@@ -300,8 +305,8 @@ def test_query_direction_neighbors_uses_explicit_direction_relationship():
 def test_query_place_objects_and_direction_objects_support_object_label_filter():
     driver = _FakeDriver(
         responses=[
-            [{"obs_id": "obs_000000", "label": "chair", "description": "chair description", "view_id": "view_00000", "file_name": "images/view_00000.jpg", "object_orientation_deg": 0.0, "distance_from_camera_m": 1.5, "projected_x": 0.0, "projected_z": -1.5}],
-            [{"place_id": "place_00001", "obs_id": "obs_000001", "label": "chair", "description": "chair north", "dx": 0.0, "dz": 2.0, "distance_m": 2.0, "view_id": "view_00004", "file_name": "images/view_00004.jpg", "object_orientation_deg": 90.0, "distance_from_camera_m": 1.0}],
+            [{"obs_id": "obs_000000", "label": "chair", "description": "chair description", "view_id": "view_00000", "file_name": "images/view_00000.jpg", "object_orientation_deg": 0.0, "distance_from_camera_m": 1.5, "projected_x": 0.0, "projected_y": 0.6, "projected_z": -1.5}],
+            [{"place_id": "place_00001", "obs_id": "obs_000001", "label": "chair", "description": "chair north", "dx": 0.0, "dy": 2.0, "distance_m": 2.0, "view_id": "view_00004", "file_name": "images/view_00004.jpg", "object_orientation_deg": 90.0, "distance_from_camera_m": 1.0}],
         ]
     )
 
