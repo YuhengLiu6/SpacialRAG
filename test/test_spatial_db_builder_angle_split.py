@@ -1,15 +1,20 @@
+import csv
 import json
 from types import SimpleNamespace
 
 import numpy as np
 
 from spatial_rag.spatial_db_builder import (
+    _apply_batched_description_result_to_geometry,
+    _build_object_r_scores_pre_threshold_row,
     _build_view_attribute,
     _build_object_object_relations,
     _build_location_summary_from_surroundings,
     _build_view_object_relations,
     _classify_view_aligned_direction,
     _classify_vertical_direction,
+    _filter_geometry_rows_by_r_threshold,
+    _frame_route_label,
     _compute_object_orientation,
     _fallback_relative_bearing_from_laterality,
     _format_object_text_long,
@@ -19,6 +24,8 @@ from spatial_rag.spatial_db_builder import (
     _response_has_length_finish_reason,
     _run_optional_polar_surrounding_postprocess,
     _should_reuse_existing_entry,
+    _write_object_r_scores_csv,
+    _write_object_r_scores_pre_threshold_csv,
     _write_floor_plan_projection,
     build_spatial_database,
     build_spatial_database_angle_split,
@@ -225,6 +232,9 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         scene_attributes=["painted trim"],
         object_text_short="object: chair | attrs: wooden | anchor: x=1.0, y=2.0 | nearby: table@(1.5,2.5)",
         object_text_long="left sector | object: chair | attributes: wooden | camera_relation: distance=2.0, bearing=-30.0",
+        occlusion_level="moderately occluded",
+        occlusion_penalty_p_o=0.25,
+        reweighted_detection_score_r=0.73,
     )
 
     assert record["orientation"] == 90
@@ -245,6 +255,9 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
     assert record["scene_attributes"] == ["painted trim"]
     assert record["object_text_short"].startswith("object: chair")
     assert record["object_text_long"].startswith("left sector | object: chair")
+    assert record["occlusion_level"] == "moderately occluded"
+    assert record["occlusion_penalty_p_o"] == 0.25
+    assert record["reweighted_detection_score_r"] == 0.73
     assert record["view_type"] == "living room"
     assert record["geometry_source"] == "vlm_fallback"
 
@@ -277,6 +290,162 @@ def test_build_view_attribute_collects_room_level_fields():
         "additional_notes": "stairs on the right",
         "image_summary": "living room facing the back wall",
     }
+
+
+def test_apply_batched_description_result_to_geometry_adds_occlusion_scoring_fields():
+    geometry_result = SimpleNamespace(
+        description_requests=[
+            {
+                "object_local_id": "det_000",
+                "detector_label": "chair",
+                "detector_confidence": 0.8,
+            }
+        ],
+        object_rows=[
+            {
+                "object_local_id": "det_000",
+                "detector_label": "chair",
+                "detector_confidence": 0.8,
+                "object_confidence": 0.8,
+                "label": "chair",
+            }
+        ],
+        timings={},
+    )
+
+    updated = _apply_batched_description_result_to_geometry(
+        geometry_result,
+        description_result={
+            "objects": [
+                {
+                    "object_local_id": "det_000",
+                    "label": "chair",
+                    "short_description": "brown chair",
+                    "long_description": "brown chair near the wall",
+                    "attributes": ["brown"],
+                    "distance_from_camera_m": 2.0,
+                    "occlusion_level": "heavily occluded",
+                }
+            ]
+        },
+        description_total_sec=3.0,
+    )
+
+    row = updated.object_rows[0]
+    assert row["description"] == "brown chair"
+    assert row["occlusion_level"] == "heavily occluded"
+    assert row["occlusion_penalty_p_o"] == 0.5
+    assert row["reweighted_detection_score_r"] < 0.8
+
+
+def test_filter_geometry_rows_by_r_threshold_drops_strictly_lower_scores():
+    rows = [
+        {"object_local_id": "det_000", "reweighted_detection_score_r": 0.25},
+        {"object_local_id": "det_001", "reweighted_detection_score_r": 0.4},
+        {"object_local_id": "det_002", "reweighted_detection_score_r": 0.6},
+    ]
+
+    filtered_rows, before_count, after_count, filtered_count = _filter_geometry_rows_by_r_threshold(
+        rows,
+        r_threshold=0.4,
+    )
+
+    assert before_count == 3
+    assert after_count == 2
+    assert filtered_count == 1
+    assert [row["object_local_id"] for row in filtered_rows] == ["det_001", "det_002"]
+
+
+def test_frame_route_label_keeps_geometry_route_when_all_rows_filtered():
+    assert _frame_route_label(
+        geometry_object_rows=[],
+        geometry_all_objects_filtered_by_r_threshold=True,
+    ) == "mask_depth"
+    assert _frame_route_label(
+        geometry_object_rows=[],
+        geometry_all_objects_filtered_by_r_threshold=False,
+    ) == "vlm_fallback"
+
+
+def test_build_object_r_scores_pre_threshold_row_marks_geometry_filtering():
+    row = _build_object_r_scores_pre_threshold_row(
+        {
+            "object_local_id": "det_004",
+            "geometry_source": "mask_depth",
+            "label": "chair",
+            "bbox_xyxy": [1.0, 2.0, 3.0, 4.0],
+            "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
+            "object_confidence": 0.7,
+            "detector_confidence": 0.7,
+            "occlusion_level": "uncertain",
+            "occlusion_penalty_p_o": 0.35,
+            "reweighted_detection_score_r": 0.31,
+        },
+        entry_id=5,
+        frame_id=9,
+        file_name="images/frame.jpg",
+        r_threshold=0.4,
+    )
+
+    assert row["entry_id"] == 5
+    assert row["frame_id"] == 9
+    assert row["file_name"] == "images/frame.jpg"
+    assert row["object_route"] == "geometry"
+    assert row["would_be_filtered_by_r_threshold"] is True
+
+
+def test_write_object_r_scores_pre_threshold_csv_persists_debug_rows(tmp_path):
+    out = tmp_path / "object_r_scores_pre_threshold.csv"
+    count = _write_object_r_scores_pre_threshold_csv(
+        out,
+        [
+            {
+                "entry_id": 1,
+                "frame_id": 2,
+                "file_name": "images/a.jpg",
+                "object_local_id": "det_000",
+                "object_route": "geometry",
+                "label": "chair",
+                "bbox_xyxy": [1.0, 2.0, 3.0, 4.0],
+                "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
+                "object_confidence": 0.8,
+                "detector_confidence": 0.8,
+                "occlusion_level": "slightly occluded",
+                "occlusion_penalty_p_o": 0.1,
+                "reweighted_detection_score_r": 0.61,
+                "r_threshold_used": 0.65,
+                "would_be_filtered_by_r_threshold": True,
+            }
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert count == 1
+    assert rows[0]["object_local_id"] == "det_000"
+    assert rows[0]["would_be_filtered_by_r_threshold"] == "True"
+    assert rows[0]["bbox_xyxy"] == "[1.0, 2.0, 3.0, 4.0]"
+
+
+def test_write_object_r_scores_csv_persists_final_scores(tmp_path):
+    out = tmp_path / "object_r_scores.csv"
+    count = _write_object_r_scores_csv(
+        out,
+        [
+            {"object_global_id": 7, "reweighted_detection_score_r": 0.42},
+            {"object_global_id": 8, "reweighted_detection_score_r": 0.91},
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert count == 2
+    assert rows == [
+        {"object_global_id": "7", "reweighted_detection_score_r": "0.42"},
+        {"object_global_id": "8", "reweighted_detection_score_r": "0.91"},
+    ]
 
 
 def test_load_resume_state_backfills_attribute_from_raw_vlm_output(tmp_path):
@@ -469,6 +638,42 @@ def test_build_spatial_database_forwards_execution_mode_flags(monkeypatch):
     assert captured["legacy_per_frame"] is True
 
 
+def test_build_spatial_database_forwards_occlusion_reweight_params(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(
+        occlusion_reweight_w1=1.25,
+        occlusion_reweight_w2=0.8,
+        occlusion_reweight_b=-0.15,
+    )
+
+    assert report == {"ok": True}
+    assert captured["occlusion_reweight_w1"] == 1.25
+    assert captured["occlusion_reweight_w2"] == 0.8
+    assert captured["occlusion_reweight_b"] == -0.15
+
+
+def test_build_spatial_database_forwards_r_threshold(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(r_threshold=0.37)
+
+    assert report == {"ok": True}
+    assert captured["r_threshold"] == 0.37
+
+
 def test_main_dispatches_to_standard_builder(monkeypatch, capsys):
     calls = []
 
@@ -530,6 +735,74 @@ def test_main_forwards_execution_mode_flags(monkeypatch, capsys):
     assert calls[0][1]["execution_mode"] == "legacy_per_frame"
     assert calls[0][1]["vlm_max_in_flight"] == 6
     assert calls[0][1]["legacy_per_frame"] is True
+
+
+def test_main_forwards_occlusion_reweight_flags(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--occlusion_reweight_w1",
+            "1.2",
+            "--occlusion_reweight_w2",
+            "0.9",
+            "--occlusion_reweight_b",
+            "-0.2",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["occlusion_reweight_w1"] == 1.2
+    assert calls[0][1]["occlusion_reweight_w2"] == 0.9
+    assert calls[0][1]["occlusion_reweight_b"] == -0.2
+
+
+def test_main_forwards_r_threshold_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--r_threshold",
+            "0.45",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["r_threshold"] == 0.45
 
 
 def test_main_dispatches_to_angle_split_builder(monkeypatch, capsys):

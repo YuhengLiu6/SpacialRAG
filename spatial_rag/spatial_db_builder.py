@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import math
 import threading
@@ -24,6 +25,10 @@ from spatial_rag.config import (
     OBJECT_MAX_PER_FRAME,
     OBJECT_PARSE_RETRIES,
     OBJECT_PRELIST_TAXONOMY_PATH,
+    OCCLUSION_REWEIGHT_B,
+    OCCLUSION_REWEIGHT_EPS,
+    OCCLUSION_REWEIGHT_W1,
+    OCCLUSION_REWEIGHT_W2,
     OBJECT_SURROUNDING_MAX,
     OBJECT_USE_CACHE,
     OBJECT_VERTICAL_REL_EPS_M,
@@ -42,6 +47,12 @@ from spatial_rag.object_canonicalizer import (
     sorted_objects,
 )
 from spatial_rag.object_geometry_pipeline import ObjectGeometryPipeline
+from spatial_rag.occlusion_scoring import (
+    OCCLUSION_SCORE_FORMULA_VERSION,
+    compute_reweighted_detection_score,
+    map_occlusion_level_to_penalty,
+    normalize_occlusion_level,
+)
 from spatial_rag.object_parser import ParseResult, parse_scene_objects
 from spatial_rag.vlm_captioner import VLMCaptioner
 
@@ -125,6 +136,156 @@ def _write_jsonl(path: Path, records: List[Dict]) -> None:
     with path.open("w", encoding="utf-8") as f:
         for rec in records:
             f.write(json.dumps(rec, ensure_ascii=True) + "\n")
+
+
+_OBJECT_R_SCORES_PRE_THRESHOLD_COLUMNS: Tuple[str, ...] = (
+    "entry_id",
+    "frame_id",
+    "file_name",
+    "object_local_id",
+    "object_route",
+    "label",
+    "bbox_xyxy",
+    "bbox_xywh_norm",
+    "object_confidence",
+    "detector_confidence",
+    "occlusion_level",
+    "occlusion_penalty_p_o",
+    "reweighted_detection_score_r",
+    "r_threshold_used",
+    "would_be_filtered_by_r_threshold",
+)
+
+
+_OBJECT_R_SCORES_COLUMNS: Tuple[str, ...] = (
+    "object_global_id",
+    "reweighted_detection_score_r",
+)
+
+
+def _serialize_csv_value(value: Any) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, (list, dict)):
+        return json.dumps(value, ensure_ascii=True)
+    return value
+
+
+def _write_csv_rows(path: Path, fieldnames: Sequence[str], rows: Sequence[Mapping[str, Any]]) -> None:
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(fieldnames))
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({name: _serialize_csv_value(row.get(name)) for name in fieldnames})
+
+
+def _frame_route_label(
+    *,
+    geometry_object_rows: Sequence[Mapping[str, Any]],
+    geometry_all_objects_filtered_by_r_threshold: bool,
+) -> str:
+    if geometry_object_rows or geometry_all_objects_filtered_by_r_threshold:
+        return "mask_depth"
+    return "vlm_fallback"
+
+
+def _compute_object_reweight_fields(
+    *,
+    detector_confidence: Optional[float],
+    object_confidence: Optional[float],
+    occlusion_level: Optional[str],
+    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
+) -> Tuple[str, float, float]:
+    normalized_occlusion_level = normalize_occlusion_level(occlusion_level, default="uncertain")
+    confidence = detector_confidence if detector_confidence is not None else object_confidence
+    confidence_value = float(confidence or 0.0)
+    occlusion_penalty = float(map_occlusion_level_to_penalty(normalized_occlusion_level))
+    reweighted_detection_score = float(
+        compute_reweighted_detection_score(
+            confidence_value,
+            normalized_occlusion_level,
+            w1=occlusion_reweight_w1,
+            w2=occlusion_reweight_w2,
+            b=occlusion_reweight_b,
+            eps=occlusion_reweight_eps,
+        )
+    )
+    return normalized_occlusion_level, occlusion_penalty, reweighted_detection_score
+
+
+def _filter_geometry_rows_by_r_threshold(
+    geometry_object_rows: Sequence[Mapping[str, Any]],
+    r_threshold: Optional[float],
+) -> Tuple[List[Dict[str, Any]], int, int, int]:
+    rows = [dict(row) for row in list(geometry_object_rows or [])]
+    before_count = int(len(rows))
+    if r_threshold is None:
+        return rows, before_count, before_count, 0
+    threshold = float(r_threshold)
+    filtered_rows: List[Dict[str, Any]] = []
+    for row in rows:
+        score = row.get("reweighted_detection_score_r")
+        if score is None or float(score) >= threshold:
+            filtered_rows.append(row)
+    after_count = int(len(filtered_rows))
+    return filtered_rows, before_count, after_count, int(before_count - after_count)
+
+
+def _build_object_r_scores_pre_threshold_row(
+    row: Mapping[str, Any],
+    *,
+    entry_id: int,
+    frame_id: int,
+    file_name: str,
+    r_threshold: Optional[float],
+) -> Dict[str, Any]:
+    geometry_source = str(row.get("geometry_source") or "vlm_fallback")
+    route = "vlm_fallback" if geometry_source == "vlm_fallback" else "geometry"
+    score = row.get("reweighted_detection_score_r")
+    threshold_value = None if r_threshold is None else float(r_threshold)
+    would_be_filtered = bool(
+        route == "geometry"
+        and threshold_value is not None
+        and score is not None
+        and float(score) < threshold_value
+    )
+    return {
+        "entry_id": int(entry_id),
+        "frame_id": int(frame_id),
+        "file_name": str(file_name),
+        "object_local_id": str(row.get("object_local_id") or ""),
+        "object_route": route,
+        "label": str(row.get("label") or ""),
+        "bbox_xyxy": list(row.get("bbox_xyxy") or []),
+        "bbox_xywh_norm": list(row.get("bbox_xywh_norm") or []),
+        "object_confidence": row.get("object_confidence"),
+        "detector_confidence": row.get("detector_confidence"),
+        "occlusion_level": row.get("occlusion_level"),
+        "occlusion_penalty_p_o": row.get("occlusion_penalty_p_o"),
+        "reweighted_detection_score_r": score,
+        "r_threshold_used": threshold_value,
+        "would_be_filtered_by_r_threshold": would_be_filtered,
+    }
+
+
+def _write_object_r_scores_pre_threshold_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> int:
+    _write_csv_rows(path, _OBJECT_R_SCORES_PRE_THRESHOLD_COLUMNS, rows)
+    return int(len(list(rows)))
+
+
+def _write_object_r_scores_csv(path: Path, object_metadata_records: Sequence[Mapping[str, Any]]) -> int:
+    rows = [
+        {
+            "object_global_id": int(record.get("object_global_id") or 0),
+            "reweighted_detection_score_r": record.get("reweighted_detection_score_r"),
+        }
+        for record in list(object_metadata_records or [])
+    ]
+    _write_csv_rows(path, _OBJECT_R_SCORES_COLUMNS, rows)
+    return int(len(rows))
 
 
 def _serialize_floor_plan_projection(projection: Any) -> Optional[Dict[str, float]]:
@@ -509,8 +670,12 @@ def _apply_batched_description_result_to_geometry(
     *,
     description_result: Optional[Mapping[str, Any]],
     description_total_sec: float,
+    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
 ) -> Any:
-    default_payload = VLMCaptioner._default_object_crop_description()
+    default_payload = VLMCaptioner._default_object_crop_description(include_occlusion=True)
     request_by_local_id = {
         str(item.get("object_local_id") or "").strip(): dict(item)
         for item in list(getattr(geometry_result, "description_requests", []) or [])
@@ -528,6 +693,7 @@ def _apply_batched_description_result_to_geometry(
             item,
             default_payload=default_payload,
             label_hint=label_hint,
+            include_occlusion=True,
         )
 
     request_count = max(len(request_by_local_id), 1)
@@ -546,13 +712,26 @@ def _apply_batched_description_result_to_geometry(
                 {},
                 default_payload=default_payload,
                 label_hint=label_hint,
+                include_occlusion=True,
             )
         short_description = str(payload.get("short_description") or label_hint).strip() or label_hint
         long_description = (
             str(payload.get("long_description") or payload.get("short_description") or label_hint).strip()
             or label_hint
         )
+        occlusion_level, occlusion_penalty, reweighted_detection_score = _compute_object_reweight_fields(
+            detector_confidence=row.get("detector_confidence"),
+            object_confidence=row.get("object_confidence"),
+            occlusion_level=payload.get("occlusion_level"),
+            occlusion_reweight_w1=occlusion_reweight_w1,
+            occlusion_reweight_w2=occlusion_reweight_w2,
+            occlusion_reweight_b=occlusion_reweight_b,
+            occlusion_reweight_eps=occlusion_reweight_eps,
+        )
         row["crop_vlm_label"] = payload.get("label")
+        row["occlusion_level"] = occlusion_level
+        row["occlusion_penalty_p_o"] = float(occlusion_penalty)
+        row["reweighted_detection_score_r"] = float(reweighted_detection_score)
         row["description"] = short_description
         row["long_form_open_description"] = long_description
         row["attributes"] = [str(v).strip() for v in list(payload.get("attributes") or []) if str(v).strip()]
@@ -1049,6 +1228,9 @@ def _make_object_record(
     geometry_fallback_reason: Optional[str] = None,
     detector_label: Optional[str] = None,
     detector_confidence: Optional[float] = None,
+    occlusion_level: Optional[str] = None,
+    occlusion_penalty_p_o: Optional[float] = None,
+    reweighted_detection_score_r: Optional[float] = None,
     bbox_xywh_norm: Optional[Sequence[float]] = None,
     bbox_xyxy: Optional[Sequence[float]] = None,
     mask_area_px: Optional[int] = None,
@@ -1127,6 +1309,9 @@ def _make_object_record(
         "geometry_fallback_reason": geometry_fallback_reason,
         "detector_label": detector_label,
         "detector_confidence": detector_confidence,
+        "occlusion_level": occlusion_level,
+        "occlusion_penalty_p_o": occlusion_penalty_p_o,
+        "reweighted_detection_score_r": reweighted_detection_score_r,
         "mask_area_px": mask_area_px,
         "mask_area_ratio": mask_area_ratio,
         "mask_centroid_x_px": mask_centroid_x_px,
@@ -1185,6 +1370,10 @@ def _build_spatial_database_core(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    r_threshold: Optional[float] = None,
 ) -> Dict:
     try:
         from spatial_rag.embedder import Embedder
@@ -1243,6 +1432,15 @@ def _build_spatial_database_core(
             "parse_retries": int(object_parse_retries),
             "use_cache": bool(object_use_cache),
             "cache_dir": str(object_cache_root),
+            "r_threshold": None if r_threshold is None else float(r_threshold),
+            "r_threshold_enabled": bool(r_threshold is not None),
+            "occlusion_reweight": {
+                "formula_version": OCCLUSION_SCORE_FORMULA_VERSION,
+                "w1": float(occlusion_reweight_w1),
+                "w2": float(occlusion_reweight_w2),
+                "b": float(occlusion_reweight_b),
+                "eps": float(OCCLUSION_REWEIGHT_EPS),
+            },
         },
         "geometry_config": {
             "pipeline_enabled": bool(OBJECT_GEOMETRY_PIPELINE_ENABLE),
@@ -1296,6 +1494,16 @@ def _build_spatial_database_core(
         "selector_batch_total_sec": 0.0,
         "object_description_batch_total_sec": 0.0,
         "fallback_batch_total_sec": 0.0,
+        "r_threshold": None if r_threshold is None else float(r_threshold),
+        "r_threshold_enabled": bool(r_threshold is not None),
+        "geometry_objects_before_r_threshold": 0,
+        "geometry_objects_after_r_threshold": 0,
+        "geometry_objects_filtered_by_r_threshold": 0,
+        "frames_all_geometry_objects_filtered": 0,
+        "object_r_scores_pre_threshold_csv_path": "",
+        "object_r_scores_csv_path": "",
+        "object_r_scores_pre_threshold_count": 0,
+        "object_r_scores_count": 0,
         "polar_surrounding_postprocess": {
             "enabled": bool(run_polar_surrounding_postprocess),
             "ran": False,
@@ -1325,6 +1533,10 @@ def _build_spatial_database_core(
             image_width_px=int(IMAGE_WIDTH),
             image_height_px=int(IMAGE_HEIGHT),
             save_artifacts=bool(SAVE_GEOMETRY_ARTIFACTS),
+            occlusion_reweight_w1=float(occlusion_reweight_w1),
+            occlusion_reweight_w2=float(occlusion_reweight_w2),
+            occlusion_reweight_b=float(occlusion_reweight_b),
+            occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
         )
         if bool(OBJECT_GEOMETRY_PIPELINE_ENABLE)
         else None
@@ -1352,6 +1564,7 @@ def _build_spatial_database_core(
     file_name_to_entry_id: Dict[str, int] = dict(resume_state["file_name_to_entry_id"])
     failures: List[Dict] = []
     timing_records: List[Dict] = []
+    pre_threshold_r_score_rows: List[Dict[str, Any]] = []
 
     try:
         if tour_mode == "full_house":
@@ -1613,6 +1826,10 @@ def _build_spatial_database_core(
                         job["geometry_result"],
                         description_result=description_stage.get("result"),
                         description_total_sec=float(description_stage.get("elapsed_sec") or 0.0),
+                        occlusion_reweight_w1=float(occlusion_reweight_w1),
+                        occlusion_reweight_w2=float(occlusion_reweight_w2),
+                        occlusion_reweight_b=float(occlusion_reweight_b),
+                        occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
                     )
 
             if fallback_jobs:
@@ -1657,6 +1874,10 @@ def _build_spatial_database_core(
                 geometry_result = job.get("geometry_result")
                 geometry_object_rows: List[Dict[str, Any]] = []
                 geometry_timing: Dict[str, Any] = {}
+                geometry_objects_before_r_threshold = 0
+                geometry_objects_after_r_threshold = 0
+                geometry_objects_filtered_by_r_threshold = 0
+                geometry_all_objects_filtered_by_r_threshold = False
                 fallback_parse_sec = float(job.get("fallback_parse_sec") or 0.0)
                 fallback_angle_geometry_sec = 0.0
                 view_embedding_sec = 0.0
@@ -1681,23 +1902,65 @@ def _build_spatial_database_core(
                     raw_vlm_output = str(geometry_result.selector_raw_json or "")
                     raw_api_source = str(geometry_result.selector_source or "")
                     raw_api_response = geometry_result.selector_raw_api_response
-                    object_texts_short = [
-                        str(row.get("object_text_short") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN
-                        for row in geometry_object_rows
-                    ] or [UNKNOWN_TEXT_TOKEN]
-                    object_texts_long = [
-                        _format_object_text_long(
-                            str(row.get("object_text_long") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN,
-                            angle_bucket=_normalize_angle_bucket(
-                                row.get("laterality"),
-                                angle_split_enable=angle_split_active,
-                            ),
-                            builder_variant=selected_builder_variant,
+                    pre_threshold_r_score_rows.extend(
+                        _build_object_r_scores_pre_threshold_row(
+                            row,
+                            entry_id=int(entry_id),
+                            frame_id=int(frame_idx),
+                            file_name=file_name,
+                            r_threshold=r_threshold,
                         )
                         for row in geometry_object_rows
-                    ] or [UNKNOWN_TEXT_TOKEN]
-                    frame_text_short = " | ".join(object_texts_short) if object_texts_short else UNKNOWN_TEXT_TOKEN
-                    frame_text_long = " | ".join(object_texts_long) if object_texts_long else UNKNOWN_TEXT_TOKEN
+                    )
+                    (
+                        geometry_object_rows,
+                        geometry_objects_before_r_threshold,
+                        geometry_objects_after_r_threshold,
+                        geometry_objects_filtered_by_r_threshold,
+                    ) = _filter_geometry_rows_by_r_threshold(
+                        geometry_object_rows,
+                        r_threshold=r_threshold,
+                    )
+                    report["geometry_objects_before_r_threshold"] = int(
+                        report.get("geometry_objects_before_r_threshold", 0)
+                    ) + int(geometry_objects_before_r_threshold)
+                    report["geometry_objects_after_r_threshold"] = int(
+                        report.get("geometry_objects_after_r_threshold", 0)
+                    ) + int(geometry_objects_after_r_threshold)
+                    report["geometry_objects_filtered_by_r_threshold"] = int(
+                        report.get("geometry_objects_filtered_by_r_threshold", 0)
+                    ) + int(geometry_objects_filtered_by_r_threshold)
+                    geometry_all_objects_filtered_by_r_threshold = bool(
+                        geometry_objects_before_r_threshold > 0
+                        and geometry_objects_after_r_threshold == 0
+                        and geometry_objects_filtered_by_r_threshold == geometry_objects_before_r_threshold
+                    )
+                    if geometry_all_objects_filtered_by_r_threshold:
+                        report["frames_all_geometry_objects_filtered"] = int(
+                            report.get("frames_all_geometry_objects_filtered", 0)
+                        ) + 1
+                        object_texts_short = [UNKNOWN_TEXT_TOKEN]
+                        object_texts_long = [UNKNOWN_TEXT_TOKEN]
+                        frame_text_short = UNKNOWN_TEXT_TOKEN
+                        frame_text_long = UNKNOWN_TEXT_TOKEN
+                    else:
+                        object_texts_short = [
+                            str(row.get("object_text_short") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN
+                            for row in geometry_object_rows
+                        ] or [UNKNOWN_TEXT_TOKEN]
+                        object_texts_long = [
+                            _format_object_text_long(
+                                str(row.get("object_text_long") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN,
+                                angle_bucket=_normalize_angle_bucket(
+                                    row.get("laterality"),
+                                    angle_split_enable=angle_split_active,
+                                ),
+                                builder_variant=selected_builder_variant,
+                            )
+                            for row in geometry_object_rows
+                        ] or [UNKNOWN_TEXT_TOKEN]
+                        frame_text_short = " | ".join(object_texts_short) if object_texts_short else UNKNOWN_TEXT_TOKEN
+                        frame_text_long = " | ".join(object_texts_long) if object_texts_long else UNKNOWN_TEXT_TOKEN
                     parse_status = "ok"
                 else:
                     parse_result = job.get("parse_result")
@@ -1812,7 +2075,7 @@ def _build_spatial_database_core(
                     "raw_api_source": raw_api_source,
                     "raw_api_response": raw_api_response,
                     "object_prompt_variant": selected_prompt_variant,
-                    "geometry_pipeline_used": bool(geometry_object_rows),
+                    "geometry_pipeline_used": bool(geometry_result is not None and getattr(geometry_result, "ok", False)),
                     "geometry_fallback_reason": None
                     if geometry_result is None or geometry_result.ok
                     else geometry_result.failure_reason,
@@ -1843,6 +2106,12 @@ def _build_spatial_database_core(
                             geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
                         ),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
+                        "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
+                        "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
+                        "geometry_all_objects_filtered_by_r_threshold": bool(
+                            geometry_all_objects_filtered_by_r_threshold
+                        ),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -1868,7 +2137,9 @@ def _build_spatial_database_core(
                 file_name_to_entry_id[file_name] = int(entry_id)
                 entry_object_records: List[Tuple[Dict, np.ndarray, np.ndarray]] = []
 
-                if geometry_object_rows:
+                if geometry_all_objects_filtered_by_r_threshold:
+                    entry_object_records = []
+                elif geometry_object_rows:
                     for geo_row, line_short, line_long in zip(geometry_object_rows, object_texts_short, object_texts_long):
                         object_embed_t0 = time.perf_counter()
                         obj_emb_short = embedder.embed_text(line_short).astype("float32")
@@ -1918,6 +2189,9 @@ def _build_spatial_database_core(
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
                             detector_label=geo_row.get("detector_label"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            occlusion_level=geo_row.get("occlusion_level"),
+                            occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
+                            reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -1949,6 +2223,17 @@ def _build_spatial_database_core(
                         entry_object_count += 1
                 elif scene_objects is not None and object_text_pairs:
                     for obj, line_short, raw_long, line_long in object_text_pairs:
+                        fallback_occlusion_level, fallback_occlusion_penalty, fallback_reweighted_detection_score = (
+                            _compute_object_reweight_fields(
+                                detector_confidence=None,
+                                object_confidence=1.0,
+                                occlusion_level="uncertain",
+                                occlusion_reweight_w1=float(occlusion_reweight_w1),
+                                occlusion_reweight_w2=float(occlusion_reweight_w2),
+                                occlusion_reweight_b=float(occlusion_reweight_b),
+                                occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+                            )
+                        )
                         object_embed_t0 = time.perf_counter()
                         obj_emb_short = embedder.embed_text(line_short).astype("float32")
                         obj_emb_long = embedder.embed_text(line_long).astype("float32")
@@ -1997,14 +2282,37 @@ def _build_spatial_database_core(
                             else geometry_result.failure_reason,
                             detector_label=None,
                             detector_confidence=None,
+                            occlusion_level=fallback_occlusion_level,
+                            occlusion_penalty_p_o=fallback_occlusion_penalty,
+                            reweighted_detection_score_r=fallback_reweighted_detection_score,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
                         entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        pre_threshold_r_score_rows.append(
+                            _build_object_r_scores_pre_threshold_row(
+                                record,
+                                entry_id=int(entry_id),
+                                frame_id=int(frame_idx),
+                                file_name=file_name,
+                                r_threshold=r_threshold,
+                            )
+                        )
                         bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
                         report[bucket_key] = int(report.get(bucket_key, 0)) + 1
                         entry_object_count += 1
                 else:
+                    fallback_occlusion_level, fallback_occlusion_penalty, fallback_reweighted_detection_score = (
+                        _compute_object_reweight_fields(
+                            detector_confidence=None,
+                            object_confidence=0.0,
+                            occlusion_level="uncertain",
+                            occlusion_reweight_w1=float(occlusion_reweight_w1),
+                            occlusion_reweight_w2=float(occlusion_reweight_w2),
+                            occlusion_reweight_b=float(occlusion_reweight_b),
+                            occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+                        )
+                    )
                     angle_bucket = _normalize_angle_bucket("center", angle_split_enable=angle_split_active)
                     line_short = UNKNOWN_TEXT_TOKEN
                     line_long = _format_object_text_long(
@@ -2038,8 +2346,20 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        occlusion_level=fallback_occlusion_level,
+                        occlusion_penalty_p_o=fallback_occlusion_penalty,
+                        reweighted_detection_score_r=fallback_reweighted_detection_score,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                    pre_threshold_r_score_rows.append(
+                        _build_object_r_scores_pre_threshold_row(
+                            record,
+                            entry_id=int(entry_id),
+                            frame_id=int(frame_idx),
+                            file_name=file_name,
+                            r_threshold=r_threshold,
+                        )
+                    )
                     report["total_center_bucket_objects"] = int(report.get("total_center_bucket_objects", 0)) + 1
                     entry_object_count += 1
                 object_groups_by_entry_id[int(entry_id)] = entry_object_records
@@ -2069,12 +2389,16 @@ def _build_spatial_database_core(
                 raw_api_record["timing"]["view_embedding_sec"] = float(view_embedding_sec)
                 raw_api_record["timing"]["object_embedding_total_sec"] = float(object_embedding_total_sec)
                 raw_api_record["timing"]["frame_total_sec"] = frame_total_sec
+                route_label = _frame_route_label(
+                    geometry_object_rows=geometry_object_rows,
+                    geometry_all_objects_filtered_by_r_threshold=geometry_all_objects_filtered_by_r_threshold,
+                )
                 timing_records.append(
                     {
                         "frame_idx": int(frame_idx),
                         "entry_id": int(entry_id),
                         "file_name": file_name,
-                        "route": "mask_depth" if geometry_object_rows else "vlm_fallback",
+                        "route": route_label,
                         "parse_status": parse_status,
                         "object_count": int(entry_object_count),
                         "raw_api_source": raw_api_source,
@@ -2089,6 +2413,12 @@ def _build_spatial_database_core(
                         "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
                         "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
+                        "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
+                        "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
+                        "geometry_all_objects_filtered_by_r_threshold": bool(
+                            geometry_all_objects_filtered_by_r_threshold
+                        ),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -2100,7 +2430,7 @@ def _build_spatial_database_core(
                     f"frame_idx={int(frame_idx)} "
                     f"entry_id={int(entry_id)} "
                     f"file={file_name} "
-                    f"route={'mask_depth' if geometry_object_rows else 'vlm_fallback'} "
+                    f"route={route_label} "
                     f"parse_status={parse_status} "
                     f"object_count={int(entry_object_count)} "
                     f"raw_api_source={raw_api_source} "
@@ -2166,6 +2496,10 @@ def _build_spatial_database_core(
                     else None
                 )
                 geometry_timing: Dict[str, Any] = {}
+                geometry_objects_before_r_threshold = 0
+                geometry_objects_after_r_threshold = 0
+                geometry_objects_filtered_by_r_threshold = 0
+                geometry_all_objects_filtered_by_r_threshold = False
                 fallback_parse_sec = 0.0
                 fallback_angle_geometry_sec = 0.0
                 view_embedding_sec = 0.0
@@ -2264,23 +2598,68 @@ def _build_spatial_database_core(
                         raw_vlm_output = str(geometry_result.selector_raw_json or "")
                         raw_api_source = str(geometry_result.selector_source or "")
                         raw_api_response = geometry_result.selector_raw_api_response
-                        object_texts_short = [
-                            str(row.get("object_text_short") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN
-                            for row in geometry_object_rows
-                        ] or [UNKNOWN_TEXT_TOKEN]
-                        object_texts_long = [
-                            _format_object_text_long(
-                                str(row.get("object_text_long") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN,
-                                angle_bucket=_normalize_angle_bucket(
-                                    row.get("laterality"),
-                                    angle_split_enable=angle_split_active,
-                                ),
-                                builder_variant=selected_builder_variant,
+                        planned_entry_id = (
+                            int(existing_entry_id) if existing_entry_id is not None else int(len(metadata_records))
+                        )
+                        pre_threshold_r_score_rows.extend(
+                            _build_object_r_scores_pre_threshold_row(
+                                row,
+                                entry_id=planned_entry_id,
+                                frame_id=int(frame_idx),
+                                file_name=file_name,
+                                r_threshold=r_threshold,
                             )
                             for row in geometry_object_rows
-                        ] or [UNKNOWN_TEXT_TOKEN]
-                        frame_text_short = " | ".join(object_texts_short) if object_texts_short else UNKNOWN_TEXT_TOKEN
-                        frame_text_long = " | ".join(object_texts_long) if object_texts_long else UNKNOWN_TEXT_TOKEN
+                        )
+                        (
+                            geometry_object_rows,
+                            geometry_objects_before_r_threshold,
+                            geometry_objects_after_r_threshold,
+                            geometry_objects_filtered_by_r_threshold,
+                        ) = _filter_geometry_rows_by_r_threshold(
+                            geometry_object_rows,
+                            r_threshold=r_threshold,
+                        )
+                        report["geometry_objects_before_r_threshold"] = int(
+                            report.get("geometry_objects_before_r_threshold", 0)
+                        ) + int(geometry_objects_before_r_threshold)
+                        report["geometry_objects_after_r_threshold"] = int(
+                            report.get("geometry_objects_after_r_threshold", 0)
+                        ) + int(geometry_objects_after_r_threshold)
+                        report["geometry_objects_filtered_by_r_threshold"] = int(
+                            report.get("geometry_objects_filtered_by_r_threshold", 0)
+                        ) + int(geometry_objects_filtered_by_r_threshold)
+                        geometry_all_objects_filtered_by_r_threshold = bool(
+                            geometry_objects_before_r_threshold > 0
+                            and geometry_objects_after_r_threshold == 0
+                            and geometry_objects_filtered_by_r_threshold == geometry_objects_before_r_threshold
+                        )
+                        if geometry_all_objects_filtered_by_r_threshold:
+                            report["frames_all_geometry_objects_filtered"] = int(
+                                report.get("frames_all_geometry_objects_filtered", 0)
+                            ) + 1
+                            object_texts_short = [UNKNOWN_TEXT_TOKEN]
+                            object_texts_long = [UNKNOWN_TEXT_TOKEN]
+                            frame_text_short = UNKNOWN_TEXT_TOKEN
+                            frame_text_long = UNKNOWN_TEXT_TOKEN
+                        else:
+                            object_texts_short = [
+                                str(row.get("object_text_short") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN
+                                for row in geometry_object_rows
+                            ] or [UNKNOWN_TEXT_TOKEN]
+                            object_texts_long = [
+                                _format_object_text_long(
+                                    str(row.get("object_text_long") or UNKNOWN_TEXT_TOKEN).strip() or UNKNOWN_TEXT_TOKEN,
+                                    angle_bucket=_normalize_angle_bucket(
+                                        row.get("laterality"),
+                                        angle_split_enable=angle_split_active,
+                                    ),
+                                    builder_variant=selected_builder_variant,
+                                )
+                                for row in geometry_object_rows
+                            ] or [UNKNOWN_TEXT_TOKEN]
+                            frame_text_short = " | ".join(object_texts_short) if object_texts_short else UNKNOWN_TEXT_TOKEN
+                            frame_text_long = " | ".join(object_texts_long) if object_texts_long else UNKNOWN_TEXT_TOKEN
                         parse_status = "ok"
                     else:
                         report["geometry_fallback_count"] = int(report.get("geometry_fallback_count", 0)) + 1
@@ -2305,7 +2684,7 @@ def _build_spatial_database_core(
                         f"file={file_name}"
                     )
 
-                if not geometry_object_rows:
+                if not geometry_object_rows and not geometry_all_objects_filtered_by_r_threshold:
                     _builder_log(
                         "vlm_fallback_start "
                         f"frame_idx={int(frame_idx)} "
@@ -2462,7 +2841,7 @@ def _build_spatial_database_core(
                     "raw_api_source": raw_api_source,
                     "raw_api_response": raw_api_response,
                     "object_prompt_variant": selected_prompt_variant,
-                    "geometry_pipeline_used": bool(geometry_object_rows),
+                    "geometry_pipeline_used": bool(geometry_result is not None and getattr(geometry_result, "ok", False)),
                     "geometry_fallback_reason": None
                     if geometry_result is None or geometry_result.ok
                     else geometry_result.failure_reason,
@@ -2493,6 +2872,12 @@ def _build_spatial_database_core(
                             geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
                         ),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
+                        "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
+                        "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
+                        "geometry_all_objects_filtered_by_r_threshold": bool(
+                            geometry_all_objects_filtered_by_r_threshold
+                        ),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -2517,7 +2902,9 @@ def _build_spatial_database_core(
                 file_name_to_entry_id[file_name] = int(entry_id)
                 entry_object_records: List[Tuple[Dict, np.ndarray, np.ndarray]] = []
 
-                if geometry_object_rows:
+                if geometry_all_objects_filtered_by_r_threshold:
+                    entry_object_records = []
+                elif geometry_object_rows:
                     for geo_row, line_short, line_long in zip(geometry_object_rows, object_texts_short, object_texts_long):
                         object_embed_t0 = time.perf_counter()
                         obj_emb_short = embedder.embed_text(line_short).astype("float32")
@@ -2567,6 +2954,9 @@ def _build_spatial_database_core(
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
                             detector_label=geo_row.get("detector_label"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            occlusion_level=geo_row.get("occlusion_level"),
+                            occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
+                            reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -2598,6 +2988,17 @@ def _build_spatial_database_core(
                         entry_object_count += 1
                 elif scene_objects is not None and object_text_pairs:
                     for obj, line_short, raw_long, line_long in object_text_pairs:
+                        fallback_occlusion_level, fallback_occlusion_penalty, fallback_reweighted_detection_score = (
+                            _compute_object_reweight_fields(
+                                detector_confidence=None,
+                                object_confidence=1.0,
+                                occlusion_level="uncertain",
+                                occlusion_reweight_w1=float(occlusion_reweight_w1),
+                                occlusion_reweight_w2=float(occlusion_reweight_w2),
+                                occlusion_reweight_b=float(occlusion_reweight_b),
+                                occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+                            )
+                        )
                         object_embed_t0 = time.perf_counter()
                         obj_emb_short = embedder.embed_text(line_short).astype("float32")
                         obj_emb_long = embedder.embed_text(line_long).astype("float32")
@@ -2646,14 +3047,37 @@ def _build_spatial_database_core(
                             else geometry_result.failure_reason,
                             detector_label=None,
                             detector_confidence=None,
+                            occlusion_level=fallback_occlusion_level,
+                            occlusion_penalty_p_o=fallback_occlusion_penalty,
+                            reweighted_detection_score_r=fallback_reweighted_detection_score,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
                         entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        pre_threshold_r_score_rows.append(
+                            _build_object_r_scores_pre_threshold_row(
+                                record,
+                                entry_id=int(entry_id),
+                                frame_id=int(frame_idx),
+                                file_name=file_name,
+                                r_threshold=r_threshold,
+                            )
+                        )
                         bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
                         report[bucket_key] = int(report.get(bucket_key, 0)) + 1
                         entry_object_count += 1
                 else:
+                    fallback_occlusion_level, fallback_occlusion_penalty, fallback_reweighted_detection_score = (
+                        _compute_object_reweight_fields(
+                            detector_confidence=None,
+                            object_confidence=0.0,
+                            occlusion_level="uncertain",
+                            occlusion_reweight_w1=float(occlusion_reweight_w1),
+                            occlusion_reweight_w2=float(occlusion_reweight_w2),
+                            occlusion_reweight_b=float(occlusion_reweight_b),
+                            occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+                        )
+                    )
                     angle_bucket = _normalize_angle_bucket("center", angle_split_enable=angle_split_active)
                     line_short = UNKNOWN_TEXT_TOKEN
                     line_long = _format_object_text_long(
@@ -2687,8 +3111,20 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        occlusion_level=fallback_occlusion_level,
+                        occlusion_penalty_p_o=fallback_occlusion_penalty,
+                        reweighted_detection_score_r=fallback_reweighted_detection_score,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                    pre_threshold_r_score_rows.append(
+                        _build_object_r_scores_pre_threshold_row(
+                            record,
+                            entry_id=int(entry_id),
+                            frame_id=int(frame_idx),
+                            file_name=file_name,
+                            r_threshold=r_threshold,
+                        )
+                    )
                     report["total_center_bucket_objects"] = int(report.get("total_center_bucket_objects", 0)) + 1
                     entry_object_count += 1
                 object_groups_by_entry_id[int(entry_id)] = entry_object_records
@@ -2705,12 +3141,16 @@ def _build_spatial_database_core(
                 raw_api_record["timing"]["view_embedding_sec"] = float(view_embedding_sec)
                 raw_api_record["timing"]["object_embedding_total_sec"] = float(object_embedding_total_sec)
                 raw_api_record["timing"]["frame_total_sec"] = frame_total_sec
+                route_label = _frame_route_label(
+                    geometry_object_rows=geometry_object_rows,
+                    geometry_all_objects_filtered_by_r_threshold=geometry_all_objects_filtered_by_r_threshold,
+                )
                 timing_records.append(
                     {
                         "frame_idx": int(frame_idx),
                         "entry_id": int(entry_id),
                         "file_name": file_name,
-                        "route": "mask_depth" if geometry_object_rows else "vlm_fallback",
+                        "route": route_label,
                         "parse_status": parse_status,
                         "object_count": int(entry_object_count),
                         "raw_api_source": raw_api_source,
@@ -2725,6 +3165,12 @@ def _build_spatial_database_core(
                         "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
                         "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
+                        "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
+                        "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
+                        "geometry_all_objects_filtered_by_r_threshold": bool(
+                            geometry_all_objects_filtered_by_r_threshold
+                        ),
                         "vlm_fallback_object_parse_sec": float(fallback_parse_sec),
                         "fallback_angle_geometry_sec": float(fallback_angle_geometry_sec),
                         "view_embedding_sec": float(view_embedding_sec),
@@ -2736,7 +3182,7 @@ def _build_spatial_database_core(
                     f"frame_idx={int(frame_idx)} "
                     f"entry_id={int(entry_id)} "
                     f"file={file_name} "
-                    f"route={'mask_depth' if geometry_object_rows else 'vlm_fallback'} "
+                    f"route={route_label} "
                     f"parse_status={parse_status} "
                     f"object_count={int(entry_object_count)} "
                     f"raw_api_source={raw_api_source} "
@@ -2825,6 +3271,18 @@ def _build_spatial_database_core(
         _write_jsonl(output_root / "object_object_relations.jsonl", object_object_relations)
         np.save(output_root / "object_text_emb_short.npy", object_arr_short)
         np.save(output_root / "object_text_emb_long.npy", object_arr_long)
+        pre_threshold_r_scores_path = output_root / "object_r_scores_pre_threshold.csv"
+        final_r_scores_path = output_root / "object_r_scores.csv"
+        report["object_r_scores_pre_threshold_count"] = _write_object_r_scores_pre_threshold_csv(
+            pre_threshold_r_scores_path,
+            pre_threshold_r_score_rows,
+        )
+        report["object_r_scores_count"] = _write_object_r_scores_csv(
+            final_r_scores_path,
+            object_metadata_records,
+        )
+        report["object_r_scores_pre_threshold_csv_path"] = str(pre_threshold_r_scores_path)
+        report["object_r_scores_csv_path"] = str(final_r_scores_path)
 
         report["image_index_ntotal"] = _save_faiss_index(image_arr, output_root / "image_index.faiss")
         report["text_index_ntotal_short"] = _save_faiss_index(text_arr_short, output_root / "text_index_short.faiss")
@@ -2944,6 +3402,10 @@ def build_spatial_database(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    r_threshold: Optional[float] = None,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -2972,6 +3434,10 @@ def build_spatial_database(
         execution_mode=str(execution_mode),
         vlm_max_in_flight=int(vlm_max_in_flight),
         legacy_per_frame=bool(legacy_per_frame),
+        occlusion_reweight_w1=float(occlusion_reweight_w1),
+        occlusion_reweight_w2=float(occlusion_reweight_w2),
+        occlusion_reweight_b=float(occlusion_reweight_b),
+        r_threshold=None if r_threshold is None else float(r_threshold),
     )
 
 
@@ -2999,6 +3465,10 @@ def build_spatial_database_angle_split(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    r_threshold: Optional[float] = None,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -3027,6 +3497,10 @@ def build_spatial_database_angle_split(
         execution_mode=str(execution_mode),
         vlm_max_in_flight=int(vlm_max_in_flight),
         legacy_per_frame=bool(legacy_per_frame),
+        occlusion_reweight_w1=float(occlusion_reweight_w1),
+        occlusion_reweight_w2=float(occlusion_reweight_w2),
+        occlusion_reweight_b=float(occlusion_reweight_b),
+        r_threshold=None if r_threshold is None else float(r_threshold),
     )
 
 
@@ -3166,6 +3640,30 @@ def main() -> None:
         default=False,
         help="Force legacy per-frame execution even if execution_mode is capture_then_parallel_vlm",
     )
+    parser.add_argument(
+        "--occlusion_reweight_w1",
+        type=float,
+        default=OCCLUSION_REWEIGHT_W1,
+        help="Weight for logit(detector_confidence) in the stored occlusion reweight score.",
+    )
+    parser.add_argument(
+        "--occlusion_reweight_w2",
+        type=float,
+        default=OCCLUSION_REWEIGHT_W2,
+        help="Weight for occlusion penalty p(o) in the stored occlusion reweight score.",
+    )
+    parser.add_argument(
+        "--occlusion_reweight_b",
+        type=float,
+        default=OCCLUSION_REWEIGHT_B,
+        help="Bias term for the stored occlusion reweight score.",
+    )
+    parser.add_argument(
+        "--r_threshold",
+        type=float,
+        default=None,
+        help="If set, drop geometry-derived objects whose reweighted_detection_score_r is strictly below this threshold.",
+    )
     args = parser.parse_args()
 
     common_kwargs = dict(
@@ -3190,6 +3688,10 @@ def main() -> None:
         execution_mode=args.execution_mode,
         vlm_max_in_flight=args.vlm_max_in_flight,
         legacy_per_frame=args.legacy_per_frame,
+        occlusion_reweight_w1=args.occlusion_reweight_w1,
+        occlusion_reweight_w2=args.occlusion_reweight_w2,
+        occlusion_reweight_b=args.occlusion_reweight_b,
+        r_threshold=args.r_threshold,
     )
     if args.builder_variant == "angle_split":
         report = build_spatial_database_angle_split(

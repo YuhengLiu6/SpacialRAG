@@ -218,7 +218,7 @@ class VLMCaptioner:
 
     @staticmethod
     def _batched_object_description_prompt_version() -> str:
-        return "object_detection_batch_descriptor_aligned_v1"
+        return "object_detection_batch_descriptor_occlusion_v2"
 
     def _detected_objects_batch_cache_path(
         self,
@@ -398,7 +398,9 @@ class VLMCaptioner:
             "the short description should read like a concise object instance description, "
             "and the long description should read like a detailed open-form object description. "
             "Do not return generic placeholders when any visible cue is available. "
-            "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
+            "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions. "
+            "For every listed object you must also output occlusion_level using exactly one of: "
+            "\"fully visible\", \"slightly occluded\", \"moderately occluded\", \"heavily occluded\", or \"uncertain\"."
         )
 
     @staticmethod
@@ -431,6 +433,9 @@ class VLMCaptioner:
             "object fields: short_description should correspond to a short precise object description, and long_description "
             "should correspond to a detailed long-form open description. "
             "Ignore the wider room except where it helps disambiguate the listed object. "
+            "Also assign occlusion_level for each listed object using exactly one of: "
+            "\"fully visible\", \"slightly occluded\", \"moderately occluded\", \"heavily occluded\", or \"uncertain\". "
+            "Judge occlusion for the detector-localized object instance itself, using the whole image and the bbox as localization hints. "
             f"{VLMCaptioner._object_description_requirements_prompt()}"
             "Return one JSON object per listed object_local_id. "
             "Output JSON only."
@@ -909,17 +914,24 @@ class VLMCaptioner:
         )
 
     @staticmethod
-    def _default_object_crop_description() -> Dict[str, Any]:
-        return {
+    def _default_object_crop_description(*, include_occlusion: bool = False) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
             "label": "unknown",
             "short_description": "unknown",
             "long_description": "unknown",
             "attributes": [],
             "distance_from_camera_m": None,
         }
+        if include_occlusion:
+            payload["occlusion_level"] = "uncertain"
+        return payload
 
     @staticmethod
-    def _object_description_item_schema(*, include_object_local_id: bool = False) -> dict:
+    def _object_description_item_schema(
+        *,
+        include_object_local_id: bool = False,
+        include_occlusion: bool = False,
+    ) -> dict:
         required = [
             "label",
             "short_description",
@@ -941,6 +953,18 @@ class VLMCaptioner:
         if include_object_local_id:
             required = ["object_local_id"] + required
             properties["object_local_id"] = {"type": "string"}
+        if include_occlusion:
+            required = required + ["occlusion_level"]
+            properties["occlusion_level"] = {
+                "type": "string",
+                "enum": [
+                    "fully visible",
+                    "slightly occluded",
+                    "moderately occluded",
+                    "heavily occluded",
+                    "uncertain",
+                ],
+            }
         return {
             "type": "object",
             "additionalProperties": False,
@@ -953,7 +977,10 @@ class VLMCaptioner:
         return {
             "name": "object_crop_description",
             "strict": True,
-            "schema": VLMCaptioner._object_description_item_schema(include_object_local_id=False),
+            "schema": VLMCaptioner._object_description_item_schema(
+                include_object_local_id=False,
+                include_occlusion=False,
+            ),
         }
 
     @staticmethod
@@ -969,7 +996,10 @@ class VLMCaptioner:
                     "objects": {
                         "type": "array",
                         "maxItems": int(max_objects),
-                        "items": VLMCaptioner._object_description_item_schema(include_object_local_id=True),
+                        "items": VLMCaptioner._object_description_item_schema(
+                            include_object_local_id=True,
+                            include_occlusion=True,
+                        ),
                     }
                 },
             },
@@ -981,8 +1011,12 @@ class VLMCaptioner:
         *,
         default_payload: Optional[Mapping[str, Any]] = None,
         label_hint: str = "",
+        include_occlusion: bool = False,
     ) -> Dict[str, Any]:
-        fallback = dict(default_payload or VLMCaptioner._default_object_crop_description())
+        fallback = dict(
+            default_payload
+            or VLMCaptioner._default_object_crop_description(include_occlusion=include_occlusion)
+        )
         raw = dict(payload or {})
         result_label = str(raw.get("label") or fallback["label"]).strip() or "unknown"
         result_short = str(raw.get("short_description") or fallback["short_description"]).strip() or "unknown"
@@ -991,15 +1025,26 @@ class VLMCaptioner:
             result_label = label_hint
         if (not result_short or result_short.lower() == "unknown") and label_hint:
             result_short = label_hint
-        if not result_long:
+        if not result_long or result_long.lower() == "unknown":
             result_long = result_short
-        return {
+        normalized = {
             "label": result_label,
             "short_description": result_short,
             "long_description": result_long,
             "attributes": [str(v).strip() for v in list(raw.get("attributes") or []) if str(v).strip()],
             "distance_from_camera_m": raw.get("distance_from_camera_m"),
         }
+        if include_occlusion:
+            allowed = {
+                "fully visible",
+                "slightly occluded",
+                "moderately occluded",
+                "heavily occluded",
+                "uncertain",
+            }
+            raw_occlusion = str(raw.get("occlusion_level") or fallback.get("occlusion_level") or "uncertain").strip().lower()
+            normalized["occlusion_level"] = raw_occlusion if raw_occlusion in allowed else "uncertain"
+        return normalized
 
     @staticmethod
     def _encode_image_to_base64(image_path: str) -> str:
@@ -1421,7 +1466,7 @@ class VLMCaptioner:
             if self.object_use_cache
             else None
         )
-        default_payload = self._default_object_crop_description()
+        default_payload = self._default_object_crop_description(include_occlusion=True)
 
         if cache_path and cache_path.exists() and not force_refresh:
             self._log(f"detected_batch cache_hit image={image_path} cache={cache_path}")
@@ -1446,7 +1491,12 @@ class VLMCaptioner:
                     if det["object_local_id"] == object_local_id:
                         hint = str(det["detector_label"] or "")
                         break
-                normalized_item = self._normalize_object_description_payload(item, default_payload=default_payload, label_hint=hint)
+                normalized_item = self._normalize_object_description_payload(
+                    item,
+                    default_payload=default_payload,
+                    label_hint=hint,
+                    include_occlusion=True,
+                )
                 normalized_item["object_local_id"] = object_local_id
                 objects.append(normalized_item)
             return {
@@ -1516,7 +1566,12 @@ class VLMCaptioner:
                     continue
                 seen_ids.add(object_local_id)
                 hint = str(by_local_id.get(object_local_id, {}).get("detector_label") or "")
-                normalized_item = self._normalize_object_description_payload(item, default_payload=default_payload, label_hint=hint)
+                normalized_item = self._normalize_object_description_payload(
+                    item,
+                    default_payload=default_payload,
+                    label_hint=hint,
+                    include_occlusion=True,
+                )
                 normalized_item["object_local_id"] = object_local_id
                 objects.append(normalized_item)
             result = {

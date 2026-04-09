@@ -17,6 +17,7 @@ from spatial_rag.object_geometry_pipeline import (
     project_global_xyz_from_geometry,
     relative_height_from_forward_depth_m,
 )
+from spatial_rag.occlusion_scoring import compute_reweighted_detection_score
 
 
 class _FakeCaptioner:
@@ -62,6 +63,7 @@ class _FakeCaptioner:
                     "long_description": "brown leather chair near the center of the room",
                     "attributes": ["brown", "leather"],
                     "distance_from_camera_m": 2.1,
+                    "occlusion_level": "slightly occluded",
                 }
             )
         return {
@@ -306,6 +308,9 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     assert abs(row["vertical_angle_deg"]) < 30.0
     assert row["depth_stat_median_m"] == 2.0
     assert row["depth_stat_p10_m"] == 2.0
+    assert row["occlusion_level"] == "slightly occluded"
+    assert row["occlusion_penalty_p_o"] == 0.1
+    assert row["reweighted_detection_score_r"] == compute_reweighted_detection_score(0.92, "slightly occluded")
     assert row["crop_path"]
     assert row["mask_path"]
     assert row["mask_overlay_path"]
@@ -359,6 +364,8 @@ def test_object_geometry_pipeline_uses_default_description_when_batched_item_mis
     assert row["description"] == "chair"
     assert row["long_form_open_description"] == "chair"
     assert row["attributes"] == []
+    assert row["occlusion_level"] == "uncertain"
+    assert row["occlusion_penalty_p_o"] == 0.35
     assert result.timings["object_description_call_count"] == 1
 
 
@@ -392,6 +399,7 @@ def test_object_geometry_pipeline_defer_object_descriptions_skips_vlm_calls(tmp_
     assert result.ok is True
     assert result.description_requests[0]["object_local_id"] == "det_000"
     assert result.object_rows[0]["description"] == "chair"
+    assert result.object_rows[0]["occlusion_level"] == "uncertain"
     assert result.timings["object_description_call_count"] == 0
     assert captioner.batched_calls == []
 
