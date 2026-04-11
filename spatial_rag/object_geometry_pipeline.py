@@ -16,11 +16,21 @@ from spatial_rag.config import (
     FOV,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
+    NANOSAM_CHECKPOINT_PATH,
     NANOSAM_DECODER_PATH,
     NANOSAM_ENCODER_PATH,
+    OCCLUSION_REWEIGHT_B,
+    OCCLUSION_REWEIGHT_EPS,
+    OCCLUSION_REWEIGHT_W1,
+    OCCLUSION_REWEIGHT_W2,
 )
 from spatial_rag.detector import Detector
 from spatial_rag.household_taxonomy import canonicalize_household_object_label, normalize_selector_subset
+from spatial_rag.occlusion_scoring import (
+    compute_reweighted_detection_score,
+    map_occlusion_level_to_penalty,
+    normalize_occlusion_level,
+)
 from spatial_rag.vlm_captioner import VLMCaptioner
 
 
@@ -242,68 +252,118 @@ class NanoSAMMaskRefiner:
         self,
         image_encoder: Optional[str] = None,
         mask_decoder: Optional[str] = None,
+        checkpoint_path: Optional[str] = None,
     ):
+        self._predictor_backend = ""
+        trt_error: Optional[BaseException] = None
+
         try:
             from nanosam.utils.predictor import Predictor  # type: ignore
         except Exception as exc:
-            raise GeometryPipelineUnavailable(
-                "NanoSAM predictor import failed. NanoSAM requires its Python package plus torch2trt/TensorRT support. "
+            trt_error = GeometryPipelineUnavailable(
+                "NanoSAM TensorRT predictor import failed. NanoSAM TensorRT mode requires torch2trt/TensorRT support. "
                 f"Original error: {type(exc).__name__}: {exc}"
+            )
+        else:
+            encoder_path = str(image_encoder or NANOSAM_ENCODER_PATH or "").strip()
+            decoder_path = str(mask_decoder or NANOSAM_DECODER_PATH or "").strip()
+            try:
+                if not encoder_path or not decoder_path:
+                    raise GeometryPipelineUnavailable(
+                        "NanoSAM requires NANOSAM_ENCODER_PATH and NANOSAM_DECODER_PATH engine paths."
+                    )
+                if not Path(encoder_path).exists():
+                    raise GeometryPipelineUnavailable(f"NanoSAM image encoder not found: {encoder_path}")
+                if not Path(decoder_path).exists():
+                    raise GeometryPipelineUnavailable(f"NanoSAM mask decoder not found: {decoder_path}")
+                _validate_tensorrt_engine(encoder_path, "image encoder")
+                _validate_tensorrt_engine(decoder_path, "mask decoder")
+
+                try:
+                    predictor_signature = inspect.signature(Predictor)
+                except Exception:
+                    predictor_signature = None
+                predictor_kwargs: Dict[str, Any]
+                if predictor_signature is not None and "image_encoder_engine" in predictor_signature.parameters:
+                    predictor_kwargs = {
+                        "image_encoder_engine": encoder_path,
+                        "mask_decoder_engine": decoder_path,
+                    }
+                else:
+                    predictor_kwargs = {
+                        "image_encoder": encoder_path,
+                        "mask_decoder": decoder_path,
+                    }
+                self.predictor = Predictor(**predictor_kwargs)
+                self._predictor_backend = "tensorrt"
+                return
+            except Exception as exc:
+                trt_error = exc
+
+        checkpoint_path_str = str(checkpoint_path or NANOSAM_CHECKPOINT_PATH or "").strip()
+        if not checkpoint_path_str:
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. No checkpoint path configured for PyTorch fallback."
+            )
+        if not Path(checkpoint_path_str).exists():
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. NanoSAM checkpoint not found: {checkpoint_path_str}"
+            )
+
+        try:
+            import torch
+            from nanosam.mobile_sam import sam_model_registry  # type: ignore
+            from nanosam.mobile_sam.predictor import SamPredictor  # type: ignore
+        except Exception as exc:
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. PyTorch fallback import failed: {type(exc).__name__}: {exc}"
             ) from exc
 
-        encoder_path = str(image_encoder or NANOSAM_ENCODER_PATH or "").strip()
-        decoder_path = str(mask_decoder or NANOSAM_DECODER_PATH or "").strip()
-        if not encoder_path or not decoder_path:
-            raise GeometryPipelineUnavailable(
-                "NanoSAM requires NANOSAM_ENCODER_PATH and NANOSAM_DECODER_PATH engine paths."
-            )
-        if not Path(encoder_path).exists():
-            raise GeometryPipelineUnavailable(f"NanoSAM image encoder not found: {encoder_path}")
-        if not Path(decoder_path).exists():
-            raise GeometryPipelineUnavailable(f"NanoSAM mask decoder not found: {decoder_path}")
-        _validate_tensorrt_engine(encoder_path, "image encoder")
-        _validate_tensorrt_engine(decoder_path, "mask decoder")
-
         try:
-            try:
-                predictor_signature = inspect.signature(Predictor)
-            except Exception:
-                predictor_signature = None
-            predictor_kwargs: Dict[str, Any]
-            if predictor_signature is not None and "image_encoder_engine" in predictor_signature.parameters:
-                predictor_kwargs = {
-                    "image_encoder_engine": encoder_path,
-                    "mask_decoder_engine": decoder_path,
-                }
-            else:
-                predictor_kwargs = {
-                    "image_encoder": encoder_path,
-                    "mask_decoder": decoder_path,
-                }
-            self.predictor = Predictor(**predictor_kwargs)
+            model = sam_model_registry["vit_t"](checkpoint=checkpoint_path_str)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model.to(device=device)
+            model.eval()
+            self.predictor = SamPredictor(model)
+            self._predictor_backend = "pytorch"
         except Exception as exc:
-            raise GeometryPipelineUnavailable(f"NanoSAM Predictor init failed: {exc}") from exc
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. PyTorch fallback init failed: {type(exc).__name__}: {exc}"
+            ) from exc
 
     def segment(self, image_rgb: np.ndarray, bbox_xyxy: Sequence[float]) -> np.ndarray:
-        try:
-            from PIL import Image
-        except Exception as exc:
-            raise GeometryPipelineUnavailable("Pillow is required for NanoSAM segmentation.") from exc
-
         try:
             import torch
         except Exception:
             torch = None  # type: ignore
 
-        self.predictor.set_image(Image.fromarray(np.asarray(image_rgb, dtype=np.uint8)))
         x1, y1, x2, y2 = [float(v) for v in bbox_xyxy[:4]]
-        point_coords = np.asarray([[x1, y1], [x2, y2]], dtype=np.float32)
-        point_labels = np.asarray([2, 3], dtype=np.int32)
-        prediction = self.predictor.predict(point_coords, point_labels)
-        if isinstance(prediction, tuple):
-            mask = prediction[0]
+        image_rgb_uint8 = np.asarray(image_rgb, dtype=np.uint8)
+
+        if self._predictor_backend == "tensorrt":
+            try:
+                from PIL import Image
+            except Exception as exc:
+                raise GeometryPipelineUnavailable("Pillow is required for NanoSAM TensorRT segmentation.") from exc
+
+            self.predictor.set_image(Image.fromarray(image_rgb_uint8))
+            point_coords = np.asarray([[x1, y1], [x2, y2]], dtype=np.float32)
+            point_labels = np.asarray([2, 3], dtype=np.int32)
+            prediction = self.predictor.predict(point_coords, point_labels)
+            if isinstance(prediction, tuple):
+                mask = prediction[0]
+            else:
+                mask = prediction
         else:
-            mask = prediction
+            self.predictor.set_image(image_rgb_uint8)
+            prediction = self.predictor.predict(
+                box=np.asarray([x1, y1, x2, y2], dtype=np.float32),
+                multimask_output=False,
+            )
+            if isinstance(prediction, tuple):
+                mask = prediction[0]
+            else:
+                mask = prediction
         if torch is not None and isinstance(mask, torch.Tensor):
             mask = mask.detach().cpu().numpy()
         mask_arr = np.asarray(mask)
@@ -530,6 +590,10 @@ class ObjectGeometryPipeline:
         image_width_px: int = int(IMAGE_WIDTH),
         image_height_px: int = int(IMAGE_HEIGHT),
         save_artifacts: bool = True,
+        occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
+        occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
+        occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+        occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
     ):
         self.captioner = captioner
         self.output_root = Path(output_root)
@@ -544,6 +608,10 @@ class ObjectGeometryPipeline:
         self.image_width_px = int(image_width_px)
         self.image_height_px = int(image_height_px)
         self.save_artifacts = bool(save_artifacts)
+        self.occlusion_reweight_w1 = float(occlusion_reweight_w1)
+        self.occlusion_reweight_w2 = float(occlusion_reweight_w2)
+        self.occlusion_reweight_b = float(occlusion_reweight_b)
+        self.occlusion_reweight_eps = float(occlusion_reweight_eps)
 
     def _ensure_detector(self, selected_object_types: Sequence[str]) -> Any:
         selected_signature = _detector_class_signature(selected_object_types)
@@ -773,6 +841,12 @@ class ObjectGeometryPipeline:
                     ),
                 }
             )
+        request_by_local_id = {
+            str(item.get("object_local_id") or "").strip(): dict(item)
+            for item in description_requests
+            if str(item.get("object_local_id") or "").strip()
+        }
+        default_description_payload = VLMCaptioner._default_object_crop_description(include_occlusion=True)
         description_by_local_id: Dict[str, Dict[str, Any]] = {}
         use_batched_descriptions = hasattr(self.captioner, "describe_detected_objects_with_meta")
         batch_description_per_object_sec = 0.0
@@ -789,7 +863,13 @@ class ObjectGeometryPipeline:
                 object_local_id = str(item.get("object_local_id") or "").strip()
                 if not object_local_id or object_local_id in description_by_local_id:
                     continue
-                description_by_local_id[object_local_id] = dict(item)
+                label_hint = str(request_by_local_id.get(object_local_id, {}).get("detector_label") or "")
+                description_by_local_id[object_local_id] = VLMCaptioner._normalize_object_description_payload(
+                    item,
+                    default_payload=default_description_payload,
+                    label_hint=label_hint,
+                    include_occlusion=True,
+                )
             use_batched_descriptions = True
         if use_batched_descriptions and description_requests and not description_by_local_id:
             description_t0 = time.perf_counter()
@@ -812,7 +892,13 @@ class ObjectGeometryPipeline:
                 object_local_id = str(item.get("object_local_id") or "").strip()
                 if not object_local_id or object_local_id in description_by_local_id:
                     continue
-                description_by_local_id[object_local_id] = dict(item)
+                label_hint = str(request_by_local_id.get(object_local_id, {}).get("detector_label") or "")
+                description_by_local_id[object_local_id] = VLMCaptioner._normalize_object_description_payload(
+                    item,
+                    default_payload=default_description_payload,
+                    label_hint=label_hint,
+                    include_occlusion=True,
+                )
 
         object_rows: List[Dict[str, Any]] = []
         for local_index, det in enumerate(normalized_detections):
@@ -908,11 +994,20 @@ class ObjectGeometryPipeline:
             if defer_object_descriptions:
                 crop_description = VLMCaptioner._normalize_object_description_payload(
                     {},
-                    default_payload=VLMCaptioner._default_object_crop_description(),
+                    default_payload=default_description_payload,
                     label_hint=str(det["label"]),
+                    include_occlusion=True,
                 )
             elif use_batched_descriptions:
-                crop_description = dict(description_by_local_id.get(object_local_id) or {})
+                crop_description = dict(
+                    description_by_local_id.get(object_local_id)
+                    or VLMCaptioner._normalize_object_description_payload(
+                        {},
+                        default_payload=default_description_payload,
+                        label_hint=str(det["label"]),
+                        include_occlusion=True,
+                    )
+                )
             else:
                 crop_t0 = time.perf_counter()
                 crop_description = self.captioner.describe_object_crop_with_meta(
@@ -924,6 +1019,23 @@ class ObjectGeometryPipeline:
                 timings["crop_vlm_description_total_sec"] = float(timings["crop_vlm_description_total_sec"] + crop_sec)
                 timings["crop_vlm_description_per_object_sec"].append(crop_sec)
                 timings["object_description_call_count"] = int(timings.get("object_description_call_count") or 0) + 1
+                crop_description = VLMCaptioner._normalize_object_description_payload(
+                    crop_description,
+                    default_payload=default_description_payload,
+                    label_hint=str(det["label"]),
+                    include_occlusion=True,
+                )
+            detector_confidence = float(det.get("confidence") or 0.0)
+            occlusion_level = normalize_occlusion_level(crop_description.get("occlusion_level"), default="uncertain")
+            occlusion_penalty = map_occlusion_level_to_penalty(occlusion_level)
+            reweighted_detection_score = compute_reweighted_detection_score(
+                detector_confidence,
+                occlusion_level,
+                w1=self.occlusion_reweight_w1,
+                w2=self.occlusion_reweight_w2,
+                b=self.occlusion_reweight_b,
+                eps=self.occlusion_reweight_eps,
+            )
             detector_label = str(det["label"])
             crop_label = canonicalize_household_object_label(crop_description.get("label"), default=detector_label)
             final_label = detector_label if crop_label != detector_label else crop_label
@@ -932,7 +1044,10 @@ class ObjectGeometryPipeline:
                 "label": final_label,
                 "detector_label": detector_label,
                 "crop_vlm_label": crop_description.get("label"),
-                "object_confidence": float(det.get("confidence") or 0.0),
+                "object_confidence": detector_confidence,
+                "occlusion_level": occlusion_level,
+                "occlusion_penalty_p_o": float(occlusion_penalty),
+                "reweighted_detection_score_r": float(reweighted_detection_score),
                 "bbox_xyxy": [float(v) for v in bbox_xyxy],
                 "bbox_xywh_norm": bbox_xywh_norm_from_xyxy(
                     bbox_xyxy,
@@ -979,7 +1094,7 @@ class ObjectGeometryPipeline:
                 ),
                 "geometry_source": "mask_depth",
                 "geometry_fallback_reason": None,
-                "detector_confidence": float(det.get("confidence") or 0.0),
+                "detector_confidence": detector_confidence,
                 "depth_stat_median_m": stats["median_m"],
                 "depth_stat_p10_m": stats["p10_m"],
                 "depth_stat_p90_m": stats["p90_m"],
