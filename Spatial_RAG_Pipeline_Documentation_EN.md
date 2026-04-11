@@ -929,6 +929,20 @@ Each record represents the final object-level metadata of one object.
     "estimated_global_y": 1.1379, // object global y derived from vertical angle / height
     "estimated_global_z": -6.7283, // object global z projected from depth + bearing
 
+    "visible_occlusion_ratio": 0.28, // deterministic visible-level occlusion score in [0, 1], derived from masks + depth only
+    "occluded_boundary_ratio": 0.31, // fraction of the object's visible boundary that is pressed against nearer object masks
+    "nearer_ring_overlap_ratio": 0.21, // fraction of the object's immediate exterior ring occupied by nearer object masks
+    "object_depth_median": 3.74, // median valid depth inside the visible object mask
+    "boundary_pixel_count": 142, // number of visible boundary pixels used for the occlusion calculation
+    "occluded_boundary_pixel_count": 44, // number of boundary pixels adjacent to nearer-object ring pixels
+    "ring_pixel_count": 510, // number of pixels in the boundary-adjacent outer ring
+    "nearer_ring_pixel_count": 109, // number of outer-ring pixels covered by other nearer detected objects
+    "depth_margin_delta": 0.08, // minimum depth advantage (meters) required for another object to count as an occluder
+
+    "occlusion_level": "slightly occluded", // compatibility bucket derived from visible_occlusion_ratio, not produced by the VLM
+    "occlusion_penalty_p_o": 0.14, // compatibility penalty derived as 0.5 * visible_occlusion_ratio
+    "reweighted_detection_score_r": 0.79, // detector confidence reweighted by the deterministic visible occlusion penalty
+
     "any_text": "", // text recognized on the object; empty string if none
     "location_relative_to_other_objects": "picture frame@1.20m[slightly right, above|E]", // compressed relationship description of the object relative to surrounding objects
 
@@ -978,6 +992,7 @@ Each record represents the final object-level metadata of one object.
     "view_id": "view_00000" // view id to which this object belongs
 }
 ```
+`visible_occlusion_ratio` is a **visible-level** metric, not an amodal occlusion percentage. It only measures how much of the object's currently visible boundary and immediate exterior neighborhood is pressed against **other detected nearer objects** in the same frame. Background pixels, plain walls, image-border truncation, and farther objects do **not** count as occlusion in this score. The categorical `occlusion_level` field is kept only as a compatibility view derived from the continuous ratio.
 **The `surrounding_context` structure is as follows:**
 ```json
 {

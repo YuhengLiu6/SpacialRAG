@@ -59,6 +59,19 @@ def sigmoid(z: float) -> float:
     return exp_term / (1.0 + exp_term)
 
 
+def compute_reweighted_detection_score_from_penalty(
+    c_det: float,
+    occlusion_penalty_p_o: float,
+    w1: float = OCCLUSION_REWEIGHT_W1,
+    w2: float = OCCLUSION_REWEIGHT_W2,
+    b: float = OCCLUSION_REWEIGHT_B,
+    eps: float = OCCLUSION_REWEIGHT_EPS,
+) -> float:
+    penalty = float(occlusion_penalty_p_o or 0.0)
+    z = float(w1) * logit(float(c_det), eps=eps) - float(w2) * penalty + float(b)
+    return float(sigmoid(z))
+
+
 def compute_reweighted_detection_score(
     c_det: float,
     occlusion_level: str,
@@ -69,8 +82,16 @@ def compute_reweighted_detection_score(
 ) -> float:
     normalized_level = normalize_occlusion_level(occlusion_level, default="uncertain")
     penalty = map_occlusion_level_to_penalty(normalized_level)
-    z = float(w1) * logit(float(c_det), eps=eps) - float(w2) * penalty + float(b)
-    return float(sigmoid(z))
+    return float(
+        compute_reweighted_detection_score_from_penalty(
+            c_det=float(c_det),
+            occlusion_penalty_p_o=float(penalty),
+            w1=float(w1),
+            w2=float(w2),
+            b=float(b),
+            eps=float(eps),
+        )
+    )
 
 
 def _parse_args() -> argparse.Namespace:

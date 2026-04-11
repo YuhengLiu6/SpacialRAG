@@ -22,13 +22,20 @@ from spatial_rag.config import (
     OCCLUSION_REWEIGHT_EPS,
     OCCLUSION_REWEIGHT_W1,
     OCCLUSION_REWEIGHT_W2,
+    VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
+    VISIBLE_OCC_BOUNDARY_WIDTH,
+    VISIBLE_OCC_DEPTH_MARGIN_DELTA,
+    VISIBLE_OCC_RING_RADIUS,
 )
 from spatial_rag.detector import Detector
 from spatial_rag.household_taxonomy import canonicalize_household_object_label, normalize_selector_subset
 from spatial_rag.occlusion_scoring import (
-    compute_reweighted_detection_score,
-    map_occlusion_level_to_penalty,
-    normalize_occlusion_level,
+    compute_reweighted_detection_score_from_penalty,
+)
+from spatial_rag.visible_occlusion import (
+    compute_visible_occlusion_metrics,
+    visible_occlusion_ratio_to_level,
+    visible_occlusion_ratio_to_penalty,
 )
 from spatial_rag.vlm_captioner import VLMCaptioner
 
@@ -543,6 +550,10 @@ class ObjectGeometryPipeline:
         occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
         occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
         occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
+        visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
+        visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
+        visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
+        visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
     ):
         self.captioner = captioner
         self.output_root = Path(output_root)
@@ -561,6 +572,10 @@ class ObjectGeometryPipeline:
         self.occlusion_reweight_w2 = float(occlusion_reweight_w2)
         self.occlusion_reweight_b = float(occlusion_reweight_b)
         self.occlusion_reweight_eps = float(occlusion_reweight_eps)
+        self.visible_occ_boundary_width = int(visible_occ_boundary_width)
+        self.visible_occ_ring_radius = int(visible_occ_ring_radius)
+        self.visible_occ_depth_margin_delta = float(visible_occ_depth_margin_delta)
+        self.visible_occ_boundary_neighbor_radius = int(visible_occ_boundary_neighbor_radius)
 
     def _ensure_detector(self, selected_object_types: Sequence[str]) -> Any:
         selected_signature = _detector_class_signature(selected_object_types)
@@ -795,7 +810,7 @@ class ObjectGeometryPipeline:
             for item in description_requests
             if str(item.get("object_local_id") or "").strip()
         }
-        default_description_payload = VLMCaptioner._default_object_crop_description(include_occlusion=True)
+        default_description_payload = VLMCaptioner._default_object_crop_description(include_occlusion=False)
         description_by_local_id: Dict[str, Dict[str, Any]] = {}
         use_batched_descriptions = hasattr(self.captioner, "describe_detected_objects_with_meta")
         batch_description_per_object_sec = 0.0
@@ -817,7 +832,7 @@ class ObjectGeometryPipeline:
                     item,
                     default_payload=default_description_payload,
                     label_hint=label_hint,
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
             use_batched_descriptions = True
         if use_batched_descriptions and description_requests and not description_by_local_id:
@@ -846,10 +861,10 @@ class ObjectGeometryPipeline:
                     item,
                     default_payload=default_description_payload,
                     label_hint=label_hint,
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
 
-        object_rows: List[Dict[str, Any]] = []
+        geometry_candidates: List[Dict[str, Any]] = []
         for local_index, det in enumerate(normalized_detections):
             bbox_xyxy = list(det["bbox_xyxy"])
             try:
@@ -945,7 +960,7 @@ class ObjectGeometryPipeline:
                     {},
                     default_payload=default_description_payload,
                     label_hint=str(det["label"]),
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
             elif use_batched_descriptions:
                 crop_description = dict(
@@ -954,7 +969,7 @@ class ObjectGeometryPipeline:
                         {},
                         default_payload=default_description_payload,
                         label_hint=str(det["label"]),
-                        include_occlusion=True,
+                        include_occlusion=False,
                     )
                 )
             else:
@@ -972,91 +987,131 @@ class ObjectGeometryPipeline:
                     crop_description,
                     default_payload=default_description_payload,
                     label_hint=str(det["label"]),
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
             detector_confidence = float(det.get("confidence") or 0.0)
-            occlusion_level = normalize_occlusion_level(crop_description.get("occlusion_level"), default="uncertain")
-            occlusion_penalty = map_occlusion_level_to_penalty(occlusion_level)
-            reweighted_detection_score = compute_reweighted_detection_score(
-                detector_confidence,
-                occlusion_level,
+            detector_label = str(det["label"])
+            crop_label = canonicalize_household_object_label(crop_description.get("label"), default=detector_label)
+            final_label = detector_label if crop_label != detector_label else crop_label
+            geometry_candidates.append(
+                {
+                    "object_local_id": object_local_id,
+                    "label": final_label,
+                    "detector_label": detector_label,
+                    "crop_vlm_label": crop_description.get("label"),
+                    "object_confidence": detector_confidence,
+                    "bbox_xyxy": [float(v) for v in bbox_xyxy],
+                    "bbox_xywh_norm": bbox_xywh_norm_from_xyxy(
+                        bbox_xyxy,
+                        width_px=image_rgb.shape[1],
+                        height_px=image_rgb.shape[0],
+                    ),
+                    "mask": mask,
+                    "mask_area_px": int(np.count_nonzero(mask)),
+                    "mask_area_ratio": float(np.count_nonzero(mask) / max(mask.size, 1)),
+                    "mask_centroid_x_px": float(centroid_x_px),
+                    "mask_centroid_y_px": float(centroid_y_px),
+                    "mask_centroid_x_norm": float(centroid_x_px / max(float(image_rgb.shape[1]), 1.0)),
+                    "mask_centroid_y_norm": float(centroid_y_px / max(float(image_rgb.shape[0]), 1.0)),
+                    "distance_from_camera_m": float(forward_depth_m),
+                    "projected_planar_distance_m": float(planar_distance_m),
+                    "relative_bearing_deg": float(relative_bearing_deg),
+                    "vertical_angle_deg": float(vertical_angle_deg),
+                    "relative_height_from_camera_m": float(relative_height_from_camera_m),
+                    "estimated_global_x": estimated_global_x,
+                    "estimated_global_y": estimated_global_y,
+                    "estimated_global_z": estimated_global_z,
+                    "laterality": bins["laterality"],
+                    "distance_bin": bins["distance_bin"],
+                    "verticality": bins["verticality"],
+                    "description": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "long_form_open_description": (
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
+                        or detector_label
+                    ),
+                    "attributes": [str(v).strip() for v in list(crop_description.get("attributes") or []) if str(v).strip()],
+                    "support_relation": "unknown",
+                    "any_text": "",
+                    "location_relative_to_other_objects": "",
+                    "surrounding_context": [],
+                    "scene_attributes": list(_selector_attribute_payload(selector_payload)["scene_attributes"]),
+                    "object_text_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "object_text_long": (
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
+                        or detector_label
+                    ),
+                    "text_input_for_clip_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "text_input_for_clip_long": (
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
+                        or detector_label
+                    ),
+                    "geometry_source": "mask_depth",
+                    "geometry_fallback_reason": None,
+                    "detector_confidence": detector_confidence,
+                    "depth_stat_median_m": stats["median_m"],
+                    "depth_stat_p10_m": stats["p10_m"],
+                    "depth_stat_p90_m": stats["p90_m"],
+                    "vlm_distance_from_camera_m": crop_description.get("distance_from_camera_m"),
+                    "vlm_relative_bearing_deg": None,
+                    "crop_path": None if crop_rel is None else str(crop_rel),
+                    "mask_path": None if mask_rel is None else str(mask_rel),
+                    "mask_overlay_path": None if overlay_rel is None else str(overlay_rel),
+                    "depth_map_path": artifacts.depth_map_path,
+                    "timing_mask_sec": mask_sec,
+                    "timing_angle_geometry_sec": angle_sec,
+                    "timing_crop_vlm_description_sec": crop_sec,
+                }
+            )
+
+        object_rows: List[Dict[str, Any]] = []
+        candidate_masks = [np.asarray(candidate["mask"]).astype(bool) for candidate in geometry_candidates]
+        for candidate_index, candidate in enumerate(geometry_candidates):
+            other_masks = [
+                other_mask
+                for other_index, other_mask in enumerate(candidate_masks)
+                if other_index != candidate_index
+            ]
+            visible_occlusion = compute_visible_occlusion_metrics(
+                target_mask=np.asarray(candidate["mask"]).astype(bool),
+                target_depth_map=depth_map_m,
+                other_object_masks=other_masks,
+                depth_map=depth_map_m,
+                boundary_width=self.visible_occ_boundary_width,
+                ring_radius=self.visible_occ_ring_radius,
+                depth_margin_delta=self.visible_occ_depth_margin_delta,
+                boundary_neighbor_radius=self.visible_occ_boundary_neighbor_radius,
+            )
+            visible_occlusion_ratio = float(visible_occlusion.get("visible_occlusion_ratio") or 0.0)
+            occlusion_level = visible_occlusion_ratio_to_level(visible_occlusion_ratio)
+            occlusion_penalty = visible_occlusion_ratio_to_penalty(visible_occlusion_ratio)
+            reweighted_detection_score = compute_reweighted_detection_score_from_penalty(
+                candidate.get("detector_confidence"),
+                occlusion_penalty,
                 w1=self.occlusion_reweight_w1,
                 w2=self.occlusion_reweight_w2,
                 b=self.occlusion_reweight_b,
                 eps=self.occlusion_reweight_eps,
             )
-            detector_label = str(det["label"])
-            crop_label = canonicalize_household_object_label(crop_description.get("label"), default=detector_label)
-            final_label = detector_label if crop_label != detector_label else crop_label
             row = {
-                "object_local_id": object_local_id,
-                "label": final_label,
-                "detector_label": detector_label,
-                "crop_vlm_label": crop_description.get("label"),
-                "object_confidence": detector_confidence,
+                "object_local_id": candidate["object_local_id"],
+                "label": candidate["label"],
+                "detector_label": candidate["detector_label"],
+                "crop_vlm_label": candidate["crop_vlm_label"],
+                "object_confidence": candidate["object_confidence"],
                 "occlusion_level": occlusion_level,
                 "occlusion_penalty_p_o": float(occlusion_penalty),
                 "reweighted_detection_score_r": float(reweighted_detection_score),
-                "bbox_xyxy": [float(v) for v in bbox_xyxy],
-                "bbox_xywh_norm": bbox_xywh_norm_from_xyxy(
-                    bbox_xyxy,
-                    width_px=image_rgb.shape[1],
-                    height_px=image_rgb.shape[0],
-                ),
-                "mask_area_px": int(np.count_nonzero(mask)),
-                "mask_area_ratio": float(np.count_nonzero(mask) / max(mask.size, 1)),
-                "mask_centroid_x_px": float(centroid_x_px),
-                "mask_centroid_y_px": float(centroid_y_px),
-                "mask_centroid_x_norm": float(centroid_x_px / max(float(image_rgb.shape[1]), 1.0)),
-                "mask_centroid_y_norm": float(centroid_y_px / max(float(image_rgb.shape[0]), 1.0)),
-                "distance_from_camera_m": float(forward_depth_m),
-                "projected_planar_distance_m": float(planar_distance_m),
-                "relative_bearing_deg": float(relative_bearing_deg),
-                "vertical_angle_deg": float(vertical_angle_deg),
-                "relative_height_from_camera_m": float(relative_height_from_camera_m),
-                "estimated_global_x": estimated_global_x,
-                "estimated_global_y": estimated_global_y,
-                "estimated_global_z": estimated_global_z,
-                "laterality": bins["laterality"],
-                "distance_bin": bins["distance_bin"],
-                "verticality": bins["verticality"],
-                "description": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
-                "long_form_open_description": (
-                    str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                    or detector_label
-                ),
-                "attributes": [str(v).strip() for v in list(crop_description.get("attributes") or []) if str(v).strip()],
-                "support_relation": "unknown",
-                "any_text": "",
-                "location_relative_to_other_objects": "",
-                "surrounding_context": [],
-                "scene_attributes": list(_selector_attribute_payload(selector_payload)["scene_attributes"]),
-                "object_text_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
-                "object_text_long": (
-                    str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                    or detector_label
-                ),
-                "text_input_for_clip_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
-                "text_input_for_clip_long": (
-                    str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                    or detector_label
-                ),
-                "geometry_source": "mask_depth",
-                "geometry_fallback_reason": None,
-                "detector_confidence": detector_confidence,
-                "depth_stat_median_m": stats["median_m"],
-                "depth_stat_p10_m": stats["p10_m"],
-                "depth_stat_p90_m": stats["p90_m"],
-                "vlm_distance_from_camera_m": crop_description.get("distance_from_camera_m"),
-                "vlm_relative_bearing_deg": None,
-                "crop_path": None if crop_rel is None else str(crop_rel),
-                "mask_path": None if mask_rel is None else str(mask_rel),
-                "mask_overlay_path": None if overlay_rel is None else str(overlay_rel),
-                "depth_map_path": artifacts.depth_map_path,
-                "timing_mask_sec": mask_sec,
-                "timing_angle_geometry_sec": angle_sec,
-                "timing_crop_vlm_description_sec": crop_sec,
+                "visible_occlusion_ratio": visible_occlusion_ratio,
+                "occluded_boundary_ratio": float(visible_occlusion.get("occluded_boundary_ratio") or 0.0),
+                "nearer_ring_overlap_ratio": float(visible_occlusion.get("nearer_ring_overlap_ratio") or 0.0),
+                "object_depth_median": visible_occlusion.get("object_depth_median"),
+                "boundary_pixel_count": int(visible_occlusion.get("boundary_pixel_count") or 0),
+                "occluded_boundary_pixel_count": int(visible_occlusion.get("occluded_boundary_pixel_count") or 0),
+                "ring_pixel_count": int(visible_occlusion.get("ring_pixel_count") or 0),
+                "nearer_ring_pixel_count": int(visible_occlusion.get("nearer_ring_pixel_count") or 0),
+                "depth_margin_delta": float(visible_occlusion.get("depth_margin_delta") or self.visible_occ_depth_margin_delta),
             }
+            row.update({key: value for key, value in candidate.items() if key != "mask"})
             object_rows.append(row)
         timings["object_count"] = int(len(object_rows))
 

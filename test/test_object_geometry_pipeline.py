@@ -17,7 +17,7 @@ from spatial_rag.object_geometry_pipeline import (
     project_global_xyz_from_geometry,
     relative_height_from_forward_depth_m,
 )
-from spatial_rag.occlusion_scoring import compute_reweighted_detection_score
+from spatial_rag.occlusion_scoring import compute_reweighted_detection_score_from_penalty
 
 
 class _FakeCaptioner:
@@ -63,7 +63,6 @@ class _FakeCaptioner:
                     "long_description": "brown leather chair near the center of the room",
                     "attributes": ["brown", "leather"],
                     "distance_from_camera_m": 2.1,
-                    "occlusion_level": "slightly occluded",
                 }
             )
         return {
@@ -104,6 +103,38 @@ class _FakeDepthEstimator:
     def predict_depth(self, image_path: str, image_rgb: np.ndarray):
         depth = np.full(image_rgb.shape[:2], 2.0, dtype=np.float32)
         depth[350:360, 770:780] = 25.0
+        return depth
+
+
+class _TwoObjectDetector:
+    def __init__(self):
+        self.class_names = []
+
+    def set_class_names(self, class_names):
+        self.class_names = list(class_names or [])
+
+    def detect(self, image):
+        return [
+            {"label": "chair", "bbox": [8.0, 10.0, 20.0, 30.0], "confidence": 0.9},
+            {"label": "chair", "bbox": [20.0, 10.0, 28.0, 30.0], "confidence": 0.85},
+        ]
+
+
+class _TwoObjectSegmenter:
+    def segment(self, image_rgb: np.ndarray, bbox_xyxy):
+        mask = np.zeros(image_rgb.shape[:2], dtype=bool)
+        x1 = float(bbox_xyxy[0])
+        if x1 < 15.0:
+            mask[10:30, 8:20] = True
+        else:
+            mask[10:30, 20:28] = True
+        return mask
+
+
+class _TwoObjectDepthEstimator:
+    def predict_depth(self, image_path: str, image_rgb: np.ndarray):
+        depth = np.full(image_rgb.shape[:2], 2.0, dtype=np.float32)
+        depth[10:30, 20:28] = 1.5
         return depth
 
 
@@ -308,9 +339,12 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     assert abs(row["vertical_angle_deg"]) < 30.0
     assert row["depth_stat_median_m"] == 2.0
     assert row["depth_stat_p10_m"] == 2.0
-    assert row["occlusion_level"] == "slightly occluded"
-    assert row["occlusion_penalty_p_o"] == 0.1
-    assert row["reweighted_detection_score_r"] == compute_reweighted_detection_score(0.92, "slightly occluded")
+    assert row["visible_occlusion_ratio"] == 0.0
+    assert row["occluded_boundary_ratio"] == 0.0
+    assert row["nearer_ring_overlap_ratio"] == 0.0
+    assert row["occlusion_level"] == "fully visible"
+    assert row["occlusion_penalty_p_o"] == 0.0
+    assert row["reweighted_detection_score_r"] == compute_reweighted_detection_score_from_penalty(0.92, 0.0)
     assert row["crop_path"]
     assert row["mask_path"]
     assert row["mask_overlay_path"]
@@ -364,8 +398,9 @@ def test_object_geometry_pipeline_uses_default_description_when_batched_item_mis
     assert row["description"] == "chair"
     assert row["long_form_open_description"] == "chair"
     assert row["attributes"] == []
-    assert row["occlusion_level"] == "uncertain"
-    assert row["occlusion_penalty_p_o"] == 0.35
+    assert row["visible_occlusion_ratio"] == 0.0
+    assert row["occlusion_level"] == "fully visible"
+    assert row["occlusion_penalty_p_o"] == 0.0
     assert result.timings["object_description_call_count"] == 1
 
 
@@ -399,9 +434,57 @@ def test_object_geometry_pipeline_defer_object_descriptions_skips_vlm_calls(tmp_
     assert result.ok is True
     assert result.description_requests[0]["object_local_id"] == "det_000"
     assert result.object_rows[0]["description"] == "chair"
-    assert result.object_rows[0]["occlusion_level"] == "uncertain"
+    assert result.object_rows[0]["visible_occlusion_ratio"] == 0.0
+    assert result.object_rows[0]["occlusion_level"] == "fully visible"
     assert result.timings["object_description_call_count"] == 0
     assert captioner.batched_calls == []
+
+
+def test_object_geometry_pipeline_visible_occlusion_uses_nearer_neighbor_masks(tmp_path):
+    image_path = tmp_path / "view.jpg"
+    image_rgb = np.full((40, 40, 3), 220, dtype=np.uint8)
+    ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+    assert ok
+
+    pipeline = ObjectGeometryPipeline(
+        captioner=_FakeCaptioner(),
+        output_root=str(tmp_path),
+        detector=_TwoObjectDetector(),
+        segmenter=_TwoObjectSegmenter(),
+        depth_estimator=_TwoObjectDepthEstimator(),
+        save_artifacts=False,
+        horizontal_fov_deg=90.0,
+        image_width_px=40,
+        image_height_px=40,
+    )
+
+    result = pipeline.run_for_view(
+        entry_id=10,
+        image_path=str(image_path),
+        image_rgb=image_rgb,
+        camera_x=0.0,
+        camera_y=0.0,
+        camera_z=0.0,
+        camera_orientation_deg=0.0,
+        max_objects=4,
+    )
+
+    assert result.ok is True
+    rows_by_id = {row["object_local_id"]: row for row in result.object_rows}
+    left_row = rows_by_id["det_000"]
+    right_row = rows_by_id["det_001"]
+
+    assert left_row["visible_occlusion_ratio"] > 0.0
+    assert left_row["occluded_boundary_ratio"] > 0.0
+    assert left_row["nearer_ring_overlap_ratio"] > 0.0
+    assert left_row["occlusion_penalty_p_o"] == 0.5 * left_row["visible_occlusion_ratio"]
+    assert left_row["reweighted_detection_score_r"] == compute_reweighted_detection_score_from_penalty(
+        left_row["detector_confidence"],
+        left_row["occlusion_penalty_p_o"],
+    )
+
+    assert right_row["visible_occlusion_ratio"] == 0.0
+    assert right_row["occlusion_level"] == "fully visible"
 
 
 def test_object_geometry_pipeline_returns_failure_when_selector_subset_empty(tmp_path):

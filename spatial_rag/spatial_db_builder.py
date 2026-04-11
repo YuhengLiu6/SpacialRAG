@@ -2,6 +2,7 @@ import argparse
 import csv
 import json
 import math
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -37,6 +38,10 @@ from spatial_rag.config import (
     SCENE_PATH,
     SPATIAL_DB_DIR,
     SPATIAL_DB_VLM_MODEL,
+    VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
+    VISIBLE_OCC_BOUNDARY_WIDTH,
+    VISIBLE_OCC_DEPTH_MARGIN_DELTA,
+    VISIBLE_OCC_RING_RADIUS,
     VLM_ANGLE_SPLIT_ENABLE,
     VLM_ANGLE_STEP,
 )
@@ -162,6 +167,27 @@ _OBJECT_R_SCORES_COLUMNS: Tuple[str, ...] = (
     "reweighted_detection_score_r",
 )
 
+_OBJECT_OCCLUSION_LEVELS_CSV_NAME = "object_occlusion_levels.csv"
+_OBJECT_OCCLUSION_LEVELS_COLUMNS: Tuple[str, ...] = (
+    "object_global_id",
+    "occlusion_level",
+)
+
+_OBJECT_CROPS_BY_GLOBAL_ID_DIRNAME = "object_crops_by_global_id"
+_OBJECT_CROPS_BY_GLOBAL_ID_MANIFEST_COLUMNS: Tuple[str, ...] = (
+    "object_global_id",
+    "occlusion_level",
+    "entry_id",
+    "frame_id",
+    "file_name",
+    "label",
+    "geometry_source",
+    "crop_export_status",
+    "crop_export_source",
+    "source_path",
+    "exported_path",
+)
+
 
 def _serialize_csv_value(value: Any) -> Any:
     if value is None:
@@ -177,6 +203,193 @@ def _write_csv_rows(path: Path, fieldnames: Sequence[str], rows: Sequence[Mappin
         writer.writeheader()
         for row in rows:
             writer.writerow({name: _serialize_csv_value(row.get(name)) for name in fieldnames})
+
+
+def _resolve_existing_path(db_root: Path, raw_path: Optional[str]) -> Optional[Path]:
+    text = str(raw_path or "").strip()
+    if not text:
+        return None
+    path = Path(text)
+    candidates: List[Path] = []
+    if path.is_absolute():
+        candidates.append(path)
+    else:
+        candidates.extend([path, db_root / path, db_root.parent / path])
+        try:
+            rel = path.relative_to(db_root.name)
+            candidates.append(db_root / rel)
+        except Exception:
+            pass
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate)
+        if key in seen:
+            continue
+        seen.add(key)
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _bbox_xyxy_ints_from_row(row: Mapping[str, Any]) -> Optional[Tuple[int, int, int, int]]:
+    bbox = list(row.get("bbox_xyxy") or [])
+    if len(bbox) < 4:
+        return None
+    try:
+        x1, y1, x2, y2 = [int(round(float(v))) for v in bbox[:4]]
+    except Exception:
+        return None
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return x1, y1, x2, y2
+
+
+def _safe_filename_token(value: Any, default: str = "unknown") -> str:
+    text = str(value or "").strip().lower()
+    if not text:
+        text = default
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    text = text.strip("_")
+    return text or default
+
+
+def _object_crop_export_filename(object_global_id: int, label: Any, occlusion_level: Any) -> str:
+    safe_label = _safe_filename_token(label, default="unknown")
+    normalized_occlusion_level = normalize_occlusion_level(occlusion_level, default="uncertain")
+    safe_occlusion_level = _safe_filename_token(normalized_occlusion_level, default="uncertain")
+    return f"{int(object_global_id)}_{safe_label}_{safe_occlusion_level}.jpg"
+
+
+def export_object_crops_by_global_id(
+    *,
+    db_root: Path,
+    object_rows: Sequence[Mapping[str, Any]],
+    output_dir: Optional[Path] = None,
+) -> Dict[str, Any]:
+    export_dir = Path(output_dir) if output_dir is not None else (db_root / _OBJECT_CROPS_BY_GLOBAL_ID_DIRNAME)
+    export_dir.mkdir(parents=True, exist_ok=True)
+    manifest_rows: List[Dict[str, Any]] = []
+    exported_count = 0
+    copied_count = 0
+    regenerated_count = 0
+    skipped_count = 0
+
+    for row in list(object_rows):
+        try:
+            object_global_id = int(row.get("object_global_id"))
+        except Exception:
+            skipped_count += 1
+            continue
+
+        normalized_occlusion_level = normalize_occlusion_level(row.get("occlusion_level"), default="uncertain")
+        target_path = export_dir / _object_crop_export_filename(
+            object_global_id,
+            row.get("label"),
+            normalized_occlusion_level,
+        )
+        crop_source_path = _resolve_existing_path(db_root, row.get("crop_path"))
+        source_kind = ""
+        export_status = "skipped"
+
+        if crop_source_path is not None:
+            source_image = cv2.imread(str(crop_source_path), cv2.IMREAD_COLOR)
+            if source_image is not None and cv2.imwrite(str(target_path), source_image):
+                exported_count += 1
+                copied_count += 1
+                export_status = "exported"
+                source_kind = "existing_crop_path"
+            else:
+                crop_source_path = None
+
+        if crop_source_path is None:
+            bbox = _bbox_xyxy_ints_from_row(row)
+            image_path = _resolve_existing_path(db_root, row.get("file_name"))
+            if bbox is not None and image_path is not None:
+                image_bgr = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+                if image_bgr is not None:
+                    h, w = image_bgr.shape[:2]
+                    x1, y1, x2, y2 = bbox
+                    x1 = max(0, min(w - 1, x1))
+                    y1 = max(0, min(h - 1, y1))
+                    x2 = max(x1 + 1, min(w, x2))
+                    y2 = max(y1 + 1, min(h, y2))
+                    crop_bgr = image_bgr[y1:y2, x1:x2]
+                    if crop_bgr.size > 0 and cv2.imwrite(str(target_path), crop_bgr):
+                        exported_count += 1
+                        regenerated_count += 1
+                        export_status = "exported"
+                        source_kind = "reconstructed_from_bbox"
+            if not source_kind:
+                skipped_count += 1
+                if bbox is None:
+                    export_status = "missing_crop_and_bbox"
+                elif image_path is None:
+                    export_status = "missing_source_image"
+                else:
+                    export_status = "crop_write_failed"
+                source_kind = "unavailable"
+
+        manifest_rows.append(
+            {
+                "object_global_id": object_global_id,
+                "occlusion_level": normalized_occlusion_level,
+                "entry_id": row.get("entry_id"),
+                "frame_id": row.get("frame_id"),
+                "file_name": row.get("file_name"),
+                "label": row.get("label"),
+                "geometry_source": row.get("geometry_source"),
+                "crop_export_status": export_status,
+                "crop_export_source": source_kind,
+                "source_path": str(crop_source_path) if crop_source_path is not None else "",
+                "exported_path": str(target_path) if export_status == "exported" else "",
+            }
+        )
+
+    manifest_path = export_dir / "manifest.csv"
+    _write_csv_rows(manifest_path, _OBJECT_CROPS_BY_GLOBAL_ID_MANIFEST_COLUMNS, manifest_rows)
+    return {
+        "enabled": True,
+        "dir": str(export_dir),
+        "manifest_path": str(manifest_path),
+        "manifest_count": int(len(manifest_rows)),
+        "exported_count": int(exported_count),
+        "copied_count": int(copied_count),
+        "regenerated_count": int(regenerated_count),
+        "skipped_count": int(skipped_count),
+    }
+
+
+def export_object_occlusion_levels_csv(
+    *,
+    db_root: Path,
+    object_rows: Sequence[Mapping[str, Any]],
+    output_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    csv_path = Path(output_path) if output_path is not None else (db_root / _OBJECT_OCCLUSION_LEVELS_CSV_NAME)
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    rows: List[Dict[str, Any]] = []
+    skipped_count = 0
+
+    for row in list(object_rows):
+        try:
+            object_global_id = int(row.get("object_global_id"))
+        except Exception:
+            skipped_count += 1
+            continue
+        rows.append(
+            {
+                "object_global_id": object_global_id,
+                "occlusion_level": normalize_occlusion_level(row.get("occlusion_level"), default="uncertain"),
+            }
+        )
+
+    _write_csv_rows(csv_path, _OBJECT_OCCLUSION_LEVELS_COLUMNS, rows)
+    return {
+        "enabled": True,
+        "csv_path": str(csv_path),
+        "row_count": int(len(rows)),
+        "skipped_count": int(skipped_count),
+    }
 
 
 def _frame_route_label(
@@ -670,12 +883,8 @@ def _apply_batched_description_result_to_geometry(
     *,
     description_result: Optional[Mapping[str, Any]],
     description_total_sec: float,
-    occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
-    occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
-    occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
-    occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
 ) -> Any:
-    default_payload = VLMCaptioner._default_object_crop_description(include_occlusion=True)
+    default_payload = VLMCaptioner._default_object_crop_description(include_occlusion=False)
     request_by_local_id = {
         str(item.get("object_local_id") or "").strip(): dict(item)
         for item in list(getattr(geometry_result, "description_requests", []) or [])
@@ -693,7 +902,7 @@ def _apply_batched_description_result_to_geometry(
             item,
             default_payload=default_payload,
             label_hint=label_hint,
-            include_occlusion=True,
+            include_occlusion=False,
         )
 
     request_count = max(len(request_by_local_id), 1)
@@ -712,26 +921,14 @@ def _apply_batched_description_result_to_geometry(
                 {},
                 default_payload=default_payload,
                 label_hint=label_hint,
-                include_occlusion=True,
+                include_occlusion=False,
             )
         short_description = str(payload.get("short_description") or label_hint).strip() or label_hint
         long_description = (
             str(payload.get("long_description") or payload.get("short_description") or label_hint).strip()
             or label_hint
         )
-        occlusion_level, occlusion_penalty, reweighted_detection_score = _compute_object_reweight_fields(
-            detector_confidence=row.get("detector_confidence"),
-            object_confidence=row.get("object_confidence"),
-            occlusion_level=payload.get("occlusion_level"),
-            occlusion_reweight_w1=occlusion_reweight_w1,
-            occlusion_reweight_w2=occlusion_reweight_w2,
-            occlusion_reweight_b=occlusion_reweight_b,
-            occlusion_reweight_eps=occlusion_reweight_eps,
-        )
         row["crop_vlm_label"] = payload.get("label")
-        row["occlusion_level"] = occlusion_level
-        row["occlusion_penalty_p_o"] = float(occlusion_penalty)
-        row["reweighted_detection_score_r"] = float(reweighted_detection_score)
         row["description"] = short_description
         row["long_form_open_description"] = long_description
         row["attributes"] = [str(v).strip() for v in list(payload.get("attributes") or []) if str(v).strip()]
@@ -1231,6 +1428,15 @@ def _make_object_record(
     occlusion_level: Optional[str] = None,
     occlusion_penalty_p_o: Optional[float] = None,
     reweighted_detection_score_r: Optional[float] = None,
+    visible_occlusion_ratio: Optional[float] = None,
+    occluded_boundary_ratio: Optional[float] = None,
+    nearer_ring_overlap_ratio: Optional[float] = None,
+    object_depth_median: Optional[float] = None,
+    boundary_pixel_count: Optional[int] = None,
+    occluded_boundary_pixel_count: Optional[int] = None,
+    ring_pixel_count: Optional[int] = None,
+    nearer_ring_pixel_count: Optional[int] = None,
+    depth_margin_delta: Optional[float] = None,
     bbox_xywh_norm: Optional[Sequence[float]] = None,
     bbox_xyxy: Optional[Sequence[float]] = None,
     mask_area_px: Optional[int] = None,
@@ -1312,6 +1518,15 @@ def _make_object_record(
         "occlusion_level": occlusion_level,
         "occlusion_penalty_p_o": occlusion_penalty_p_o,
         "reweighted_detection_score_r": reweighted_detection_score_r,
+        "visible_occlusion_ratio": visible_occlusion_ratio,
+        "occluded_boundary_ratio": occluded_boundary_ratio,
+        "nearer_ring_overlap_ratio": nearer_ring_overlap_ratio,
+        "object_depth_median": object_depth_median,
+        "boundary_pixel_count": boundary_pixel_count,
+        "occluded_boundary_pixel_count": occluded_boundary_pixel_count,
+        "ring_pixel_count": ring_pixel_count,
+        "nearer_ring_pixel_count": nearer_ring_pixel_count,
+        "depth_margin_delta": depth_margin_delta,
         "mask_area_px": mask_area_px,
         "mask_area_ratio": mask_area_ratio,
         "mask_centroid_x_px": mask_centroid_x_px,
@@ -1373,7 +1588,12 @@ def _build_spatial_database_core(
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
+    visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
+    visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
+    visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
     r_threshold: Optional[float] = None,
+    export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
     try:
         from spatial_rag.embedder import Embedder
@@ -1400,6 +1620,12 @@ def _build_spatial_database_core(
     output_root = Path(output_dir)
     images_dir = output_root / "images"
     cache_dir = output_root / "vlm_cache"
+    export_object_crops_dir = None
+    if export_object_crops_by_global_id_dir:
+        raw_export_dir = Path(export_object_crops_by_global_id_dir)
+        export_object_crops_dir = (
+            raw_export_dir if raw_export_dir.is_absolute() else (output_root / raw_export_dir)
+        )
     object_cache_root = (
         Path(object_cache_dir)
         if object_cache_dir is not None
@@ -1434,6 +1660,12 @@ def _build_spatial_database_core(
             "cache_dir": str(object_cache_root),
             "r_threshold": None if r_threshold is None else float(r_threshold),
             "r_threshold_enabled": bool(r_threshold is not None),
+            "export_object_crops_by_global_id_enabled": bool(export_object_crops_dir),
+            "export_object_crops_by_global_id_dir": (
+                str(export_object_crops_dir)
+                if export_object_crops_dir is not None
+                else str(output_root / _OBJECT_CROPS_BY_GLOBAL_ID_DIRNAME)
+            ),
             "occlusion_reweight": {
                 "formula_version": OCCLUSION_SCORE_FORMULA_VERSION,
                 "w1": float(occlusion_reweight_w1),
@@ -1452,6 +1684,10 @@ def _build_spatial_database_core(
             "nanosam_encoder_path": str(NANOSAM_ENCODER_PATH),
             "nanosam_decoder_path": str(NANOSAM_DECODER_PATH),
             "depth_pro_model_path": str(DEPTH_PRO_MODEL_PATH),
+            "visible_occ_boundary_width": int(visible_occ_boundary_width),
+            "visible_occ_ring_radius": int(visible_occ_ring_radius),
+            "visible_occ_depth_margin_delta": float(visible_occ_depth_margin_delta),
+            "visible_occ_boundary_neighbor_radius": int(visible_occ_boundary_neighbor_radius),
         },
         "tour_mode": tour_mode,
         "random_config": {
@@ -1504,6 +1740,16 @@ def _build_spatial_database_core(
         "object_r_scores_csv_path": "",
         "object_r_scores_pre_threshold_count": 0,
         "object_r_scores_count": 0,
+        "object_crops_by_global_id": {
+            "enabled": bool(export_object_crops_dir),
+            "dir": "",
+            "manifest_path": "",
+            "manifest_count": 0,
+            "exported_count": 0,
+            "copied_count": 0,
+            "regenerated_count": 0,
+            "skipped_count": 0,
+        },
         "polar_surrounding_postprocess": {
             "enabled": bool(run_polar_surrounding_postprocess),
             "ran": False,
@@ -1537,6 +1783,10 @@ def _build_spatial_database_core(
             occlusion_reweight_w2=float(occlusion_reweight_w2),
             occlusion_reweight_b=float(occlusion_reweight_b),
             occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+            visible_occ_boundary_width=int(visible_occ_boundary_width),
+            visible_occ_ring_radius=int(visible_occ_ring_radius),
+            visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
+            visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
         )
         if bool(OBJECT_GEOMETRY_PIPELINE_ENABLE)
         else None
@@ -1826,10 +2076,6 @@ def _build_spatial_database_core(
                         job["geometry_result"],
                         description_result=description_stage.get("result"),
                         description_total_sec=float(description_stage.get("elapsed_sec") or 0.0),
-                        occlusion_reweight_w1=float(occlusion_reweight_w1),
-                        occlusion_reweight_w2=float(occlusion_reweight_w2),
-                        occlusion_reweight_b=float(occlusion_reweight_b),
-                        occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
                     )
 
             if fallback_jobs:
@@ -2192,6 +2438,15 @@ def _build_spatial_database_core(
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
                             reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
+                            visible_occlusion_ratio=geo_row.get("visible_occlusion_ratio"),
+                            occluded_boundary_ratio=geo_row.get("occluded_boundary_ratio"),
+                            nearer_ring_overlap_ratio=geo_row.get("nearer_ring_overlap_ratio"),
+                            object_depth_median=geo_row.get("object_depth_median"),
+                            boundary_pixel_count=geo_row.get("boundary_pixel_count"),
+                            occluded_boundary_pixel_count=geo_row.get("occluded_boundary_pixel_count"),
+                            ring_pixel_count=geo_row.get("ring_pixel_count"),
+                            nearer_ring_pixel_count=geo_row.get("nearer_ring_pixel_count"),
+                            depth_margin_delta=geo_row.get("depth_margin_delta"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -2285,6 +2540,15 @@ def _build_spatial_database_core(
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
                             reweighted_detection_score_r=fallback_reweighted_detection_score,
+                            visible_occlusion_ratio=None,
+                            occluded_boundary_ratio=None,
+                            nearer_ring_overlap_ratio=None,
+                            object_depth_median=None,
+                            boundary_pixel_count=None,
+                            occluded_boundary_pixel_count=None,
+                            ring_pixel_count=None,
+                            nearer_ring_pixel_count=None,
+                            depth_margin_delta=None,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
@@ -2349,6 +2613,15 @@ def _build_spatial_database_core(
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
                         reweighted_detection_score_r=fallback_reweighted_detection_score,
+                        visible_occlusion_ratio=None,
+                        occluded_boundary_ratio=None,
+                        nearer_ring_overlap_ratio=None,
+                        object_depth_median=None,
+                        boundary_pixel_count=None,
+                        occluded_boundary_pixel_count=None,
+                        ring_pixel_count=None,
+                        nearer_ring_pixel_count=None,
+                        depth_margin_delta=None,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
                     pre_threshold_r_score_rows.append(
@@ -2957,6 +3230,15 @@ def _build_spatial_database_core(
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
                             reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
+                            visible_occlusion_ratio=geo_row.get("visible_occlusion_ratio"),
+                            occluded_boundary_ratio=geo_row.get("occluded_boundary_ratio"),
+                            nearer_ring_overlap_ratio=geo_row.get("nearer_ring_overlap_ratio"),
+                            object_depth_median=geo_row.get("object_depth_median"),
+                            boundary_pixel_count=geo_row.get("boundary_pixel_count"),
+                            occluded_boundary_pixel_count=geo_row.get("occluded_boundary_pixel_count"),
+                            ring_pixel_count=geo_row.get("ring_pixel_count"),
+                            nearer_ring_pixel_count=geo_row.get("nearer_ring_pixel_count"),
+                            depth_margin_delta=geo_row.get("depth_margin_delta"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -3050,6 +3332,15 @@ def _build_spatial_database_core(
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
                             reweighted_detection_score_r=fallback_reweighted_detection_score,
+                            visible_occlusion_ratio=None,
+                            occluded_boundary_ratio=None,
+                            nearer_ring_overlap_ratio=None,
+                            object_depth_median=None,
+                            boundary_pixel_count=None,
+                            occluded_boundary_pixel_count=None,
+                            ring_pixel_count=None,
+                            nearer_ring_pixel_count=None,
+                            depth_margin_delta=None,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
@@ -3114,6 +3405,15 @@ def _build_spatial_database_core(
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
                         reweighted_detection_score_r=fallback_reweighted_detection_score,
+                        visible_occlusion_ratio=None,
+                        occluded_boundary_ratio=None,
+                        nearer_ring_overlap_ratio=None,
+                        object_depth_median=None,
+                        boundary_pixel_count=None,
+                        occluded_boundary_pixel_count=None,
+                        ring_pixel_count=None,
+                        nearer_ring_pixel_count=None,
+                        depth_margin_delta=None,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
                     pre_threshold_r_score_rows.append(
@@ -3283,6 +3583,12 @@ def _build_spatial_database_core(
         )
         report["object_r_scores_pre_threshold_csv_path"] = str(pre_threshold_r_scores_path)
         report["object_r_scores_csv_path"] = str(final_r_scores_path)
+        if export_object_crops_dir is not None:
+            report["object_crops_by_global_id"] = export_object_crops_by_global_id(
+                db_root=output_root,
+                object_rows=object_metadata_records,
+                output_dir=export_object_crops_dir,
+            )
 
         report["image_index_ntotal"] = _save_faiss_index(image_arr, output_root / "image_index.faiss")
         report["text_index_ntotal_short"] = _save_faiss_index(text_arr_short, output_root / "text_index_short.faiss")
@@ -3405,7 +3711,12 @@ def build_spatial_database(
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
+    visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
+    visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
+    visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
     r_threshold: Optional[float] = None,
+    export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -3437,7 +3748,12 @@ def build_spatial_database(
         occlusion_reweight_w1=float(occlusion_reweight_w1),
         occlusion_reweight_w2=float(occlusion_reweight_w2),
         occlusion_reweight_b=float(occlusion_reweight_b),
+        visible_occ_boundary_width=int(visible_occ_boundary_width),
+        visible_occ_ring_radius=int(visible_occ_ring_radius),
+        visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
+        visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
         r_threshold=None if r_threshold is None else float(r_threshold),
+        export_object_crops_by_global_id_dir=export_object_crops_by_global_id_dir,
     )
 
 
@@ -3468,7 +3784,12 @@ def build_spatial_database_angle_split(
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
+    visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
+    visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
+    visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
     r_threshold: Optional[float] = None,
+    export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
     return _build_spatial_database_core(
         scene_path=scene_path,
@@ -3500,7 +3821,12 @@ def build_spatial_database_angle_split(
         occlusion_reweight_w1=float(occlusion_reweight_w1),
         occlusion_reweight_w2=float(occlusion_reweight_w2),
         occlusion_reweight_b=float(occlusion_reweight_b),
+        visible_occ_boundary_width=int(visible_occ_boundary_width),
+        visible_occ_ring_radius=int(visible_occ_ring_radius),
+        visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
+        visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
         r_threshold=None if r_threshold is None else float(r_threshold),
+        export_object_crops_by_global_id_dir=export_object_crops_by_global_id_dir,
     )
 
 
@@ -3659,10 +3985,40 @@ def main() -> None:
         help="Bias term for the stored occlusion reweight score.",
     )
     parser.add_argument(
+        "--visible_occ_boundary_width",
+        type=int,
+        default=VISIBLE_OCC_BOUNDARY_WIDTH,
+        help="Boundary erosion width used for deterministic visible occlusion metrics.",
+    )
+    parser.add_argument(
+        "--visible_occ_ring_radius",
+        type=int,
+        default=VISIBLE_OCC_RING_RADIUS,
+        help="Outer ring dilation radius used for deterministic visible occlusion metrics.",
+    )
+    parser.add_argument(
+        "--visible_occ_depth_margin_delta",
+        type=float,
+        default=VISIBLE_OCC_DEPTH_MARGIN_DELTA,
+        help="Depth margin in meters required for another object to count as a nearer occluder.",
+    )
+    parser.add_argument(
+        "--visible_occ_boundary_neighbor_radius",
+        type=int,
+        default=VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
+        help="Boundary neighbor radius used to connect nearer ring pixels back to the target boundary.",
+    )
+    parser.add_argument(
         "--r_threshold",
         type=float,
         default=None,
         help="If set, drop geometry-derived objects whose reweighted_detection_score_r is strictly below this threshold.",
+    )
+    parser.add_argument(
+        "--export_object_crops_by_global_id_dir",
+        type=str,
+        default=None,
+        help="If set, export one crop image per final object into this directory, named by object_global_id.",
     )
     args = parser.parse_args()
 
@@ -3691,7 +4047,12 @@ def main() -> None:
         occlusion_reweight_w1=args.occlusion_reweight_w1,
         occlusion_reweight_w2=args.occlusion_reweight_w2,
         occlusion_reweight_b=args.occlusion_reweight_b,
+        visible_occ_boundary_width=args.visible_occ_boundary_width,
+        visible_occ_ring_radius=args.visible_occ_ring_radius,
+        visible_occ_depth_margin_delta=args.visible_occ_depth_margin_delta,
+        visible_occ_boundary_neighbor_radius=args.visible_occ_boundary_neighbor_radius,
         r_threshold=args.r_threshold,
+        export_object_crops_by_global_id_dir=args.export_object_crops_by_global_id_dir,
     )
     if args.builder_variant == "angle_split":
         report = build_spatial_database_angle_split(

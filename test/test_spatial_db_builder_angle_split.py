@@ -2,6 +2,7 @@ import csv
 import json
 from types import SimpleNamespace
 
+import cv2
 import numpy as np
 
 from spatial_rag.spatial_db_builder import (
@@ -16,6 +17,8 @@ from spatial_rag.spatial_db_builder import (
     _filter_geometry_rows_by_r_threshold,
     _frame_route_label,
     _compute_object_orientation,
+    export_object_occlusion_levels_csv,
+    export_object_crops_by_global_id,
     _fallback_relative_bearing_from_laterality,
     _format_object_text_long,
     _load_resume_state,
@@ -235,6 +238,15 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         occlusion_level="moderately occluded",
         occlusion_penalty_p_o=0.25,
         reweighted_detection_score_r=0.73,
+        visible_occlusion_ratio=0.5,
+        occluded_boundary_ratio=0.6,
+        nearer_ring_overlap_ratio=0.3,
+        object_depth_median=2.0,
+        boundary_pixel_count=40,
+        occluded_boundary_pixel_count=24,
+        ring_pixel_count=50,
+        nearer_ring_pixel_count=15,
+        depth_margin_delta=0.08,
     )
 
     assert record["orientation"] == 90
@@ -258,6 +270,15 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
     assert record["occlusion_level"] == "moderately occluded"
     assert record["occlusion_penalty_p_o"] == 0.25
     assert record["reweighted_detection_score_r"] == 0.73
+    assert record["visible_occlusion_ratio"] == 0.5
+    assert record["occluded_boundary_ratio"] == 0.6
+    assert record["nearer_ring_overlap_ratio"] == 0.3
+    assert record["object_depth_median"] == 2.0
+    assert record["boundary_pixel_count"] == 40
+    assert record["occluded_boundary_pixel_count"] == 24
+    assert record["ring_pixel_count"] == 50
+    assert record["nearer_ring_pixel_count"] == 15
+    assert record["depth_margin_delta"] == 0.08
     assert record["view_type"] == "living room"
     assert record["geometry_source"] == "vlm_fallback"
 
@@ -292,7 +313,7 @@ def test_build_view_attribute_collects_room_level_fields():
     }
 
 
-def test_apply_batched_description_result_to_geometry_adds_occlusion_scoring_fields():
+def test_apply_batched_description_result_to_geometry_preserves_deterministic_occlusion_fields():
     geometry_result = SimpleNamespace(
         description_requests=[
             {
@@ -308,6 +329,10 @@ def test_apply_batched_description_result_to_geometry_adds_occlusion_scoring_fie
                 "detector_confidence": 0.8,
                 "object_confidence": 0.8,
                 "label": "chair",
+                "occlusion_level": "moderately occluded",
+                "occlusion_penalty_p_o": 0.2,
+                "reweighted_detection_score_r": 0.61,
+                "visible_occlusion_ratio": 0.4,
             }
         ],
         timings={},
@@ -324,7 +349,6 @@ def test_apply_batched_description_result_to_geometry_adds_occlusion_scoring_fie
                     "long_description": "brown chair near the wall",
                     "attributes": ["brown"],
                     "distance_from_camera_m": 2.0,
-                    "occlusion_level": "heavily occluded",
                 }
             ]
         },
@@ -333,9 +357,10 @@ def test_apply_batched_description_result_to_geometry_adds_occlusion_scoring_fie
 
     row = updated.object_rows[0]
     assert row["description"] == "brown chair"
-    assert row["occlusion_level"] == "heavily occluded"
-    assert row["occlusion_penalty_p_o"] == 0.5
-    assert row["reweighted_detection_score_r"] < 0.8
+    assert row["occlusion_level"] == "moderately occluded"
+    assert row["occlusion_penalty_p_o"] == 0.2
+    assert row["reweighted_detection_score_r"] == 0.61
+    assert row["visible_occlusion_ratio"] == 0.4
 
 
 def test_filter_geometry_rows_by_r_threshold_drops_strictly_lower_scores():
@@ -446,6 +471,99 @@ def test_write_object_r_scores_csv_persists_final_scores(tmp_path):
         {"object_global_id": "7", "reweighted_detection_score_r": "0.42"},
         {"object_global_id": "8", "reweighted_detection_score_r": "0.91"},
     ]
+
+
+def test_export_object_occlusion_levels_csv_persists_object_id_and_level(tmp_path):
+    out = tmp_path / "object_occlusion_levels.csv"
+    summary = export_object_occlusion_levels_csv(
+        db_root=tmp_path,
+        output_path=out,
+        object_rows=[
+            {"object_global_id": 7, "occlusion_level": "Fully Visible"},
+            {"object_global_id": 8},
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert summary["row_count"] == 2
+    assert summary["skipped_count"] == 0
+    assert rows == [
+        {"object_global_id": "7", "occlusion_level": "fully visible"},
+        {"object_global_id": "8", "occlusion_level": "uncertain"},
+    ]
+
+
+def test_export_object_crops_by_global_id_copies_existing_crop(tmp_path):
+    db_root = tmp_path / "db"
+    crop_path = db_root / "geometry" / "view_00000" / "objects" / "obj_000_crop.jpg"
+    crop_path.parent.mkdir(parents=True, exist_ok=True)
+    crop = np.full((20, 30, 3), 180, dtype=np.uint8)
+    assert cv2.imwrite(str(crop_path), crop)
+
+    summary = export_object_crops_by_global_id(
+        db_root=db_root,
+        object_rows=[
+            {
+                "object_global_id": 7,
+                "occlusion_level": "moderately occluded",
+                "entry_id": 0,
+                "frame_id": 0,
+                "file_name": "images/source.jpg",
+                "label": "chair",
+                "geometry_source": "mask_depth",
+                "crop_path": str(crop_path),
+            }
+        ],
+        output_dir=db_root / "object_crops_by_global_id",
+    )
+
+    exported_path = db_root / "object_crops_by_global_id" / "7_chair_moderately_occluded.jpg"
+    manifest_rows = list(csv.DictReader((db_root / "object_crops_by_global_id" / "manifest.csv").open()))
+    assert summary["exported_count"] == 1
+    assert summary["copied_count"] == 1
+    assert summary["regenerated_count"] == 0
+    assert exported_path.exists()
+    assert manifest_rows[0]["crop_export_source"] == "existing_crop_path"
+    assert manifest_rows[0]["occlusion_level"] == "moderately occluded"
+
+
+def test_export_object_crops_by_global_id_reconstructs_from_bbox(tmp_path):
+    db_root = tmp_path / "db"
+    image_path = db_root / "images" / "frame.jpg"
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+    image = np.zeros((40, 50, 3), dtype=np.uint8)
+    image[10:30, 5:25] = 255
+    assert cv2.imwrite(str(image_path), image)
+
+    summary = export_object_crops_by_global_id(
+        db_root=db_root,
+        object_rows=[
+            {
+                "object_global_id": 8,
+                "occlusion_level": "fully visible",
+                "entry_id": 0,
+                "frame_id": 0,
+                "file_name": "images/frame.jpg",
+                "label": "lamp",
+                "geometry_source": "vlm_fallback",
+                "bbox_xyxy": [5, 10, 25, 30],
+            }
+        ],
+        output_dir=db_root / "object_crops_by_global_id",
+    )
+
+    exported_path = db_root / "object_crops_by_global_id" / "8_lamp_fully_visible.jpg"
+    exported = cv2.imread(str(exported_path), cv2.IMREAD_COLOR)
+    manifest_rows = list(csv.DictReader((db_root / "object_crops_by_global_id" / "manifest.csv").open()))
+    assert summary["exported_count"] == 1
+    assert summary["copied_count"] == 0
+    assert summary["regenerated_count"] == 1
+    assert exported is not None
+    assert exported.shape[:2] == (20, 20)
+    assert manifest_rows[0]["crop_export_source"] == "reconstructed_from_bbox"
+    assert manifest_rows[0]["occlusion_level"] == "fully visible"
 
 
 def test_load_resume_state_backfills_attribute_from_raw_vlm_output(tmp_path):
@@ -674,6 +792,21 @@ def test_build_spatial_database_forwards_r_threshold(monkeypatch):
     assert captured["r_threshold"] == 0.37
 
 
+def test_build_spatial_database_forwards_crop_export_dir(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(export_object_crops_by_global_id_dir="object_crops_by_global_id")
+
+    assert report == {"ok": True}
+    assert captured["export_object_crops_by_global_id_dir"] == "object_crops_by_global_id"
+
+
 def test_main_dispatches_to_standard_builder(monkeypatch, capsys):
     calls = []
 
@@ -803,6 +936,37 @@ def test_main_forwards_r_threshold_flag(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert '"builder_variant": "standard"' in out
     assert calls[0][1]["r_threshold"] == 0.45
+
+
+def test_main_forwards_crop_export_dir_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--export_object_crops_by_global_id_dir",
+            "object_crops_by_global_id",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["export_object_crops_by_global_id_dir"] == "object_crops_by_global_id"
 
 
 def test_main_dispatches_to_angle_split_builder(monkeypatch, capsys):

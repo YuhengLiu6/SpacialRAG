@@ -8,8 +8,8 @@ def test_object_crop_prompt_version_bumped_for_yolo_hard_constraint():
     assert VLMCaptioner._object_crop_prompt_version() == "object_crop_descriptor_builder_aligned_v5"
 
 
-def test_batched_object_prompt_version_bumped_for_occlusion_schema():
-    assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_occlusion_v2"
+def test_batched_object_prompt_version_bumped_for_text_only_batch_schema():
+    assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_textonly_v3"
 
 
 def test_object_prompt_version_differs_between_standard_and_angle_split():
@@ -37,17 +37,11 @@ def test_crop_response_schema_contains_required_fields():
     assert "distance_from_camera_m" in props
 
 
-def test_batched_detected_object_schema_requires_occlusion_level_enum():
+def test_batched_detected_object_schema_is_text_only():
     schema = VLMCaptioner._batched_detected_objects_response_schema(max_objects=3)
     item_schema = schema["schema"]["properties"]["objects"]["items"]
-    assert "occlusion_level" in item_schema["required"]
-    assert item_schema["properties"]["occlusion_level"]["enum"] == [
-        "fully visible",
-        "slightly occluded",
-        "moderately occluded",
-        "heavily occluded",
-        "uncertain",
-    ]
+    assert "occlusion_level" not in item_schema["required"]
+    assert "occlusion_level" not in item_schema["properties"]
 
 
 def test_object_cache_path_varies_by_prompt_variant_and_camera_context(tmp_path):
@@ -190,7 +184,7 @@ def test_object_crop_user_prompt_includes_detector_context():
     assert "short_description should correspond to a short precise object description" in prompt
 
 
-def test_batched_detected_objects_prompt_mentions_exact_occlusion_levels():
+def test_batched_detected_objects_prompt_no_longer_requests_occlusion_level():
     system_prompt = VLMCaptioner._batched_detected_objects_system_prompt()
     user_prompt = VLMCaptioner._batched_detected_objects_user_prompt(
         [
@@ -204,9 +198,9 @@ def test_batched_detected_objects_prompt_mentions_exact_occlusion_levels():
         ]
     )
 
-    assert "occlusion_level" in system_prompt
-    assert "\"fully visible\", \"slightly occluded\", \"moderately occluded\", \"heavily occluded\", or \"uncertain\"" in system_prompt
-    assert "Judge occlusion for the detector-localized object instance itself" in user_prompt
+    assert "occlusion_level" not in system_prompt
+    assert "occlusion_level" not in user_prompt
+    assert "Judge occlusion for the detector-localized object instance itself" not in user_prompt
 
 
 def test_response_has_length_finish_reason_detects_truncated_cache_payload():

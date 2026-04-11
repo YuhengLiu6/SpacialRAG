@@ -4,6 +4,7 @@ from spatial_rag.occlusion_scoring import (
     OCCLUSION_LEVEL_TO_PENALTY,
     clamp_probability,
     compute_reweighted_detection_score,
+    compute_reweighted_detection_score_from_penalty,
     logit,
     map_occlusion_level_to_penalty,
     normalize_occlusion_level,
@@ -44,6 +45,14 @@ def test_reweighted_detection_score_matches_formula():
     penalty = 0.25
     expected = 1.0 / (1.0 + math.exp(-(math.log(c_det / (1.0 - c_det)) - penalty)))
     observed = compute_reweighted_detection_score(c_det, "moderately occluded")
+    assert math.isclose(observed, expected, rel_tol=1e-9, abs_tol=1e-9)
+
+
+def test_reweighted_detection_score_from_penalty_matches_formula():
+    c_det = 0.8
+    penalty = 0.2
+    expected = 1.0 / (1.0 + math.exp(-(math.log(c_det / (1.0 - c_det)) - penalty)))
+    observed = compute_reweighted_detection_score_from_penalty(c_det, penalty)
     assert math.isclose(observed, expected, rel_tol=1e-9, abs_tol=1e-9)
 
 

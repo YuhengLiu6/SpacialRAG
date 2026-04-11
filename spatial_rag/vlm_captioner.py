@@ -218,7 +218,7 @@ class VLMCaptioner:
 
     @staticmethod
     def _batched_object_description_prompt_version() -> str:
-        return "object_detection_batch_descriptor_occlusion_v2"
+        return "object_detection_batch_descriptor_textonly_v3"
 
     def _detected_objects_batch_cache_path(
         self,
@@ -398,9 +398,7 @@ class VLMCaptioner:
             "the short description should read like a concise object instance description, "
             "and the long description should read like a detailed open-form object description. "
             "Do not return generic placeholders when any visible cue is available. "
-            "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions. "
-            "For every listed object you must also output occlusion_level using exactly one of: "
-            "\"fully visible\", \"slightly occluded\", \"moderately occluded\", \"heavily occluded\", or \"uncertain\"."
+            "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
         )
 
     @staticmethod
@@ -433,9 +431,6 @@ class VLMCaptioner:
             "object fields: short_description should correspond to a short precise object description, and long_description "
             "should correspond to a detailed long-form open description. "
             "Ignore the wider room except where it helps disambiguate the listed object. "
-            "Also assign occlusion_level for each listed object using exactly one of: "
-            "\"fully visible\", \"slightly occluded\", \"moderately occluded\", \"heavily occluded\", or \"uncertain\". "
-            "Judge occlusion for the detector-localized object instance itself, using the whole image and the bbox as localization hints. "
             f"{VLMCaptioner._object_description_requirements_prompt()}"
             "Return one JSON object per listed object_local_id. "
             "Output JSON only."
@@ -998,7 +993,7 @@ class VLMCaptioner:
                         "maxItems": int(max_objects),
                         "items": VLMCaptioner._object_description_item_schema(
                             include_object_local_id=True,
-                            include_occlusion=True,
+                            include_occlusion=False,
                         ),
                     }
                 },
@@ -1466,7 +1461,7 @@ class VLMCaptioner:
             if self.object_use_cache
             else None
         )
-        default_payload = self._default_object_crop_description(include_occlusion=True)
+        default_payload = self._default_object_crop_description(include_occlusion=False)
 
         if cache_path and cache_path.exists() and not force_refresh:
             self._log(f"detected_batch cache_hit image={image_path} cache={cache_path}")
@@ -1495,7 +1490,7 @@ class VLMCaptioner:
                     item,
                     default_payload=default_payload,
                     label_hint=hint,
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
                 normalized_item["object_local_id"] = object_local_id
                 objects.append(normalized_item)
@@ -1570,7 +1565,7 @@ class VLMCaptioner:
                     item,
                     default_payload=default_payload,
                     label_hint=hint,
-                    include_occlusion=True,
+                    include_occlusion=False,
                 )
                 normalized_item["object_local_id"] = object_local_id
                 objects.append(normalized_item)
