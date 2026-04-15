@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 
 from spatial_rag.config import (
+    BBOX_CONF_THRESHOLD,
     DEPTH_PRO_MODEL_PATH,
     FOV,
     IMAGE_HEIGHT,
@@ -20,8 +21,10 @@ from spatial_rag.config import (
     NANOSAM_ENCODER_PATH,
     OCCLUSION_REWEIGHT_B,
     OCCLUSION_REWEIGHT_EPS,
+    OCCLUSION_SOURCE,
     OCCLUSION_REWEIGHT_W1,
     OCCLUSION_REWEIGHT_W2,
+    OCCLUSION_TARGET_OVERLAP_THRESHOLD,
     VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
     VISIBLE_OCC_BOUNDARY_WIDTH,
     VISIBLE_OCC_DEPTH_MARGIN_DELTA,
@@ -31,6 +34,8 @@ from spatial_rag.detector import Detector
 from spatial_rag.household_taxonomy import canonicalize_household_object_label, normalize_selector_subset
 from spatial_rag.occlusion_scoring import (
     compute_reweighted_detection_score_from_penalty,
+    map_occlusion_level_to_penalty,
+    normalize_occlusion_level,
 )
 from spatial_rag.visible_occlusion import (
     compute_visible_occlusion_metrics,
@@ -444,6 +449,8 @@ class DepthProAdapter:
 class GeometryPipelineArtifacts:
     detections_path: Optional[str] = None
     detection_overlay_path: Optional[str] = None
+    filtered_detections_path: Optional[str] = None
+    filtered_detection_overlay_path: Optional[str] = None
     depth_map_path: Optional[str] = None
     depth_preview_path: Optional[str] = None
 
@@ -462,7 +469,12 @@ class GeometryPipelineResult:
     timings: Dict[str, Any]
 
 
-def _draw_detection_overlay(image_rgb: np.ndarray, detections: Sequence[Mapping[str, Any]]) -> np.ndarray:
+def _draw_detection_overlay(
+    image_rgb: np.ndarray,
+    detections: Sequence[Mapping[str, Any]],
+    *,
+    box_color: Tuple[int, int, int] = (40, 200, 40),
+) -> np.ndarray:
     canvas = cv2.cvtColor(np.asarray(image_rgb).copy(), cv2.COLOR_RGB2BGR)
     for det in detections:
         bbox = det.get("bbox_xyxy")
@@ -477,7 +489,7 @@ def _draw_detection_overlay(image_rgb: np.ndarray, detections: Sequence[Mapping[
         label = str(det.get("label") or "unknown")
         score = det.get("confidence")
         text = label if score is None else f"{label} {float(score):.2f}"
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), (40, 200, 40), 2)
+        cv2.rectangle(canvas, (x1, y1), (x2, y2), box_color, 2)
         cv2.putText(canvas, text[:48], (x1, max(18, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (20, 20, 20), 2, cv2.LINE_AA)
         cv2.putText(canvas, text[:48], (x1, max(18, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (245, 245, 245), 1, cv2.LINE_AA)
     return canvas
@@ -546,10 +558,13 @@ class ObjectGeometryPipeline:
         image_width_px: int = int(IMAGE_WIDTH),
         image_height_px: int = int(IMAGE_HEIGHT),
         save_artifacts: bool = True,
+        bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
         occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
         occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
         occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
         occlusion_reweight_eps: float = float(OCCLUSION_REWEIGHT_EPS),
+        occlusion_source: str = str(OCCLUSION_SOURCE),
+        occlusion_target_overlap_threshold: float = float(OCCLUSION_TARGET_OVERLAP_THRESHOLD),
         visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
         visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
         visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
@@ -568,10 +583,16 @@ class ObjectGeometryPipeline:
         self.image_width_px = int(image_width_px)
         self.image_height_px = int(image_height_px)
         self.save_artifacts = bool(save_artifacts)
+        self.bbox_conf_threshold = float(bbox_conf_threshold)
         self.occlusion_reweight_w1 = float(occlusion_reweight_w1)
         self.occlusion_reweight_w2 = float(occlusion_reweight_w2)
         self.occlusion_reweight_b = float(occlusion_reweight_b)
         self.occlusion_reweight_eps = float(occlusion_reweight_eps)
+        normalized_occlusion_source = str(occlusion_source or OCCLUSION_SOURCE).strip().lower()
+        if normalized_occlusion_source not in {"visible_mask", "vlm"}:
+            raise ValueError(f"Unsupported occlusion_source: {occlusion_source!r}")
+        self.occlusion_source = normalized_occlusion_source
+        self.occlusion_target_overlap_threshold = float(occlusion_target_overlap_threshold)
         self.visible_occ_boundary_width = int(visible_occ_boundary_width)
         self.visible_occ_ring_radius = int(visible_occ_ring_radius)
         self.visible_occ_depth_margin_delta = float(visible_occ_depth_margin_delta)
@@ -634,7 +655,10 @@ class ObjectGeometryPipeline:
             "crop_vlm_description_per_object_sec": [],
             "selected_object_type_count": 0,
             "detection_count_raw": 0,
+            "detection_count_class_matched": 0,
+            "detection_count_filtered_by_bbox_conf": 0,
             "detection_count_kept": 0,
+            "detection_count_truncated_by_max_objects": 0,
             "object_count": 0,
         }
 
@@ -720,7 +744,8 @@ class ObjectGeometryPipeline:
             )
         timings["detection_count_raw"] = int(len(raw_detections))
 
-        normalized_detections: List[Dict[str, Any]] = []
+        class_matched_detections: List[Dict[str, Any]] = []
+        filtered_detections: List[Dict[str, Any]] = []
         for det_idx, det in enumerate(raw_detections):
             bbox = det.get("bbox_xyxy")
             if bbox is None:
@@ -733,33 +758,64 @@ class ObjectGeometryPipeline:
             canonical_label = canonicalize_household_object_label(det.get("label"), default="")
             if not canonical_label or canonical_label not in selected_object_types:
                 continue
-            normalized_detections.append(
-                {
-                    "det_idx": int(det_idx),
-                    "label": canonical_label,
-                    "bbox_xyxy": [float(v) for v in bbox_values[:4]],
-                    "confidence": _safe_float(det.get("confidence")),
-                }
-            )
+            normalized = {
+                "det_idx": int(det_idx),
+                "label": canonical_label,
+                "bbox_xyxy": [float(v) for v in bbox_values[:4]],
+                "confidence": _safe_float(det.get("confidence")),
+            }
+            class_matched_detections.append(normalized)
+            confidence = float(normalized.get("confidence") or 0.0)
+            if confidence < self.bbox_conf_threshold:
+                filtered_det = dict(normalized)
+                filtered_det["filter_reason"] = "bbox_conf_threshold"
+                filtered_det["bbox_conf_threshold"] = float(self.bbox_conf_threshold)
+                filtered_detections.append(filtered_det)
+        timings["detection_count_class_matched"] = int(len(class_matched_detections))
+        normalized_detections = [
+            dict(item)
+            for item in class_matched_detections
+            if float(item.get("confidence") or 0.0) >= self.bbox_conf_threshold
+        ]
+        timings["detection_count_filtered_by_bbox_conf"] = int(len(filtered_detections))
         normalized_detections.sort(key=lambda item: (-(item.get("confidence") or 0.0), item["label"], item["det_idx"]))
+        filtered_detections.sort(key=lambda item: (-(item.get("confidence") or 0.0), item["label"], item["det_idx"]))
+        truncated_count = max(0, len(normalized_detections) - max(1, int(max_objects)))
+        timings["detection_count_truncated_by_max_objects"] = int(truncated_count)
         normalized_detections = normalized_detections[: max(1, int(max_objects))]
         timings["detection_count_kept"] = int(len(normalized_detections))
+
+        if self.save_artifacts:
+            view_dir.mkdir(parents=True, exist_ok=True)
+            if normalized_detections:
+                detections_path = view_dir / "detections.json"
+                detections_path.write_text(json.dumps(normalized_detections, ensure_ascii=True, indent=2), encoding="utf-8")
+                artifacts.detections_path = str(detections_path)
+                artifacts.detection_overlay_path = _save_image_bgr(
+                    view_dir / "detection_overlay.jpg",
+                    _draw_detection_overlay(image_rgb, normalized_detections),
+                )
+            if filtered_detections:
+                filtered_detections_path = view_dir / "filtered_detections.json"
+                filtered_detections_path.write_text(
+                    json.dumps(filtered_detections, ensure_ascii=True, indent=2),
+                    encoding="utf-8",
+                )
+                artifacts.filtered_detections_path = str(filtered_detections_path)
+                artifacts.filtered_detection_overlay_path = _save_image_bgr(
+                    view_dir / "filtered_detection_overlay.jpg",
+                    _draw_detection_overlay(
+                        image_rgb,
+                        filtered_detections,
+                        box_color=(40, 120, 230),
+                    ),
+                )
         if not normalized_detections:
             return _fail(
                 "no_valid_detections",
                 selector_payload_out=selector_payload,
                 selector_result_out=selector_result,
                 artifacts_out=artifacts,
-            )
-
-        if self.save_artifacts:
-            detections_path = view_dir / "detections.json"
-            detections_path.parent.mkdir(parents=True, exist_ok=True)
-            detections_path.write_text(json.dumps(normalized_detections, ensure_ascii=True, indent=2), encoding="utf-8")
-            artifacts.detections_path = str(detections_path)
-            artifacts.detection_overlay_path = _save_image_bgr(
-                view_dir / "detection_overlay.jpg",
-                _draw_detection_overlay(image_rgb, normalized_detections),
             )
 
         try:
@@ -810,13 +866,21 @@ class ObjectGeometryPipeline:
             for item in description_requests
             if str(item.get("object_local_id") or "").strip()
         }
-        default_description_payload = VLMCaptioner._default_object_crop_description(include_occlusion=False)
+        include_vlm_occlusion = self.occlusion_source == "vlm"
+        default_description_payload = VLMCaptioner._default_object_crop_description(
+            include_occlusion=include_vlm_occlusion
+        )
         description_by_local_id: Dict[str, Dict[str, Any]] = {}
         use_batched_descriptions = hasattr(self.captioner, "describe_detected_objects_with_meta")
+        if include_vlm_occlusion:
+            # Batched descriptions currently do not include occlusion labels; use per-crop requests in vlm mode.
+            use_batched_descriptions = False
         batch_description_per_object_sec = 0.0
         if defer_object_descriptions:
             use_batched_descriptions = False
         if (
+            not include_vlm_occlusion
+            and
             not defer_object_descriptions
             and isinstance(precomputed_description_result, Mapping)
             and description_requests
@@ -832,7 +896,7 @@ class ObjectGeometryPipeline:
                     item,
                     default_payload=default_description_payload,
                     label_hint=label_hint,
-                    include_occlusion=False,
+                    include_occlusion=include_vlm_occlusion,
                 )
             use_batched_descriptions = True
         if use_batched_descriptions and description_requests and not description_by_local_id:
@@ -861,7 +925,7 @@ class ObjectGeometryPipeline:
                     item,
                     default_payload=default_description_payload,
                     label_hint=label_hint,
-                    include_occlusion=False,
+                    include_occlusion=include_vlm_occlusion,
                 )
 
         geometry_candidates: List[Dict[str, Any]] = []
@@ -960,7 +1024,7 @@ class ObjectGeometryPipeline:
                     {},
                     default_payload=default_description_payload,
                     label_hint=str(det["label"]),
-                    include_occlusion=False,
+                    include_occlusion=include_vlm_occlusion,
                 )
             elif use_batched_descriptions:
                 crop_description = dict(
@@ -969,7 +1033,7 @@ class ObjectGeometryPipeline:
                         {},
                         default_payload=default_description_payload,
                         label_hint=str(det["label"]),
-                        include_occlusion=False,
+                        include_occlusion=include_vlm_occlusion,
                     )
                 )
             else:
@@ -978,6 +1042,7 @@ class ObjectGeometryPipeline:
                     str(crop_rel or image_path),
                     yolo_label=det["label"],
                     yolo_confidence=det.get("confidence"),
+                    include_occlusion=include_vlm_occlusion,
                 )
                 crop_sec = float(time.perf_counter() - crop_t0)
                 timings["crop_vlm_description_total_sec"] = float(timings["crop_vlm_description_total_sec"] + crop_sec)
@@ -987,7 +1052,7 @@ class ObjectGeometryPipeline:
                     crop_description,
                     default_payload=default_description_payload,
                     label_hint=str(det["label"]),
-                    include_occlusion=False,
+                    include_occlusion=include_vlm_occlusion,
                 )
             detector_confidence = float(det.get("confidence") or 0.0)
             detector_label = str(det["label"])
@@ -1000,6 +1065,8 @@ class ObjectGeometryPipeline:
                     "detector_label": detector_label,
                     "crop_vlm_label": crop_description.get("label"),
                     "object_confidence": detector_confidence,
+                    "occlusion_source": self.occlusion_source,
+                    "vlm_occlusion_level": crop_description.get("occlusion_level"),
                     "bbox_xyxy": [float(v) for v in bbox_xyxy],
                     "bbox_xywh_norm": bbox_xywh_norm_from_xyxy(
                         bbox_xyxy,
@@ -1064,26 +1131,45 @@ class ObjectGeometryPipeline:
             )
 
         object_rows: List[Dict[str, Any]] = []
-        candidate_masks = [np.asarray(candidate["mask"]).astype(bool) for candidate in geometry_candidates]
         for candidate_index, candidate in enumerate(geometry_candidates):
-            other_masks = [
-                other_mask
-                for other_index, other_mask in enumerate(candidate_masks)
-                if other_index != candidate_index
-            ]
-            visible_occlusion = compute_visible_occlusion_metrics(
-                target_mask=np.asarray(candidate["mask"]).astype(bool),
-                target_depth_map=depth_map_m,
-                other_object_masks=other_masks,
-                depth_map=depth_map_m,
-                boundary_width=self.visible_occ_boundary_width,
-                ring_radius=self.visible_occ_ring_radius,
-                depth_margin_delta=self.visible_occ_depth_margin_delta,
-                boundary_neighbor_radius=self.visible_occ_boundary_neighbor_radius,
-            )
-            visible_occlusion_ratio = float(visible_occlusion.get("visible_occlusion_ratio") or 0.0)
-            occlusion_level = visible_occlusion_ratio_to_level(visible_occlusion_ratio)
-            occlusion_penalty = visible_occlusion_ratio_to_penalty(visible_occlusion_ratio)
+            occlusion_source = str(candidate.get("occlusion_source") or self.occlusion_source)
+            if occlusion_source == "vlm":
+                occlusion_level = normalize_occlusion_level(candidate.get("vlm_occlusion_level"), default="uncertain")
+                occlusion_penalty = float(map_occlusion_level_to_penalty(occlusion_level))
+                visible_occlusion_ratio = None
+                visible_occlusion = {
+                    "occluded_boundary_ratio": None,
+                    "nearer_ring_overlap_ratio": None,
+                    "object_depth_median": None,
+                    "boundary_pixel_count": None,
+                    "occluded_boundary_pixel_count": None,
+                    "ring_pixel_count": None,
+                    "nearer_ring_pixel_count": None,
+                    "depth_margin_delta": None,
+                    "occluding_overlap_pixel_count": None,
+                    "foreground_occluder_count": None,
+                    "occlusion_target_overlap_threshold": None,
+                }
+            else:
+                other_objects = [
+                    {
+                        "bbox_xyxy": other_candidate.get("bbox_xyxy"),
+                        "object_depth_median": other_candidate.get("distance_from_camera_m"),
+                        "distance_from_camera_m": other_candidate.get("distance_from_camera_m"),
+                    }
+                    for other_index, other_candidate in enumerate(geometry_candidates)
+                    if other_index != candidate_index
+                ]
+                visible_occlusion = compute_visible_occlusion_metrics(
+                    target_bbox_xyxy=candidate.get("bbox_xyxy") or [],
+                    target_depth_m=candidate.get("distance_from_camera_m"),
+                    other_objects=other_objects,
+                    target_overlap_threshold=self.occlusion_target_overlap_threshold,
+                    depth_margin_delta=self.visible_occ_depth_margin_delta,
+                )
+                visible_occlusion_ratio = float(visible_occlusion.get("visible_occlusion_ratio") or 0.0)
+                occlusion_level = visible_occlusion_ratio_to_level(visible_occlusion_ratio)
+                occlusion_penalty = visible_occlusion_ratio_to_penalty(visible_occlusion_ratio)
             reweighted_detection_score = compute_reweighted_detection_score_from_penalty(
                 candidate.get("detector_confidence"),
                 occlusion_penalty,
@@ -1098,18 +1184,22 @@ class ObjectGeometryPipeline:
                 "detector_label": candidate["detector_label"],
                 "crop_vlm_label": candidate["crop_vlm_label"],
                 "object_confidence": candidate["object_confidence"],
+                "occlusion_source": occlusion_source,
                 "occlusion_level": occlusion_level,
                 "occlusion_penalty_p_o": float(occlusion_penalty),
                 "reweighted_detection_score_r": float(reweighted_detection_score),
                 "visible_occlusion_ratio": visible_occlusion_ratio,
-                "occluded_boundary_ratio": float(visible_occlusion.get("occluded_boundary_ratio") or 0.0),
-                "nearer_ring_overlap_ratio": float(visible_occlusion.get("nearer_ring_overlap_ratio") or 0.0),
+                "occluded_boundary_ratio": visible_occlusion.get("occluded_boundary_ratio"),
+                "nearer_ring_overlap_ratio": visible_occlusion.get("nearer_ring_overlap_ratio"),
                 "object_depth_median": visible_occlusion.get("object_depth_median"),
-                "boundary_pixel_count": int(visible_occlusion.get("boundary_pixel_count") or 0),
-                "occluded_boundary_pixel_count": int(visible_occlusion.get("occluded_boundary_pixel_count") or 0),
-                "ring_pixel_count": int(visible_occlusion.get("ring_pixel_count") or 0),
-                "nearer_ring_pixel_count": int(visible_occlusion.get("nearer_ring_pixel_count") or 0),
-                "depth_margin_delta": float(visible_occlusion.get("depth_margin_delta") or self.visible_occ_depth_margin_delta),
+                "boundary_pixel_count": visible_occlusion.get("boundary_pixel_count"),
+                "occluded_boundary_pixel_count": visible_occlusion.get("occluded_boundary_pixel_count"),
+                "ring_pixel_count": visible_occlusion.get("ring_pixel_count"),
+                "nearer_ring_pixel_count": visible_occlusion.get("nearer_ring_pixel_count"),
+                "depth_margin_delta": visible_occlusion.get("depth_margin_delta"),
+                "occluding_overlap_pixel_count": visible_occlusion.get("occluding_overlap_pixel_count"),
+                "foreground_occluder_count": visible_occlusion.get("foreground_occluder_count"),
+                "occlusion_target_overlap_threshold": visible_occlusion.get("occlusion_target_overlap_threshold"),
             }
             row.update({key: value for key, value in candidate.items() if key != "mask"})
             object_rows.append(row)

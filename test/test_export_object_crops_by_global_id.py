@@ -15,6 +15,7 @@ def test_export_object_crops_cli_writes_default_output_dir(tmp_path, monkeypatch
     object_row = {
         "object_global_id": 3,
         "occlusion_level": "heavily occluded",
+        "detector_confidence": 0.625,
         "entry_id": 0,
         "frame_id": 0,
         "file_name": "images/frame.jpg",
@@ -38,7 +39,9 @@ def test_export_object_crops_cli_writes_default_output_dir(tmp_path, monkeypatch
     out = json.loads(capsys.readouterr().out)
     export_dir = db_root / "object_crops_by_global_id"
     assert out["exported_count"] == 1
-    assert (export_dir / "3_chair_heavily_occluded.jpg").exists()
+    assert (export_dir / "3_chair_heavily_occluded_0p625.jpg").exists()
     manifest_rows = list(csv.DictReader((export_dir / "manifest.csv").open()))
     assert manifest_rows[0]["object_global_id"] == "3"
     assert manifest_rows[0]["occlusion_level"] == "heavily occluded"
+    assert manifest_rows[0]["original_score"] == "0.625"
+    assert manifest_rows[0]["original_score_token"] == "0p625"

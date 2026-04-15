@@ -2,6 +2,7 @@ import csv
 import json
 from pathlib import Path
 
+import cv2
 import pytest
 import numpy as np
 
@@ -48,11 +49,21 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
     db_dir.mkdir(parents=True, exist_ok=True)
     for dirname in ("images", "geometry", "overview", "vlm_cache", "vlm_object_cache"):
         (db_dir / dirname).mkdir(parents=True, exist_ok=True)
-    (db_dir / "images" / "pose_00000_o000_000000.jpg").write_bytes(b"img0")
-    (db_dir / "images" / "pose_00001_o090_000001.jpg").write_bytes(b"img1")
-    (db_dir / "images" / "pose_00002_o180_000002.jpg").write_bytes(b"img2")
+
+    image0 = np.full((12, 12, 3), 40, dtype=np.uint8)
+    image0[2:6, 2:6] = (0, 255, 0)
+    image1 = np.full((12, 12, 3), 70, dtype=np.uint8)
+    image1[1:5, 1:5] = (255, 0, 0)
+    image2 = np.full((12, 12, 3), 110, dtype=np.uint8)
+    cv2.imwrite(str(db_dir / "images" / "pose_00000_o000_000000.jpg"), image0)
+    cv2.imwrite(str(db_dir / "images" / "pose_00001_o090_000001.jpg"), image1)
+    cv2.imwrite(str(db_dir / "images" / "pose_00002_o180_000002.jpg"), image2)
     (db_dir / "overview" / "center_highest_view.jpg").write_bytes(b"overview")
     (db_dir / "overview" / "textured_floor_plan.jpg").write_bytes(b"overview")
+
+    crop0_dir = db_dir / "geometry" / "view_00000" / "objects"
+    crop0_dir.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(crop0_dir / "obj_000_crop.jpg"), image0[0:4, 0:4])
 
     meta_rows = [
         {
@@ -168,7 +179,7 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
             "angle_bucket": "center",
             "bbox_xyxy": [1.0, 1.0, 2.0, 2.0],
             "bbox_xywh_norm": [0.2, 0.2, 0.2, 0.2],
-            "crop_path": "canonical_db/geometry/view_00001/objects/obj_001_crop.jpg",
+            "crop_path": None,
             "mask_path": "canonical_db/geometry/view_00001/objects/obj_001_mask.png",
             "mask_overlay_path": "canonical_db/geometry/view_00001/objects/obj_001_mask_overlay.jpg",
             "depth_map_path": "canonical_db/geometry/view_00001/depth_map.npy",
@@ -397,6 +408,41 @@ def test_run_reweight_sweep_exports_variant_from_canonical_db(tmp_path, monkeypa
     assert (Path(report["output_dir"]) / "sweep_results.csv").exists()
 
 
+def test_run_reweight_sweep_exports_filtered_object_crops(tmp_path, monkeypatch):
+    db_dir = _make_base_db(tmp_path, filtered=False)
+    monkeypatch.setattr("spatial_rag.reweight_sweep._make_embedder", lambda: _FakeEmbedder())
+    monkeypatch.setattr("spatial_rag.reweight_sweep._save_faiss_index", _fake_save_faiss_index)
+
+    report = run_reweight_sweep(
+        str(db_dir),
+        w1_values=[1.0],
+        w2_values=[1.0],
+        b_values=[0.0],
+        thresholds=[0.95],
+        export_db_variants=False,
+        export_filtered_objects=True,
+        output_dir=str(tmp_path / "filtered_exports"),
+    )
+
+    config = report["runs"][0]
+    filtered_dir = Path(config["filtered_object_dir"])
+    manifest_path = Path(config["filtered_manifest_path"])
+
+    assert filtered_dir.exists()
+    assert manifest_path.exists()
+    assert config["filtered_object_count"] == 2
+
+    manifest_rows = list(csv.DictReader(manifest_path.open("r", encoding="utf-8", newline="")))
+    assert len(manifest_rows) == 2
+    by_id = {row["object_global_id"]: row for row in manifest_rows}
+    assert by_id["0"]["export_source"] == "existing_crop_path"
+    assert by_id["1"]["export_source"] == "reconstructed_from_bbox"
+    assert Path(by_id["0"]["export_path"]).name == "0_chair_fully_visible_score_0p2.jpg"
+    assert Path(by_id["1"]["export_path"]).name == "1_table_fully_visible_score_0p9.jpg"
+    assert Path(by_id["0"]["export_path"]).exists()
+    assert Path(by_id["1"]["export_path"]).exists()
+
+
 def test_run_reweight_sweep_filtered_db_is_analysis_only_and_blocks_export(tmp_path):
     db_dir = _make_base_db(tmp_path, filtered=True)
 
@@ -407,6 +453,7 @@ def test_run_reweight_sweep_filtered_db_is_analysis_only_and_blocks_export(tmp_p
         b_values=[0.0],
         thresholds=[0.5],
         export_db_variants=False,
+        export_filtered_objects=True,
         output_dir=str(tmp_path / "filtered_sweeps"),
     )
 
@@ -415,6 +462,8 @@ def test_run_reweight_sweep_filtered_db_is_analysis_only_and_blocks_export(tmp_p
     assert report["runs"][0]["candidate_total_objects"] == 3
     assert report["runs"][0]["kept_total_objects"] == 2
     assert "warning" in report["runs"][0]
+    assert Path(report["runs"][0]["filtered_object_dir"]).exists()
+    assert Path(report["runs"][0]["filtered_manifest_path"]).exists()
 
     with pytest.raises(ValueError, match="already filtered DB"):
         run_reweight_sweep(

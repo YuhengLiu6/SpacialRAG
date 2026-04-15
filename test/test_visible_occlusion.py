@@ -1,7 +1,5 @@
 import math
 
-import numpy as np
-
 from spatial_rag.visible_occlusion import (
     compute_visible_occlusion_metrics,
     visible_occlusion_ratio_to_level,
@@ -9,122 +7,104 @@ from spatial_rag.visible_occlusion import (
 )
 
 
-def _square_mask(size: int = 40, *, y1: int = 12, y2: int = 28, x1: int = 12, x2: int = 28) -> np.ndarray:
-    mask = np.zeros((size, size), dtype=bool)
-    mask[y1:y2, x1:x2] = True
-    return mask
-
-
-def test_visible_occlusion_zero_when_no_other_objects_nearby():
-    target_mask = _square_mask()
-    depth = np.full(target_mask.shape, 2.0, dtype=np.float32)
-
+def test_visible_occlusion_zero_when_no_other_objects_overlap_enough():
     metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[],
-        depth_map=depth,
+        target_bbox_xyxy=[10, 10, 30, 30],
+        target_depth_m=2.0,
+        other_objects=[
+            {
+                "bbox_xyxy": [28, 28, 40, 40],
+                "distance_from_camera_m": 1.5,
+            }
+        ],
+        target_overlap_threshold=0.1,
+        depth_margin_delta=0.0,
     )
 
     assert metrics["visible_occlusion_ratio"] == 0.0
-    assert metrics["occluded_boundary_ratio"] == 0.0
-    assert metrics["nearer_ring_overlap_ratio"] == 0.0
+    assert metrics["occluding_overlap_pixel_count"] == 0
+    assert metrics["foreground_occluder_count"] == 0
 
 
-def test_visible_occlusion_positive_for_nearer_object_touching_boundary():
-    target_mask = _square_mask()
-    occluder_mask = np.zeros_like(target_mask)
-    occluder_mask[12:28, 28:34] = True
-    depth = np.full(target_mask.shape, 2.0, dtype=np.float32)
-    depth[occluder_mask] = 1.6
-
+def test_visible_occlusion_positive_for_nearer_overlapping_object():
     metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[occluder_mask],
-        depth_map=depth,
-        ring_radius=3,
-        depth_margin_delta=0.08,
-        boundary_neighbor_radius=1,
+        target_bbox_xyxy=[10, 10, 30, 30],
+        target_depth_m=2.0,
+        other_objects=[
+            {
+                "bbox_xyxy": [12, 12, 28, 28],
+                "distance_from_camera_m": 1.5,
+            }
+        ],
+        target_overlap_threshold=0.1,
+        depth_margin_delta=0.0,
     )
 
     assert metrics["visible_occlusion_ratio"] > 0.0
-    assert metrics["occluded_boundary_ratio"] > 0.0
-    assert metrics["nearer_ring_overlap_ratio"] > 0.0
-    assert math.isclose(
-        metrics["visible_occlusion_ratio"],
-        (0.7 * metrics["occluded_boundary_ratio"]) + (0.3 * metrics["nearer_ring_overlap_ratio"]),
-        rel_tol=1e-9,
-        abs_tol=1e-9,
-    )
+    assert metrics["occluding_overlap_pixel_count"] == 16 * 16
+    assert metrics["foreground_occluder_count"] == 1
+    assert math.isclose(metrics["visible_occlusion_ratio"], (16 * 16) / (20 * 20))
 
 
-def test_visible_occlusion_ignores_farther_object_touching_boundary():
-    target_mask = _square_mask()
-    farther_mask = np.zeros_like(target_mask)
-    farther_mask[12:28, 28:34] = True
-    depth = np.full(target_mask.shape, 2.0, dtype=np.float32)
-    depth[farther_mask] = 2.6
-
+def test_visible_occlusion_ignores_farther_overlapping_object():
     metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[farther_mask],
-        depth_map=depth,
-        ring_radius=3,
+        target_bbox_xyxy=[10, 10, 30, 30],
+        target_depth_m=2.0,
+        other_objects=[
+            {
+                "bbox_xyxy": [12, 12, 28, 28],
+                "distance_from_camera_m": 2.6,
+            }
+        ],
+        target_overlap_threshold=0.1,
+        depth_margin_delta=0.0,
     )
 
     assert metrics["visible_occlusion_ratio"] == 0.0
-    assert metrics["nearer_ring_pixel_count"] == 0
+    assert metrics["foreground_occluder_count"] == 0
 
 
-def test_visible_occlusion_ignores_background_only_near_boundary():
-    target_mask = _square_mask()
-    depth = np.full(target_mask.shape, 2.0, dtype=np.float32)
-    depth[:, 30:] = 1.0
-
+def test_visible_occlusion_respects_target_overlap_threshold_boundary():
+    target_bbox = [10, 10, 30, 30]
+    other_bbox = [29, 10, 31, 30]
     metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[],
-        depth_map=depth,
-        ring_radius=3,
+        target_bbox_xyxy=target_bbox,
+        target_depth_m=2.0,
+        other_objects=[
+            {
+                "bbox_xyxy": other_bbox,
+                "distance_from_camera_m": 1.5,
+            }
+        ],
+        target_overlap_threshold=0.1,
+        depth_margin_delta=0.0,
     )
 
     assert metrics["visible_occlusion_ratio"] == 0.0
+    assert metrics["occluding_overlap_pixel_count"] == 0
 
 
-def test_visible_occlusion_safe_for_invalid_depth_and_tiny_masks():
-    target_mask = np.zeros((10, 10), dtype=bool)
-    target_mask[5, 5] = True
-    depth = np.full(target_mask.shape, np.nan, dtype=np.float32)
-
+def test_visible_occlusion_unions_multiple_foreground_occluders_without_double_counting():
     metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[],
-        depth_map=depth,
+        target_bbox_xyxy=[10, 10, 30, 30],
+        target_depth_m=2.0,
+        other_objects=[
+            {
+                "bbox_xyxy": [10, 10, 22, 30],
+                "distance_from_camera_m": 1.7,
+            },
+            {
+                "bbox_xyxy": [18, 10, 30, 30],
+                "distance_from_camera_m": 1.6,
+            },
+        ],
+        target_overlap_threshold=0.1,
+        depth_margin_delta=0.0,
     )
 
-    assert metrics["visible_occlusion_ratio"] == 0.0
-    assert metrics["object_depth_median"] is None
-    assert metrics["boundary_pixel_count"] == 0
-
-
-def test_visible_occlusion_does_not_count_border_truncation_without_nearer_object():
-    target_mask = np.zeros((30, 30), dtype=bool)
-    target_mask[:, :8] = True
-    depth = np.full(target_mask.shape, 2.0, dtype=np.float32)
-
-    metrics = compute_visible_occlusion_metrics(
-        target_mask=target_mask,
-        target_depth_map=depth,
-        other_object_masks=[],
-        depth_map=depth,
-        ring_radius=4,
-    )
-
-    assert metrics["visible_occlusion_ratio"] == 0.0
+    assert metrics["foreground_occluder_count"] == 2
+    assert metrics["occluding_overlap_pixel_count"] == 20 * 20
+    assert metrics["visible_occlusion_ratio"] == 1.0
 
 
 def test_visible_occlusion_bucket_and_penalty_mapping_are_continuous_derivatives():

@@ -176,15 +176,15 @@ class VLMCaptioner:
         )
         return self._resolve_cache_path(target_path, legacy_path)
 
-    def _legacy_object_crop_cache_path(self, image_path: str) -> Path:
+    def _legacy_object_crop_cache_path(self, image_path: str, *, include_occlusion: bool = False) -> Path:
         image_hash = self._md5_file(image_path)
-        cache_key_src = f"{image_hash}|{self.model_name}|{self._object_crop_prompt_version()}"
+        cache_key_src = f"{image_hash}|{self.model_name}|{self._object_crop_prompt_version(include_occlusion=include_occlusion)}"
         cache_key = hashlib.md5(cache_key_src.encode("utf-8")).hexdigest()
         return self.object_cache_dir / f"{cache_key}.json"
 
-    def _object_crop_cache_path(self, image_path: str) -> Path:
+    def _object_crop_cache_path(self, image_path: str, *, include_occlusion: bool = False) -> Path:
         image_hash = self._md5_file(image_path)
-        prompt_version = self._object_crop_prompt_version()
+        prompt_version = self._object_crop_prompt_version(include_occlusion=include_occlusion)
         cache_key_src = f"{image_hash}|{self.model_name}|{prompt_version}"
         cache_key = hashlib.md5(cache_key_src.encode("utf-8")).hexdigest()
         return self._structured_object_cache_path(
@@ -195,9 +195,9 @@ class VLMCaptioner:
             suffix=".crop.json",
         )
 
-    def _resolve_object_crop_cache_path(self, image_path: str) -> Path:
-        target_path = self._object_crop_cache_path(image_path)
-        legacy_path = self._legacy_object_crop_cache_path(image_path)
+    def _resolve_object_crop_cache_path(self, image_path: str, *, include_occlusion: bool = False) -> Path:
+        target_path = self._object_crop_cache_path(image_path, include_occlusion=include_occlusion)
+        legacy_path = self._legacy_object_crop_cache_path(image_path, include_occlusion=include_occlusion)
         return self._resolve_cache_path(target_path, legacy_path)
 
     @staticmethod
@@ -335,12 +335,16 @@ class VLMCaptioner:
         )
 
     @staticmethod
-    def _object_crop_prompt_version() -> str:
-        return "object_crop_descriptor_builder_aligned_v5"
+    def _object_crop_prompt_version(*, include_occlusion: bool = False) -> str:
+        return (
+            "object_crop_descriptor_builder_aligned_v6_with_occlusion"
+            if include_occlusion
+            else "object_crop_descriptor_builder_aligned_v5"
+        )
 
     @staticmethod
-    def _object_crop_system_prompt() -> str:
-        return (
+    def _object_crop_system_prompt(*, include_occlusion: bool = False) -> str:
+        prompt = (
             "You are a strict vision parser for object crops. "
             "Return JSON only, matching the schema exactly. "
             "Describe only the main visible object in the crop. "
@@ -351,6 +355,13 @@ class VLMCaptioner:
             "Do not return generic placeholders when any visible cue is available. "
             "If the object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
         )
+        if include_occlusion:
+            prompt += (
+                " Also judge how visually occluded the main visible object is inside this crop. "
+                "Set occlusion_level to one of: fully visible, slightly occluded, moderately occluded, heavily occluded, or uncertain. "
+                "Judge occlusion only for the detector-localized main object, not for background objects."
+            )
+        return prompt
 
     @staticmethod
     def _object_description_requirements_prompt() -> str:
@@ -374,8 +385,13 @@ class VLMCaptioner:
         )
 
     @staticmethod
-    def _object_crop_user_prompt(yolo_label_clean: str, yolo_conf_text: str) -> str:
-        return (
+    def _object_crop_user_prompt(
+        yolo_label_clean: str,
+        yolo_conf_text: str,
+        *,
+        include_occlusion: bool = False,
+    ) -> str:
+        prompt = (
             f'A detector has identified the object in this crop as "{yolo_label_clean or "unknown"}" '
             f"(confidence: {yolo_conf_text}). "
             "Treat this detected class as the object category to describe. "
@@ -384,8 +400,13 @@ class VLMCaptioner:
             "should correspond to a detailed long-form open description. "
             "Ignore the wider room and focus on the object itself. "
             f"{VLMCaptioner._object_description_requirements_prompt()}"
-            "Output JSON only."
         )
+        if include_occlusion:
+            prompt += (
+                " In addition, estimate how occluded this main object instance is in the crop and return it as occlusion_level."
+            )
+        prompt += "Output JSON only."
+        return prompt
 
     @staticmethod
     def _batched_detected_objects_system_prompt() -> str:
@@ -968,13 +989,13 @@ class VLMCaptioner:
         }
 
     @staticmethod
-    def _object_crop_response_schema() -> dict:
+    def _object_crop_response_schema(*, include_occlusion: bool = False) -> dict:
         return {
             "name": "object_crop_description",
             "strict": True,
             "schema": VLMCaptioner._object_description_item_schema(
                 include_object_local_id=False,
-                include_occlusion=False,
+                include_occlusion=include_occlusion,
             ),
         }
 
@@ -1608,10 +1629,15 @@ class VLMCaptioner:
         force_refresh: bool = False,
         yolo_label: Optional[str] = None,
         yolo_confidence: Optional[float] = None,
+        include_occlusion: bool = False,
     ) -> Dict[str, Any]:
         """Describe the primary object shown in a crop image."""
-        cache_path = self._resolve_object_crop_cache_path(image_path) if self.object_use_cache else None
-        default_payload = self._default_object_crop_description()
+        cache_path = (
+            self._resolve_object_crop_cache_path(image_path, include_occlusion=include_occlusion)
+            if self.object_use_cache
+            else None
+        )
+        default_payload = self._default_object_crop_description(include_occlusion=include_occlusion)
         yolo_label_clean = str(yolo_label or "").strip()
         yolo_conf_text = (
             f"{float(yolo_confidence):.3f}"
@@ -1642,6 +1668,7 @@ class VLMCaptioner:
                             payload,
                             default_payload=default_payload,
                             label_hint=yolo_label_clean,
+                            include_occlusion=include_occlusion,
                         ),
                         "raw_response": loaded.get("raw_response"),
                         "source": "cache",
@@ -1672,29 +1699,23 @@ class VLMCaptioner:
                 model=self.model_name,
                 response_format={
                     "type": "json_schema",
-                    "json_schema": self._object_crop_response_schema(),
+                    "json_schema": self._object_crop_response_schema(include_occlusion=include_occlusion),
                 },
                 messages=[
                     {
                         "role": "system",
-                        "content": (
-                            "You are a strict vision parser for object crops. "
-                            "Return JSON only, matching the schema exactly. "
-                            "Describe only the main visible object in the crop. "
-                            "Use the detector-provided class as the object category you must describe. "
-                            "Match the style of object descriptions used in a spatial database builder: "
-                            "the short description should read like a concise object instance description, "
-                            "and the long description should read like a detailed open-form object description. "
-                            "Do not return generic placeholders when any visible cue is available. "
-                            "If the object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
-                        ),
+                        "content": self._object_crop_system_prompt(include_occlusion=include_occlusion),
                     },
                     {
                         "role": "user",
                         "content": [
                             {
                                 "type": "text",
-                                "text": self._object_crop_user_prompt(yolo_label_clean, yolo_conf_text),
+                                "text": self._object_crop_user_prompt(
+                                    yolo_label_clean,
+                                    yolo_conf_text,
+                                    include_occlusion=include_occlusion,
+                                ),
                             },
                             {
                                 "type": "image_url",
@@ -1717,6 +1738,7 @@ class VLMCaptioner:
                 payload,
                 default_payload=default_payload,
                 label_hint=yolo_label_clean,
+                include_occlusion=include_occlusion,
             )
             result = {
                 **normalized_payload,
@@ -1746,6 +1768,8 @@ class VLMCaptioner:
                     "cached_at_unix_s": int(time.time()),
                     "model": self.model_name,
                 }
+                if include_occlusion:
+                    cache_payload["payload"]["occlusion_level"] = result.get("occlusion_level", "uncertain")
                 cache_path.write_text(json.dumps(cache_payload, ensure_ascii=True), encoding="utf-8")
                 self._log(f"object_crop cache_write cache={cache_path}")
 

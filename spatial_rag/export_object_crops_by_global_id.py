@@ -21,7 +21,10 @@ def _load_jsonl(path: Path) -> List[Dict[str, Any]]:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Export one crop image per object, named by object_global_id, label, and occlusion_level.",
+        description=(
+            "Export one crop image per object, named by object_global_id, label, "
+            "occlusion_level, and original detector score."
+        ),
     )
     parser.add_argument(
         "--db_dir",

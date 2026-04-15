@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
+import cv2
 import numpy as np
 
 from spatial_rag.config import OCCLUSION_REWEIGHT_B, OCCLUSION_REWEIGHT_W1, OCCLUSION_REWEIGHT_W2
@@ -23,10 +24,30 @@ from spatial_rag.spatial_db_builder import (
     _OBJECT_R_SCORES_PRE_THRESHOLD_COLUMNS,
     _build_object_object_relations,
     _build_view_object_relations,
+    _bbox_xyxy_ints_from_row,
     _ensure_metadata_record_attribute,
+    _resolve_existing_path,
     _save_faiss_index,
+    _safe_filename_token,
     _write_csv_rows,
     _write_jsonl,
+)
+
+
+_FILTERED_OBJECT_MANIFEST_COLUMNS: Tuple[str, ...] = (
+    "object_global_id",
+    "entry_id",
+    "frame_id",
+    "object_local_id",
+    "label",
+    "reweighted_detection_score_r",
+    "threshold",
+    "file_name",
+    "source_image",
+    "source_crop_path",
+    "export_status",
+    "export_source",
+    "export_path",
 )
 
 
@@ -157,6 +178,170 @@ def _make_run_output_dir(base_dir: Path) -> Path:
         suffix += 1
     candidate.mkdir(parents=True, exist_ok=False)
     return candidate
+
+
+def _safe_path_token(value: Any, default: str = "unknown") -> str:
+    return _safe_filename_token(value, default=default)
+
+
+def _parse_bbox_xyxy(value: Any) -> List[float]:
+    if isinstance(value, (list, tuple)):
+        return [float(v) for v in list(value)[:4]]
+    text = _safe_text(value)
+    if not text:
+        return []
+    try:
+        parsed = json.loads(text)
+    except Exception:
+        return []
+    if not isinstance(parsed, list):
+        return []
+    try:
+        return [float(v) for v in parsed[:4]]
+    except Exception:
+        return []
+
+
+def _filtered_object_id_token(row: Mapping[str, Any]) -> str:
+    object_global_id = row.get("object_global_id")
+    try:
+        if object_global_id is not None and object_global_id != "":
+            return str(int(object_global_id))
+    except Exception:
+        pass
+    entry_id = _safe_int(row.get("entry_id"), -1)
+    object_local_id = _safe_path_token(row.get("object_local_id"), default="unknown")
+    return f"{entry_id}_{object_local_id}"
+
+
+def _score_filename_token(value: Any) -> str:
+    score = _safe_float(value)
+    if score is None:
+        return "score_unknown"
+    token = f"{float(score):.4f}".rstrip("0").rstrip(".")
+    token = token.replace("-", "neg_").replace(".", "p")
+    return f"score_{token or '0'}"
+
+
+def _filtered_object_filename(row: Mapping[str, Any]) -> str:
+    object_id = _filtered_object_id_token(row)
+    label = _safe_path_token(row.get("label"), default="unknown")
+    occlusion_level = _safe_path_token(
+        normalize_occlusion_level(row.get("occlusion_level"), default="uncertain"),
+        default="uncertain",
+    )
+    score = _score_filename_token(row.get("reweighted_detection_score_r"))
+    return f"{object_id}_{label}_{occlusion_level}_{score}.jpg"
+
+
+def _row_for_filtered_export(
+    row: Mapping[str, Any],
+    *,
+    base_object_rows: Sequence[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    payload = dict(row)
+    source_index = row.get("source_index")
+    try:
+        if source_index is not None:
+            base_row = dict(base_object_rows[int(source_index)])
+            base_row.update(payload)
+            payload = base_row
+    except Exception:
+        pass
+    payload["bbox_xyxy"] = _parse_bbox_xyxy(payload.get("bbox_xyxy"))
+    return payload
+
+
+def _export_filtered_objects(
+    *,
+    db_root: Path,
+    base_object_rows: Sequence[Mapping[str, Any]],
+    filtered_rows: Sequence[Mapping[str, Any]],
+    export_dir: Path,
+    threshold: Optional[float],
+) -> Dict[str, Any]:
+    export_dir.mkdir(parents=True, exist_ok=True)
+    manifest_rows: List[Dict[str, Any]] = []
+    exported_count = 0
+    copied_count = 0
+    regenerated_count = 0
+    skipped_count = 0
+
+    for raw_row in list(filtered_rows):
+        row = _row_for_filtered_export(raw_row, base_object_rows=base_object_rows)
+        target_path = export_dir / _filtered_object_filename(row)
+        crop_source_path = _resolve_existing_path(db_root, row.get("crop_path"))
+        image_path = _resolve_existing_path(db_root, row.get("file_name"))
+        source_kind = ""
+        export_status = "skipped"
+
+        if crop_source_path is not None:
+            crop_image = cv2.imread(str(crop_source_path), cv2.IMREAD_COLOR)
+            if crop_image is not None and cv2.imwrite(str(target_path), crop_image):
+                exported_count += 1
+                copied_count += 1
+                export_status = "exported"
+                source_kind = "existing_crop_path"
+            else:
+                crop_source_path = None
+
+        if crop_source_path is None:
+            bbox = _bbox_xyxy_ints_from_row(row)
+            if bbox is not None and image_path is not None:
+                image_bgr = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+                if image_bgr is not None:
+                    h, w = image_bgr.shape[:2]
+                    x1, y1, x2, y2 = bbox
+                    x1 = max(0, min(w - 1, x1))
+                    y1 = max(0, min(h - 1, y1))
+                    x2 = max(x1 + 1, min(w, x2))
+                    y2 = max(y1 + 1, min(h, y2))
+                    crop_bgr = image_bgr[y1:y2, x1:x2]
+                    if crop_bgr.size > 0 and cv2.imwrite(str(target_path), crop_bgr):
+                        exported_count += 1
+                        regenerated_count += 1
+                        export_status = "exported"
+                        source_kind = "reconstructed_from_bbox"
+            if not source_kind:
+                skipped_count += 1
+                if image_path is None:
+                    export_status = "missing_source_image"
+                elif _bbox_xyxy_ints_from_row(row) is None:
+                    export_status = "missing_crop_and_bbox"
+                else:
+                    export_status = "crop_write_failed"
+                source_kind = "unavailable"
+
+        manifest_rows.append(
+            {
+                "object_global_id": row.get("object_global_id"),
+                "entry_id": row.get("entry_id"),
+                "frame_id": row.get("frame_id"),
+                "object_local_id": row.get("object_local_id"),
+                "label": row.get("label"),
+                "reweighted_detection_score_r": row.get("reweighted_detection_score_r"),
+                "threshold": threshold,
+                "file_name": row.get("file_name"),
+                "source_image": str(image_path) if image_path is not None else "",
+                "source_crop_path": str(crop_source_path) if crop_source_path is not None else "",
+                "export_status": export_status,
+                "export_source": source_kind,
+                "export_path": str(target_path) if export_status == "exported" else "",
+            }
+        )
+
+    manifest_path = export_dir / "manifest.csv"
+    _write_csv_rows(manifest_path, _FILTERED_OBJECT_MANIFEST_COLUMNS, manifest_rows)
+    return {
+        "dir": str(export_dir),
+        "manifest_path": str(manifest_path),
+        "manifest_count": int(len(manifest_rows)),
+        "filtered_object_count": int(len(filtered_rows)),
+        "exported_count": int(exported_count),
+        "copied_count": int(copied_count),
+        "regenerated_count": int(regenerated_count),
+        "skipped_count": int(skipped_count),
+    }
 
 
 def _make_embedder():
@@ -537,7 +722,14 @@ def _rewrite_raw_api_rows(
         stats = dict(per_entry_threshold_stats.get(entry_id, {}))
         updated = dict(row)
         artifacts = dict(updated.get("geometry_artifacts") or {})
-        for key in ("detections_path", "detection_overlay_path", "depth_map_path", "depth_preview_path"):
+        for key in (
+            "detections_path",
+            "detection_overlay_path",
+            "filtered_detections_path",
+            "filtered_detection_overlay_path",
+            "depth_map_path",
+            "depth_preview_path",
+        ):
             if key in artifacts:
                 artifacts[key] = _normalize_path_for_variant(base_root, artifacts.get(key))
         updated["geometry_artifacts"] = artifacts
@@ -818,6 +1010,8 @@ def run_reweight_sweep(
     b_values: Sequence[Any] = (OCCLUSION_REWEIGHT_B,),
     thresholds: Sequence[Any] = (None,),
     export_db_variants: bool = False,
+    export_filtered_objects: bool = False,
+    filtered_object_dirname: str = "filtered_obj",
     selected_configs: Optional[Sequence[str]] = None,
     output_dir: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -889,6 +1083,7 @@ def run_reweight_sweep(
     sweep_rows: List[Dict[str, Any]] = []
     sweep_row_by_token: Dict[str, Dict[str, Any]] = {}
     export_queue: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]] = []
+    filtered_export_queue: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]] = []
     seen_tokens: set[str] = set()
     for w1 in normalized_w1:
         for w2 in normalized_w2:
@@ -921,17 +1116,28 @@ def run_reweight_sweep(
                         summary["warning"] = (
                             "Input DB is already filtered; summary is analysis-only and cannot export full DB variants."
                         )
+                    summary["filtered_object_dir"] = ""
+                    summary["filtered_manifest_path"] = ""
+                    summary["filtered_object_count"] = 0
                     summaries.append(summary)
                     csv_row = dict(summary)
                     csv_row["filtered_label_counts"] = json.dumps(summary.get("filtered_label_counts", {}), ensure_ascii=True)
                     csv_row["exported_db_dir"] = ""
+                    csv_row["filtered_object_dir"] = ""
+                    csv_row["filtered_manifest_path"] = ""
+                    csv_row["filtered_object_count"] = 0
                     sweep_rows.append(csv_row)
                     sweep_row_by_token[token] = csv_row
                     should_export = bool(
                         export_db_variants and (not selected_tokens or token in selected_tokens)
                     )
+                    should_export_filtered = bool(
+                        export_filtered_objects and (not selected_tokens or token in selected_tokens)
+                    )
                     if should_export:
                         export_queue.append((summary, scored_rows))
+                    if should_export_filtered:
+                        filtered_export_queue.append((summary, scored_rows))
 
     if selected_tokens:
         unknown = sorted(token for token in selected_tokens if token not in seen_tokens)
@@ -962,6 +1168,29 @@ def run_reweight_sweep(
             sweep_row_by_token[token]["exported_db_dir"] = str(config_dir)
         _write_json(config_dir / "config_summary.json", exported_summary)
 
+    for summary, scored_rows in filtered_export_queue:
+        token = _safe_text(summary.get("config_token"))
+        config_dir = run_root / f"config_{token}"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        filtered_rows = [dict(row) for row in scored_rows if not bool(row.get("keep"))]
+        filtered_export = _export_filtered_objects(
+            db_root=base_root,
+            base_object_rows=object_rows,
+            filtered_rows=filtered_rows,
+            export_dir=config_dir / filtered_object_dirname,
+            threshold=summary.get("threshold"),
+        )
+        summary["filtered_object_dir"] = filtered_export["dir"]
+        summary["filtered_manifest_path"] = filtered_export["manifest_path"]
+        summary["filtered_object_count"] = int(filtered_export["filtered_object_count"])
+        summary["filtered_exported_count"] = int(filtered_export["exported_count"])
+        summary["filtered_export_skipped_count"] = int(filtered_export["skipped_count"])
+        if token in sweep_row_by_token:
+            sweep_row_by_token[token]["filtered_object_dir"] = filtered_export["dir"]
+            sweep_row_by_token[token]["filtered_manifest_path"] = filtered_export["manifest_path"]
+            sweep_row_by_token[token]["filtered_object_count"] = int(filtered_export["filtered_object_count"])
+        _write_json(config_dir / "config_summary.json", dict(summary))
+
     _write_csv_rows(
         run_root / "sweep_results.csv",
         (
@@ -986,6 +1215,9 @@ def run_reweight_sweep(
             "exportable",
             "filtered_label_counts",
             "exported_db_dir",
+            "filtered_object_dir",
+            "filtered_manifest_path",
+            "filtered_object_count",
             "warning",
         ),
         sweep_rows,
@@ -1000,6 +1232,7 @@ def run_reweight_sweep(
         "analysis_only": bool(analysis_only),
         "num_configs": int(len(summaries)),
         "exported_config_count": int(sum(1 for item in summaries if _safe_text(item.get("exported_db_dir")))),
+        "filtered_object_exported_config_count": int(sum(1 for item in summaries if _safe_text(item.get("filtered_object_dir")))),
         "runs": summaries,
     }
     _write_json(run_root / "sweep_summary.json", summary_payload)
@@ -1025,10 +1258,22 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Whether to export filtered DB variants for selected configs.",
     )
     parser.add_argument(
+        "--export_filtered_objects",
+        type=_str_to_bool,
+        default=False,
+        help="Whether to export filtered object crops for selected configs.",
+    )
+    parser.add_argument(
+        "--filtered_object_dirname",
+        type=str,
+        default="filtered_obj",
+        help="Directory name used under each config root for exported filtered object crops.",
+    )
+    parser.add_argument(
         "--selected_configs",
         type=str,
         default="",
-        help="Optional comma-separated config tokens to export. Empty means export all configs when export_db_variants=true.",
+        help="Optional comma-separated config tokens to export. Empty means export all configs for enabled export modes.",
     )
     parser.add_argument(
         "--output_dir",
@@ -1049,6 +1294,8 @@ def main() -> None:
         b_values=_parse_float_list(args.b_values),
         thresholds=_parse_float_list(args.thresholds, allow_none=True),
         export_db_variants=bool(args.export_db_variants),
+        export_filtered_objects=bool(args.export_filtered_objects),
+        filtered_object_dirname=args.filtered_object_dirname,
         selected_configs=_parse_selected_tokens(args.selected_configs),
         output_dir=args.output_dir,
     )

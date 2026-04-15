@@ -15,6 +15,7 @@ import numpy as np
 from tqdm import tqdm
 
 from spatial_rag.config import (
+    BBOX_CONF_THRESHOLD,
     DEPTH_PRO_MODEL_PATH,
     FOV,
     IMAGE_HEIGHT,
@@ -26,6 +27,7 @@ from spatial_rag.config import (
     OBJECT_MAX_PER_FRAME,
     OBJECT_PARSE_RETRIES,
     OBJECT_PRELIST_TAXONOMY_PATH,
+    OCCLUSION_SOURCE,
     OCCLUSION_REWEIGHT_B,
     OCCLUSION_REWEIGHT_EPS,
     OCCLUSION_REWEIGHT_W1,
@@ -42,6 +44,7 @@ from spatial_rag.config import (
     VISIBLE_OCC_BOUNDARY_WIDTH,
     VISIBLE_OCC_DEPTH_MARGIN_DELTA,
     VISIBLE_OCC_RING_RADIUS,
+    OCCLUSION_TARGET_OVERLAP_THRESHOLD,
     VLM_ANGLE_SPLIT_ENABLE,
     VLM_ANGLE_STEP,
 )
@@ -154,6 +157,7 @@ _OBJECT_R_SCORES_PRE_THRESHOLD_COLUMNS: Tuple[str, ...] = (
     "bbox_xywh_norm",
     "object_confidence",
     "detector_confidence",
+    "occlusion_source",
     "occlusion_level",
     "occlusion_penalty_p_o",
     "reweighted_detection_score_r",
@@ -177,6 +181,8 @@ _OBJECT_CROPS_BY_GLOBAL_ID_DIRNAME = "object_crops_by_global_id"
 _OBJECT_CROPS_BY_GLOBAL_ID_MANIFEST_COLUMNS: Tuple[str, ...] = (
     "object_global_id",
     "occlusion_level",
+    "original_score",
+    "original_score_token",
     "entry_id",
     "frame_id",
     "file_name",
@@ -253,11 +259,43 @@ def _safe_filename_token(value: Any, default: str = "unknown") -> str:
     return text or default
 
 
-def _object_crop_export_filename(object_global_id: int, label: Any, occlusion_level: Any) -> str:
+def _safe_score_token(value: Any, default: str = "unknown", precision: int = 3) -> str:
+    try:
+        score = float(value)
+    except Exception:
+        return default
+    if not math.isfinite(score):
+        return default
+    text = f"{score:.{precision}f}".rstrip("0").rstrip(".")
+    if not text:
+        return default
+    text = text.replace("-", "neg_").replace(".", "p")
+    return _safe_filename_token(text, default=default)
+
+
+def _object_crop_original_score(row: Mapping[str, Any]) -> Optional[float]:
+    for key in ("detector_confidence", "object_confidence"):
+        value = row.get(key)
+        try:
+            score = float(value)
+        except Exception:
+            continue
+        if math.isfinite(score):
+            return score
+    return None
+
+
+def _object_crop_export_filename(
+    object_global_id: int,
+    label: Any,
+    occlusion_level: Any,
+    original_score: Any,
+) -> str:
     safe_label = _safe_filename_token(label, default="unknown")
     normalized_occlusion_level = normalize_occlusion_level(occlusion_level, default="uncertain")
     safe_occlusion_level = _safe_filename_token(normalized_occlusion_level, default="uncertain")
-    return f"{int(object_global_id)}_{safe_label}_{safe_occlusion_level}.jpg"
+    safe_original_score = _safe_score_token(original_score, default="unknown")
+    return f"{int(object_global_id)}_{safe_label}_{safe_occlusion_level}_{safe_original_score}.jpg"
 
 
 def export_object_crops_by_global_id(
@@ -282,10 +320,13 @@ def export_object_crops_by_global_id(
             continue
 
         normalized_occlusion_level = normalize_occlusion_level(row.get("occlusion_level"), default="uncertain")
+        original_score = _object_crop_original_score(row)
+        original_score_token = _safe_score_token(original_score, default="unknown")
         target_path = export_dir / _object_crop_export_filename(
             object_global_id,
             row.get("label"),
             normalized_occlusion_level,
+            original_score,
         )
         crop_source_path = _resolve_existing_path(db_root, row.get("crop_path"))
         source_kind = ""
@@ -333,6 +374,8 @@ def export_object_crops_by_global_id(
             {
                 "object_global_id": object_global_id,
                 "occlusion_level": normalized_occlusion_level,
+                "original_score": original_score,
+                "original_score_token": original_score_token,
                 "entry_id": row.get("entry_id"),
                 "frame_id": row.get("frame_id"),
                 "file_name": row.get("file_name"),
@@ -1425,6 +1468,7 @@ def _make_object_record(
     geometry_fallback_reason: Optional[str] = None,
     detector_label: Optional[str] = None,
     detector_confidence: Optional[float] = None,
+    occlusion_source: Optional[str] = None,
     occlusion_level: Optional[str] = None,
     occlusion_penalty_p_o: Optional[float] = None,
     reweighted_detection_score_r: Optional[float] = None,
@@ -1437,6 +1481,9 @@ def _make_object_record(
     ring_pixel_count: Optional[int] = None,
     nearer_ring_pixel_count: Optional[int] = None,
     depth_margin_delta: Optional[float] = None,
+    occluding_overlap_pixel_count: Optional[int] = None,
+    foreground_occluder_count: Optional[int] = None,
+    occlusion_target_overlap_threshold: Optional[float] = None,
     bbox_xywh_norm: Optional[Sequence[float]] = None,
     bbox_xyxy: Optional[Sequence[float]] = None,
     mask_area_px: Optional[int] = None,
@@ -1515,6 +1562,7 @@ def _make_object_record(
         "geometry_fallback_reason": geometry_fallback_reason,
         "detector_label": detector_label,
         "detector_confidence": detector_confidence,
+        "occlusion_source": None if occlusion_source is None else str(occlusion_source),
         "occlusion_level": occlusion_level,
         "occlusion_penalty_p_o": occlusion_penalty_p_o,
         "reweighted_detection_score_r": reweighted_detection_score_r,
@@ -1527,6 +1575,9 @@ def _make_object_record(
         "ring_pixel_count": ring_pixel_count,
         "nearer_ring_pixel_count": nearer_ring_pixel_count,
         "depth_margin_delta": depth_margin_delta,
+        "occluding_overlap_pixel_count": occluding_overlap_pixel_count,
+        "foreground_occluder_count": foreground_occluder_count,
+        "occlusion_target_overlap_threshold": occlusion_target_overlap_threshold,
         "mask_area_px": mask_area_px,
         "mask_area_ratio": mask_area_ratio,
         "mask_centroid_x_px": mask_centroid_x_px,
@@ -1585,9 +1636,12 @@ def _build_spatial_database_core(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    occlusion_source: str = str(OCCLUSION_SOURCE),
+    occlusion_target_overlap_threshold: float = float(OCCLUSION_TARGET_OVERLAP_THRESHOLD),
     visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
@@ -1616,6 +1670,9 @@ def _build_spatial_database_core(
     selected_builder_variant = str(report_builder_variant or "standard").strip().lower()
     selected_prompt_variant = str(object_prompt_variant or "standard").strip().lower()
     angle_split_active = bool(angle_split_enable and object_orientation_mode == "laterality_offset")
+    selected_occlusion_source = str(occlusion_source or OCCLUSION_SOURCE).strip().lower()
+    if selected_occlusion_source not in {"visible_mask", "vlm"}:
+        raise ValueError(f"Unsupported occlusion_source: {occlusion_source!r}")
 
     output_root = Path(output_dir)
     images_dir = output_root / "images"
@@ -1654,6 +1711,7 @@ def _build_spatial_database_core(
         "object_orientation_mode": str(object_orientation_mode),
         "object_config": {
             "max_per_frame": int(object_max_per_frame),
+            "bbox_conf_threshold": float(bbox_conf_threshold),
             "stored_text_modes": ["short", "long"],
             "parse_retries": int(object_parse_retries),
             "use_cache": bool(object_use_cache),
@@ -1673,6 +1731,7 @@ def _build_spatial_database_core(
                 "b": float(occlusion_reweight_b),
                 "eps": float(OCCLUSION_REWEIGHT_EPS),
             },
+            "occlusion_source": str(selected_occlusion_source),
         },
         "geometry_config": {
             "pipeline_enabled": bool(OBJECT_GEOMETRY_PIPELINE_ENABLE),
@@ -1684,6 +1743,7 @@ def _build_spatial_database_core(
             "nanosam_encoder_path": str(NANOSAM_ENCODER_PATH),
             "nanosam_decoder_path": str(NANOSAM_DECODER_PATH),
             "depth_pro_model_path": str(DEPTH_PRO_MODEL_PATH),
+            "occlusion_target_overlap_threshold": float(occlusion_target_overlap_threshold),
             "visible_occ_boundary_width": int(visible_occ_boundary_width),
             "visible_occ_ring_radius": int(visible_occ_ring_radius),
             "visible_occ_depth_margin_delta": float(visible_occ_depth_margin_delta),
@@ -1779,10 +1839,13 @@ def _build_spatial_database_core(
             image_width_px=int(IMAGE_WIDTH),
             image_height_px=int(IMAGE_HEIGHT),
             save_artifacts=bool(SAVE_GEOMETRY_ARTIFACTS),
+            bbox_conf_threshold=float(bbox_conf_threshold),
             occlusion_reweight_w1=float(occlusion_reweight_w1),
             occlusion_reweight_w2=float(occlusion_reweight_w2),
             occlusion_reweight_b=float(occlusion_reweight_b),
             occlusion_reweight_eps=float(OCCLUSION_REWEIGHT_EPS),
+            occlusion_source=str(selected_occlusion_source),
+            occlusion_target_overlap_threshold=float(occlusion_target_overlap_threshold),
             visible_occ_boundary_width=int(visible_occ_boundary_width),
             visible_occ_ring_radius=int(visible_occ_ring_radius),
             visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
@@ -2333,6 +2396,8 @@ def _build_spatial_database_core(
                     else {
                         "detections_path": geometry_result.artifacts.detections_path,
                         "detection_overlay_path": geometry_result.artifacts.detection_overlay_path,
+                        "filtered_detections_path": geometry_result.artifacts.filtered_detections_path,
+                        "filtered_detection_overlay_path": geometry_result.artifacts.filtered_detection_overlay_path,
                         "depth_map_path": geometry_result.artifacts.depth_map_path,
                         "depth_preview_path": geometry_result.artifacts.depth_preview_path,
                     },
@@ -2352,6 +2417,15 @@ def _build_spatial_database_core(
                             geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
                         ),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "detection_count_raw": int(geometry_timing.get("detection_count_raw") or 0),
+                        "detection_count_class_matched": int(geometry_timing.get("detection_count_class_matched") or 0),
+                        "detection_count_filtered_by_bbox_conf": int(
+                            geometry_timing.get("detection_count_filtered_by_bbox_conf") or 0
+                        ),
+                        "detection_count_kept": int(geometry_timing.get("detection_count_kept") or 0),
+                        "detection_count_truncated_by_max_objects": int(
+                            geometry_timing.get("detection_count_truncated_by_max_objects") or 0
+                        ),
                         "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
                         "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
                         "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
@@ -2435,6 +2509,7 @@ def _build_spatial_database_core(
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
                             detector_label=geo_row.get("detector_label"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            occlusion_source=geo_row.get("occlusion_source"),
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
                             reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
@@ -2447,6 +2522,9 @@ def _build_spatial_database_core(
                             ring_pixel_count=geo_row.get("ring_pixel_count"),
                             nearer_ring_pixel_count=geo_row.get("nearer_ring_pixel_count"),
                             depth_margin_delta=geo_row.get("depth_margin_delta"),
+                            occluding_overlap_pixel_count=geo_row.get("occluding_overlap_pixel_count"),
+                            foreground_occluder_count=geo_row.get("foreground_occluder_count"),
+                            occlusion_target_overlap_threshold=geo_row.get("occlusion_target_overlap_threshold"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -2537,6 +2615,7 @@ def _build_spatial_database_core(
                             else geometry_result.failure_reason,
                             detector_label=None,
                             detector_confidence=None,
+                            occlusion_source=selected_occlusion_source,
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
                             reweighted_detection_score_r=fallback_reweighted_detection_score,
@@ -2610,6 +2689,7 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        occlusion_source=selected_occlusion_source,
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
                         reweighted_detection_score_r=fallback_reweighted_detection_score,
@@ -2686,6 +2766,15 @@ def _build_spatial_database_core(
                         "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
                         "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "detection_count_raw": int(geometry_timing.get("detection_count_raw") or 0),
+                        "detection_count_class_matched": int(geometry_timing.get("detection_count_class_matched") or 0),
+                        "detection_count_filtered_by_bbox_conf": int(
+                            geometry_timing.get("detection_count_filtered_by_bbox_conf") or 0
+                        ),
+                        "detection_count_kept": int(geometry_timing.get("detection_count_kept") or 0),
+                        "detection_count_truncated_by_max_objects": int(
+                            geometry_timing.get("detection_count_truncated_by_max_objects") or 0
+                        ),
                         "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
                         "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
                         "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
@@ -3126,6 +3215,8 @@ def _build_spatial_database_core(
                     else {
                         "detections_path": geometry_result.artifacts.detections_path,
                         "detection_overlay_path": geometry_result.artifacts.detection_overlay_path,
+                        "filtered_detections_path": geometry_result.artifacts.filtered_detections_path,
+                        "filtered_detection_overlay_path": geometry_result.artifacts.filtered_detection_overlay_path,
                         "depth_map_path": geometry_result.artifacts.depth_map_path,
                         "depth_preview_path": geometry_result.artifacts.depth_preview_path,
                     },
@@ -3145,6 +3236,15 @@ def _build_spatial_database_core(
                             geometry_timing.get("crop_vlm_description_avg_sec") or 0.0
                         ),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "detection_count_raw": int(geometry_timing.get("detection_count_raw") or 0),
+                        "detection_count_class_matched": int(geometry_timing.get("detection_count_class_matched") or 0),
+                        "detection_count_filtered_by_bbox_conf": int(
+                            geometry_timing.get("detection_count_filtered_by_bbox_conf") or 0
+                        ),
+                        "detection_count_kept": int(geometry_timing.get("detection_count_kept") or 0),
+                        "detection_count_truncated_by_max_objects": int(
+                            geometry_timing.get("detection_count_truncated_by_max_objects") or 0
+                        ),
                         "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
                         "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
                         "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
@@ -3227,6 +3327,7 @@ def _build_spatial_database_core(
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
                             detector_label=geo_row.get("detector_label"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            occlusion_source=geo_row.get("occlusion_source"),
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
                             reweighted_detection_score_r=geo_row.get("reweighted_detection_score_r"),
@@ -3239,6 +3340,9 @@ def _build_spatial_database_core(
                             ring_pixel_count=geo_row.get("ring_pixel_count"),
                             nearer_ring_pixel_count=geo_row.get("nearer_ring_pixel_count"),
                             depth_margin_delta=geo_row.get("depth_margin_delta"),
+                            occluding_overlap_pixel_count=geo_row.get("occluding_overlap_pixel_count"),
+                            foreground_occluder_count=geo_row.get("foreground_occluder_count"),
+                            occlusion_target_overlap_threshold=geo_row.get("occlusion_target_overlap_threshold"),
                             bbox_xywh_norm=geo_row.get("bbox_xywh_norm"),
                             bbox_xyxy=geo_row.get("bbox_xyxy"),
                             mask_area_px=geo_row.get("mask_area_px"),
@@ -3329,6 +3433,7 @@ def _build_spatial_database_core(
                             else geometry_result.failure_reason,
                             detector_label=None,
                             detector_confidence=None,
+                            occlusion_source=selected_occlusion_source,
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
                             reweighted_detection_score_r=fallback_reweighted_detection_score,
@@ -3402,6 +3507,7 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        occlusion_source=selected_occlusion_source,
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
                         reweighted_detection_score_r=fallback_reweighted_detection_score,
@@ -3465,6 +3571,15 @@ def _build_spatial_database_core(
                         "crop_vlm_description_total_sec": float(geometry_timing.get("crop_vlm_description_total_sec") or 0.0),
                         "crop_vlm_description_avg_sec": float(geometry_timing.get("crop_vlm_description_avg_sec") or 0.0),
                         "object_description_call_count": int(geometry_timing.get("object_description_call_count") or 0),
+                        "detection_count_raw": int(geometry_timing.get("detection_count_raw") or 0),
+                        "detection_count_class_matched": int(geometry_timing.get("detection_count_class_matched") or 0),
+                        "detection_count_filtered_by_bbox_conf": int(
+                            geometry_timing.get("detection_count_filtered_by_bbox_conf") or 0
+                        ),
+                        "detection_count_kept": int(geometry_timing.get("detection_count_kept") or 0),
+                        "detection_count_truncated_by_max_objects": int(
+                            geometry_timing.get("detection_count_truncated_by_max_objects") or 0
+                        ),
                         "geometry_objects_before_r_threshold": int(geometry_objects_before_r_threshold),
                         "geometry_objects_after_r_threshold": int(geometry_objects_after_r_threshold),
                         "geometry_objects_filtered_by_r_threshold": int(geometry_objects_filtered_by_r_threshold),
@@ -3708,9 +3823,12 @@ def build_spatial_database(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    occlusion_source: str = str(OCCLUSION_SOURCE),
+    occlusion_target_overlap_threshold: float = float(OCCLUSION_TARGET_OVERLAP_THRESHOLD),
     visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
@@ -3745,9 +3863,12 @@ def build_spatial_database(
         execution_mode=str(execution_mode),
         vlm_max_in_flight=int(vlm_max_in_flight),
         legacy_per_frame=bool(legacy_per_frame),
+        bbox_conf_threshold=float(bbox_conf_threshold),
         occlusion_reweight_w1=float(occlusion_reweight_w1),
         occlusion_reweight_w2=float(occlusion_reweight_w2),
         occlusion_reweight_b=float(occlusion_reweight_b),
+        occlusion_source=str(occlusion_source),
+        occlusion_target_overlap_threshold=float(occlusion_target_overlap_threshold),
         visible_occ_boundary_width=int(visible_occ_boundary_width),
         visible_occ_ring_radius=int(visible_occ_ring_radius),
         visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
@@ -3781,9 +3902,12 @@ def build_spatial_database_angle_split(
     execution_mode: str = "capture_then_parallel_vlm",
     vlm_max_in_flight: int = 4,
     legacy_per_frame: bool = False,
+    bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
     occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
     occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
     occlusion_reweight_b: float = float(OCCLUSION_REWEIGHT_B),
+    occlusion_source: str = str(OCCLUSION_SOURCE),
+    occlusion_target_overlap_threshold: float = float(OCCLUSION_TARGET_OVERLAP_THRESHOLD),
     visible_occ_boundary_width: int = int(VISIBLE_OCC_BOUNDARY_WIDTH),
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
@@ -3818,9 +3942,12 @@ def build_spatial_database_angle_split(
         execution_mode=str(execution_mode),
         vlm_max_in_flight=int(vlm_max_in_flight),
         legacy_per_frame=bool(legacy_per_frame),
+        bbox_conf_threshold=float(bbox_conf_threshold),
         occlusion_reweight_w1=float(occlusion_reweight_w1),
         occlusion_reweight_w2=float(occlusion_reweight_w2),
         occlusion_reweight_b=float(occlusion_reweight_b),
+        occlusion_source=str(occlusion_source),
+        occlusion_target_overlap_threshold=float(occlusion_target_overlap_threshold),
         visible_occ_boundary_width=int(visible_occ_boundary_width),
         visible_occ_ring_radius=int(visible_occ_ring_radius),
         visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
@@ -3967,6 +4094,12 @@ def main() -> None:
         help="Force legacy per-frame execution even if execution_mode is capture_then_parallel_vlm",
     )
     parser.add_argument(
+        "--bbox_conf_threshold",
+        type=float,
+        default=BBOX_CONF_THRESHOLD,
+        help="Minimum YOLO bbox confidence required for a detection to enter the geometry pipeline.",
+    )
+    parser.add_argument(
         "--occlusion_reweight_w1",
         type=float,
         default=OCCLUSION_REWEIGHT_W1,
@@ -3985,28 +4118,41 @@ def main() -> None:
         help="Bias term for the stored occlusion reweight score.",
     )
     parser.add_argument(
+        "--occlusion_source",
+        type=str,
+        choices=["visible_mask", "vlm"],
+        default=str(OCCLUSION_SOURCE),
+        help="Source of occlusion labels used for object reweighting. `visible_mask` is the deterministic bbox-overlap+depth path.",
+    )
+    parser.add_argument(
+        "--occlusion_target_overlap_threshold",
+        type=float,
+        default=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
+        help="Minimum intersection_area / target_bbox_area required for another bbox to become an occlusion candidate.",
+    )
+    parser.add_argument(
         "--visible_occ_boundary_width",
         type=int,
         default=VISIBLE_OCC_BOUNDARY_WIDTH,
-        help="Boundary erosion width used for deterministic visible occlusion metrics.",
+        help="Deprecated compatibility flag; no-op for deterministic bbox-overlap occlusion.",
     )
     parser.add_argument(
         "--visible_occ_ring_radius",
         type=int,
         default=VISIBLE_OCC_RING_RADIUS,
-        help="Outer ring dilation radius used for deterministic visible occlusion metrics.",
+        help="Deprecated compatibility flag; no-op for deterministic bbox-overlap occlusion.",
     )
     parser.add_argument(
         "--visible_occ_depth_margin_delta",
         type=float,
         default=VISIBLE_OCC_DEPTH_MARGIN_DELTA,
-        help="Depth margin in meters required for another object to count as a nearer occluder.",
+        help="Depth margin in meters required for another overlapping bbox to count as a nearer occluder.",
     )
     parser.add_argument(
         "--visible_occ_boundary_neighbor_radius",
         type=int,
         default=VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
-        help="Boundary neighbor radius used to connect nearer ring pixels back to the target boundary.",
+        help="Deprecated compatibility flag; no-op for deterministic bbox-overlap occlusion.",
     )
     parser.add_argument(
         "--r_threshold",
@@ -4044,9 +4190,12 @@ def main() -> None:
         execution_mode=args.execution_mode,
         vlm_max_in_flight=args.vlm_max_in_flight,
         legacy_per_frame=args.legacy_per_frame,
+        bbox_conf_threshold=args.bbox_conf_threshold,
         occlusion_reweight_w1=args.occlusion_reweight_w1,
         occlusion_reweight_w2=args.occlusion_reweight_w2,
         occlusion_reweight_b=args.occlusion_reweight_b,
+        occlusion_source=args.occlusion_source,
+        occlusion_target_overlap_threshold=args.occlusion_target_overlap_threshold,
         visible_occ_boundary_width=args.visible_occ_boundary_width,
         visible_occ_ring_radius=args.visible_occ_ring_radius,
         visible_occ_depth_margin_delta=args.visible_occ_depth_margin_delta,

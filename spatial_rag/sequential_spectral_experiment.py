@@ -17,10 +17,12 @@ from scipy.sparse.csgraph import connected_components, laplacian
 
 from spatial_rag.object_index import load_object_db
 from spatial_rag.object_instance_clustering import (
+    _estimate_dbscan_eps,
     _alpha_blit,
     _l2_normalize_vec,
     _load_jsonl,
     _make_rotated_text_image,
+    _run_dbscan,
     _safe_float,
     _safe_int,
     _safe_text,
@@ -45,6 +47,7 @@ DEFAULT_SIMILARITY_MODE = "cosine_geo_gate"
 DEFAULT_DISTANCE_GATE_DSQ0 = 2.0
 DEFAULT_DISTANCE_GATE_DSQ0_SWEEP = (0.5, 1.0, 2.0, 4.0, 8.0)
 DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS = 2
+DEFAULT_DBSCAN_MIN_SAMPLES = 2
 EXCLUDED_LABELS = {"", "unknown", "other", "none"}
 OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
     "object_global_id",
@@ -453,6 +456,7 @@ def _assignment_detail_status(reason: str, detail: Optional[Mapping[str, Any]]) 
         "component_best_append",
         "same_view_hard_block_competition_append",
         "current_only_high_score_reattach",
+        "dbscan_attach",
     }:
         return "assigned_match"
     return "best_rejected_candidate"
@@ -623,6 +627,9 @@ def _step_report_summary(step_report: Mapping[str, Any]) -> Dict[str, Any]:
         "num_merged_clusters": _safe_int(step_report.get("num_merged_clusters"), 0),
         "num_same_view_blocked_components": _safe_int(step_report.get("num_same_view_blocked_components"), 0),
         "num_new_tail_clusters": _safe_int(step_report.get("num_new_tail_clusters"), 0),
+        "num_dbscan_clusters": _safe_int(step_report.get("num_dbscan_clusters"), 0),
+        "num_noise_singletons": _safe_int(step_report.get("num_noise_singletons"), 0),
+        "num_merged_memory_groups": _safe_int(step_report.get("num_merged_memory_groups"), 0),
         "cross_affinity_shape": list(step_report.get("cross_affinity_shape", [])),
     }
 
@@ -1658,6 +1665,194 @@ def _create_new_cluster_from_rows(rows: Sequence[Mapping[str, Any]], next_cluste
     return _build_cluster(int(next_cluster_id), rows)
 
 
+def _resolved_step_spectral_embedding(
+    spectral_result: Mapping[str, Any],
+    *,
+    num_nodes: int,
+) -> Optional[np.ndarray]:
+    raw_embedding = spectral_result.get("spectral_embedding")
+    if raw_embedding is None:
+        return None
+    embedding = np.asarray(raw_embedding, dtype=np.float32)
+    if embedding.ndim == 1:
+        embedding = embedding.reshape(-1, 1)
+    if embedding.ndim != 2 or embedding.shape[0] != int(num_nodes) or embedding.size == 0:
+        return None
+    return embedding.astype(np.float32)
+
+
+def _run_dbscan_over_step_graph(
+    spectral_result: Mapping[str, Any],
+    *,
+    full_affinity: np.ndarray,
+    dbscan_eps: Optional[float],
+    dbscan_min_samples: int,
+) -> Dict[str, Any]:
+    num_nodes = int(full_affinity.shape[0])
+    connectivity_labels = _connectivity_labels(full_affinity)
+    resolved_embedding = _resolved_step_spectral_embedding(spectral_result, num_nodes=num_nodes)
+    if num_nodes == 0:
+        return {
+            "labels": np.zeros((0,), dtype=np.int32),
+            "connectivity_labels": connectivity_labels,
+            "dbscan_eps": None,
+            "dbscan_min_samples": 0,
+            "used_auto_eps": False,
+            "fallback_reason": "empty_graph",
+            "spectral_embedding_dim": 0,
+        }
+
+    if resolved_embedding is None:
+        spectral_labels = np.asarray(spectral_result.get("labels", []), dtype=np.int32)
+        if spectral_labels.size != num_nodes:
+            spectral_labels = np.arange(num_nodes, dtype=np.int32)
+        n_clusters = _safe_int(spectral_result.get("n_clusters"), -1)
+        if num_nodes == 1 or n_clusters <= 1:
+            labels = np.zeros((num_nodes,), dtype=np.int32)
+        elif n_clusters >= num_nodes:
+            labels = np.arange(num_nodes, dtype=np.int32)
+        else:
+            labels = spectral_labels.astype(np.int32)
+        return {
+            "labels": labels,
+            "connectivity_labels": connectivity_labels,
+            "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
+            "dbscan_min_samples": max(1, min(int(dbscan_min_samples), num_nodes)),
+            "used_auto_eps": False,
+            "fallback_reason": "missing_spectral_embedding",
+            "spectral_embedding_dim": 0,
+        }
+
+    resolved_min_samples = max(1, min(int(dbscan_min_samples), num_nodes))
+    resolved_eps = (
+        float(dbscan_eps)
+        if dbscan_eps is not None
+        else _estimate_dbscan_eps(resolved_embedding, min_samples=resolved_min_samples)
+    )
+    labels = _run_dbscan(
+        resolved_embedding,
+        eps=float(resolved_eps),
+        min_samples=resolved_min_samples,
+    )
+    return {
+        "labels": np.asarray(labels, dtype=np.int32),
+        "connectivity_labels": connectivity_labels,
+        "dbscan_eps": float(resolved_eps),
+        "dbscan_min_samples": int(resolved_min_samples),
+        "used_auto_eps": bool(dbscan_eps is None),
+        "fallback_reason": None,
+        "spectral_embedding_dim": int(resolved_embedding.shape[1]),
+    }
+
+
+def _group_dbscan_nodes(
+    dbscan_labels: Sequence[int],
+    connectivity_labels: Sequence[int],
+    *,
+    num_memory: int,
+) -> List[Dict[str, Any]]:
+    grouped: Dict[Tuple[Any, ...], Dict[str, Any]] = {}
+    for node_index, raw_label in enumerate(dbscan_labels):
+        cc_label = _safe_int(connectivity_labels[node_index], 0) if node_index < len(connectivity_labels) else 0
+        if int(raw_label) == -1:
+            key: Tuple[Any, ...] = ("noise", int(node_index))
+        else:
+            key = ("cluster", int(raw_label), int(cc_label))
+        bucket = grouped.setdefault(
+            key,
+            {
+                "raw_dbscan_label": int(raw_label),
+                "connectivity_label": int(cc_label),
+                "memory_indices": [],
+                "current_indices": [],
+            },
+        )
+        if node_index < int(num_memory):
+            bucket["memory_indices"].append(int(node_index))
+        else:
+            bucket["current_indices"].append(int(node_index - num_memory))
+
+    ordered = sorted(
+        grouped.values(),
+        key=lambda item: (
+            min(item["memory_indices"]) if item["memory_indices"] else 10**9,
+            min(item["current_indices"]) if item["current_indices"] else 10**9,
+            int(item["raw_dbscan_label"]),
+            int(item["connectivity_label"]),
+        ),
+    )
+    for item in ordered:
+        item["memory_indices"].sort()
+        item["current_indices"].sort()
+    return ordered
+
+
+def _best_memory_detail_in_group(
+    cur_idx: int,
+    mem_indices: Sequence[int],
+    *,
+    memory_clusters: Sequence[Mapping[str, Any]],
+    cross_affinity: np.ndarray,
+    cross_details: Sequence[Sequence[Mapping[str, Any]]],
+    current_rows: Sequence[Mapping[str, Any]],
+    weight_text: float,
+    weight_global_geo: float,
+    weight_polar: float,
+    global_sigma_m: float,
+    similarity_mode: str,
+    distance_gate_dsq0: float,
+) -> Optional[Tuple[int, Dict[str, Any]]]:
+    best: Optional[Tuple[float, int, int, Dict[str, Any]]] = None
+    for mem_idx in mem_indices:
+        cluster = memory_clusters[int(mem_idx)]
+        detail = _cross_detail_for_pair(
+            int(cur_idx),
+            int(mem_idx),
+            cross_details=cross_details,
+            current_rows=current_rows,
+            cluster=cluster,
+            weight_text=weight_text,
+            weight_global_geo=weight_global_geo,
+            weight_polar=weight_polar,
+            global_sigma_m=global_sigma_m,
+            similarity_mode=similarity_mode,
+            distance_gate_dsq0=distance_gate_dsq0,
+        )
+        score = float(detail.get("combined_similarity") or 0.0)
+        if 0 <= int(cur_idx) < int(cross_affinity.shape[0]) and 0 <= int(mem_idx) < int(cross_affinity.shape[1]):
+            score = float(cross_affinity[int(cur_idx), int(mem_idx)])
+        cluster_id = _safe_int(cluster.get("cluster_id"), 10**9)
+        candidate = (float(score), int(cluster_id), int(mem_idx), detail)
+        if best is None or candidate[0] > best[0] or (
+            math.isclose(candidate[0], best[0]) and (candidate[1], candidate[2]) < (best[1], best[2])
+        ):
+            best = candidate
+    if best is None:
+        return None
+    return int(best[2]), dict(best[3])
+
+
+def _dbscan_summary(
+    *,
+    dbscan_result: Mapping[str, Any],
+    materialized_groups: Sequence[Mapping[str, Any]],
+    num_noise_singletons: int,
+) -> Dict[str, Any]:
+    labels = np.asarray(dbscan_result.get("labels", []), dtype=np.int32)
+    non_noise = {int(value) for value in labels.tolist() if int(value) >= 0}
+    return {
+        "dbscan_eps": _safe_float(dbscan_result.get("dbscan_eps")),
+        "dbscan_min_samples": _safe_int(dbscan_result.get("dbscan_min_samples"), 0),
+        "used_auto_eps": bool(dbscan_result.get("used_auto_eps")),
+        "fallback_reason": dbscan_result.get("fallback_reason"),
+        "spectral_embedding_dim": _safe_int(dbscan_result.get("spectral_embedding_dim"), 0),
+        "raw_cluster_count": int(len(non_noise)),
+        "noise_count": int(np.count_nonzero(labels == -1)),
+        "materialized_cluster_count": int(len(materialized_groups)),
+        "num_noise_singletons": int(num_noise_singletons),
+    }
+
+
 def apply_incremental_step(
     memory_clusters: Sequence[Mapping[str, Any]],
     current_rows: Sequence[Mapping[str, Any]],
@@ -1675,223 +1870,69 @@ def apply_incremental_step(
     similarity_mode: str = DEFAULT_SIMILARITY_MODE,
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
+    dbscan_eps: Optional[float] = None,
+    dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
 ) -> Dict[str, Any]:
-    slots: List[Optional[Dict[str, Any]]] = [deepcopy(dict(cluster)) for cluster in memory_clusters]
-    tail_clusters: List[Dict[str, Any]] = []
+    del current_only_reattach_min_affinity
+
+    slots: List[Dict[str, Any]] = [deepcopy(dict(cluster)) for cluster in memory_clusters]
     append_cases: List[Dict[str, Any]] = []
     merge_cases: List[Dict[str, Any]] = []
     current_only_reattach_cases: List[Dict[str, Any]] = []
     same_view_block_cases: List[Dict[str, Any]] = []
     tail_spawn_cases: List[Dict[str, Any]] = []
     assignment_diagnostics: List[Dict[str, Any]] = []
-    processed_current_indices: set[int] = set()
-
-    spectral_labels = np.asarray(spectral_result.get("labels", []), dtype=np.int32)
-    connectivity_labels = _connectivity_labels(full_affinity)
-    components = _group_component_nodes(spectral_labels, connectivity_labels, num_memory=len(memory_clusters))
-
     running_cluster_id = int(next_cluster_id)
+    dbscan_result = _run_dbscan_over_step_graph(
+        spectral_result,
+        full_affinity=full_affinity,
+        dbscan_eps=dbscan_eps,
+        dbscan_min_samples=dbscan_min_samples,
+    )
+    groups = _group_dbscan_nodes(
+        dbscan_result["labels"],
+        dbscan_result["connectivity_labels"],
+        num_memory=len(slots),
+    )
 
-    for component in components:
-        mem_indices = list(component["memory_indices"])
-        cur_indices = list(component["current_indices"])
-        if not mem_indices and not cur_indices:
-            continue
+    next_memory: List[Dict[str, Any]] = []
+    num_noise_singletons = 0
+    num_merged_memory_groups = 0
 
-        base_cluster: Optional[Dict[str, Any]] = None
-        base_slot_index: Optional[int] = None
+    for group in groups:
+        mem_indices = [int(index) for index in group.get("memory_indices", [])]
+        cur_indices = [int(index) for index in group.get("current_indices", [])]
+        raw_dbscan_label = _safe_int(group.get("raw_dbscan_label"), -1)
+
+        if raw_dbscan_label == -1:
+            num_noise_singletons += 1
+        if len(mem_indices) > 1:
+            num_merged_memory_groups += 1
+
         if mem_indices:
-            indexed_source_clusters = [
-                (int(idx), slots[idx]) for idx in mem_indices if 0 <= int(idx) < len(slots) and slots[idx] is not None
-            ]
-            if not indexed_source_clusters:
-                continue
-            collision_pairs = _same_view_collision_pairs(
-                [(idx, cluster) for idx, cluster in indexed_source_clusters if cluster is not None]
-            )
-            if collision_pairs:
-                cluster_id_by_slot = {
-                    int(idx): _safe_int(cluster.get("cluster_id"), 10**9)
-                    for idx, cluster in indexed_source_clusters
-                    if cluster is not None
-                }
-                candidate_edges: List[Tuple[float, int, int, Dict[str, Any]]] = []
-                for cur_idx in cur_indices:
-                    for mem_idx, cluster in indexed_source_clusters:
-                        if cluster is None:
-                            continue
-                        detail = _cross_detail_for_pair(
-                            int(cur_idx),
-                            int(mem_idx),
-                            cross_details=cross_details,
-                            current_rows=current_rows,
-                            cluster=cluster,
-                            weight_text=weight_text,
-                            weight_global_geo=weight_global_geo,
-                            weight_polar=weight_polar,
-                            global_sigma_m=global_sigma_m,
-                            similarity_mode=similarity_mode,
-                            distance_gate_dsq0=distance_gate_dsq0,
-                        )
-                        edge_score = float(detail.get("combined_similarity") or 0.0)
-                        if (
-                            0 <= int(cur_idx) < int(cross_affinity.shape[0])
-                            and 0 <= int(mem_idx) < int(cross_affinity.shape[1])
-                        ):
-                            edge_score = float(cross_affinity[int(cur_idx), int(mem_idx)])
-                        if edge_score <= 0.0:
-                            continue
-                        candidate_edges.append(
-                            (
-                                float(detail.get("combined_similarity") or 0.0),
-                                int(cur_idx),
-                                int(mem_idx),
-                                detail,
-                            )
-                        )
-                candidate_edges.sort(
-                    key=lambda item: (
-                        -float(item[0]),
-                        int(cluster_id_by_slot.get(int(item[2]), 10**9)),
-                        int(item[1]),
-                    )
-                )
-                best_rejected_by_cur_idx: Dict[int, Tuple[float, int, Dict[str, Any]]] = {}
-                for score, cur_idx, mem_idx, detail in candidate_edges:
-                    best_rejected_by_cur_idx.setdefault(int(cur_idx), (float(score), int(mem_idx), dict(detail)))
+            cluster_id = min(_safe_int(slots[mem_idx].get("cluster_id"), 10**9) for mem_idx in mem_indices)
+        else:
+            cluster_id = int(running_cluster_id)
+            running_cluster_id += 1
 
-                assigned_cur_indices: set[int] = set()
-                assigned_mem_indices: set[int] = set()
-                assignments: List[Tuple[float, int, int, Dict[str, Any]]] = []
-                for score, cur_idx, mem_idx, detail in candidate_edges:
-                    if int(cur_idx) in assigned_cur_indices or int(mem_idx) in assigned_mem_indices:
-                        continue
-                    assigned_cur_indices.add(int(cur_idx))
-                    assigned_mem_indices.add(int(mem_idx))
-                    assignments.append((float(score), int(cur_idx), int(mem_idx), detail))
+        member_rows: List[Dict[str, Any]] = []
+        for mem_idx in mem_indices:
+            member_rows.extend([dict(row) for row in list(slots[mem_idx].get("member_rows", []))])
+        for cur_idx in cur_indices:
+            member_rows.append(dict(current_rows[cur_idx]))
 
-                for score, cur_idx, mem_idx, detail in assignments:
-                    slot_cluster = slots[mem_idx]
-                    if slot_cluster is None:
-                        continue
-                    best_row = dict(current_rows[cur_idx])
-                    updated_cluster = _append_member(slot_cluster, best_row)
-                    slots[mem_idx] = updated_cluster
-                    processed_current_indices.add(int(cur_idx))
-                    append_cases.append(
-                        {
-                            "step_index": int(step_index),
-                            "cluster_id": int(updated_cluster["cluster_id"]),
-                            "appended_object_id": _safe_int(best_row.get("object_global_id"), -1),
-                            "view_id": _safe_text(best_row.get("view_id")),
-                            "reason": "same_view_hard_block_competition_append",
-                            "score": float(score),
-                            "detail": detail,
-                            "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
-                        }
-                    )
-                    assignment_diagnostics.append(
-                        _object_assignment_record(
-                            best_row,
-                            step_index=int(step_index),
-                            assignment_reason="same_view_hard_block_competition_append",
-                            cluster_id_at_assignment=int(updated_cluster["cluster_id"]),
-                            similarity_reference_cluster_id=int(updated_cluster["cluster_id"]),
-                            detail=detail,
-                        )
-                    )
+        cluster = _build_cluster(int(cluster_id), member_rows)
+        next_memory.append(cluster)
 
-                unassigned_cur_indices = [int(cur_idx) for cur_idx in cur_indices if int(cur_idx) not in assigned_cur_indices]
-                for cur_idx in unassigned_cur_indices:
-                    new_cluster = _create_new_cluster_from_rows([current_rows[cur_idx]], running_cluster_id)
-                    running_cluster_id += 1
-                    tail_clusters.append(new_cluster)
-                    processed_current_indices.add(int(cur_idx))
-                    rejected = best_rejected_by_cur_idx.get(int(cur_idx))
-                    rejected_detail = dict(rejected[2]) if rejected is not None else None
-                    rejected_mem_idx = rejected[1] if rejected is not None else None
-                    rejected_cluster_id = (
-                        int(cluster_id_by_slot.get(int(rejected_mem_idx), -1))
-                        if rejected_mem_idx is not None
-                        else None
-                    )
-                    tail_spawn_cases.append(
-                        {
-                            "step_index": int(step_index),
-                            "new_cluster_id": int(new_cluster["cluster_id"]),
-                            "reason": "tail_after_same_view_hard_block_competition",
-                            "object_ids": [_safe_int(current_rows[cur_idx].get("object_global_id"), -1)],
-                            "view_ids": [_safe_text(current_rows[cur_idx].get("view_id"))],
-                            "detail": rejected_detail,
-                            "similarity_reference_cluster_id": rejected_cluster_id,
-                        }
-                    )
-                    assignment_diagnostics.append(
-                        _object_assignment_record(
-                            current_rows[cur_idx],
-                            step_index=int(step_index),
-                            assignment_reason="tail_after_same_view_hard_block_competition",
-                            cluster_id_at_assignment=int(new_cluster["cluster_id"]),
-                            similarity_reference_cluster_id=rejected_cluster_id,
-                            detail=rejected_detail,
-                        )
-                    )
-
-                same_view_block_cases.append(
-                    {
-                        "step_index": int(step_index),
-                        "blocked_merge_cluster_ids": [
-                            _safe_int(cluster.get("cluster_id"), -1)
-                            for _idx, cluster in indexed_source_clusters
-                            if cluster is not None
-                        ],
-                        "collision_pairs": collision_pairs,
-                        "competing_object_ids": [
-                            _safe_int(current_rows[cur_idx].get("object_global_id"), -1) for cur_idx in cur_indices
-                        ],
-                        "assignments": [
-                            {
-                                "cluster_id": _safe_int(slots[mem_idx].get("cluster_id") if slots[mem_idx] is not None else -1, -1),
-                                "object_id": _safe_int(current_rows[cur_idx].get("object_global_id"), -1),
-                                "score": float(score),
-                            }
-                            for score, cur_idx, mem_idx, _detail in assignments
-                        ],
-                        "unassigned_object_ids": [
-                            _safe_int(current_rows[cur_idx].get("object_global_id"), -1)
-                            for cur_idx in unassigned_cur_indices
-                        ],
-                    }
-                )
-                continue
-
-            merged_source_clusters = [cluster for _idx, cluster in indexed_source_clusters if cluster is not None]
-            base_cluster = _merge_clusters(merged_source_clusters)
-            base_slot_index = int(indexed_source_clusters[0][0])
-            if len(indexed_source_clusters) > 1:
-                merge_cases.append(
-                    {
-                        "step_index": int(step_index),
-                        "merged_cluster_ids": [int(cluster.get("cluster_id", -1)) for cluster in merged_source_clusters],
-                        "into_cluster_id": int(base_cluster.get("cluster_id", -1)),
-                    }
-                )
-            slots[base_slot_index] = base_cluster
-            for idx, _cluster in indexed_source_clusters[1:]:
-                slots[idx] = None
-
-        if not cur_indices:
-            continue
-
-        if base_cluster is None:
-            reattached_cur_indices: set[int] = set()
-            reattach_candidates: List[Tuple[float, int, int, Dict[str, Any]]] = []
-            best_match_by_cur_idx: Dict[int, Tuple[float, int, Dict[str, Any]]] = {}
-            for cur_idx in cur_indices:
-                row = dict(current_rows[cur_idx])
-                best_match = _best_live_memory_match(
-                    row,
-                    slots,
+        for cur_idx in cur_indices:
+            if mem_indices:
+                best_match = _best_memory_detail_in_group(
+                    int(cur_idx),
+                    mem_indices,
+                    memory_clusters=slots,
+                    cross_affinity=cross_affinity,
+                    cross_details=cross_details,
+                    current_rows=current_rows,
                     weight_text=weight_text,
                     weight_global_geo=weight_global_geo,
                     weight_polar=weight_polar,
@@ -1900,237 +1941,33 @@ def apply_incremental_step(
                     distance_gate_dsq0=distance_gate_dsq0,
                 )
                 if best_match is None:
-                    continue
-                best_match_by_cur_idx[int(cur_idx)] = (
-                    float(best_match[0]),
-                    int(best_match[1]),
-                    dict(best_match[2]),
-                )
-                best_score, best_mem_idx, best_detail = best_match
-                if float(best_score) < float(current_only_reattach_min_affinity):
-                    continue
-                reattach_candidates.append((float(best_score), int(cur_idx), int(best_mem_idx), best_detail))
-            reattach_candidates.sort(key=lambda item: (-item[0], item[2], item[1]))
-
-            for score, cur_idx, mem_idx, detail in reattach_candidates:
-                if int(cur_idx) in reattached_cur_indices:
-                    continue
-                slot_cluster = slots[mem_idx]
-                if slot_cluster is None:
-                    continue
-                row = dict(current_rows[cur_idx])
-                updated_cluster = _append_member(slot_cluster, row)
-                slots[mem_idx] = updated_cluster
-                reattached_cur_indices.add(int(cur_idx))
-                processed_current_indices.add(int(cur_idx))
-                append_cases.append(
-                    {
-                        "step_index": int(step_index),
-                        "cluster_id": int(updated_cluster["cluster_id"]),
-                        "appended_object_id": _safe_int(row.get("object_global_id"), -1),
-                        "view_id": _safe_text(row.get("view_id")),
-                        "reason": "current_only_high_score_reattach",
-                        "score": float(score),
-                        "detail": detail,
-                        "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
-                    }
-                )
-                assignment_diagnostics.append(
-                    _object_assignment_record(
-                        row,
-                        step_index=int(step_index),
-                        assignment_reason="current_only_high_score_reattach",
-                        cluster_id_at_assignment=int(updated_cluster["cluster_id"]),
-                        similarity_reference_cluster_id=int(updated_cluster["cluster_id"]),
-                        detail=detail,
-                    )
-                )
-                current_only_reattach_cases.append(
-                    {
-                        "step_index": int(step_index),
-                        "cluster_id": int(updated_cluster["cluster_id"]),
-                        "appended_object_id": _safe_int(row.get("object_global_id"), -1),
-                        "view_id": _safe_text(row.get("view_id")),
-                        "reason": "current_only_high_score_reattach",
-                        "score": float(score),
-                        "detail": detail,
-                        "similarity_reference_cluster_id": int(updated_cluster["cluster_id"]),
-                    }
-                )
-
-            residual_indices = [int(idx) for idx in cur_indices if int(idx) not in reattached_cur_indices]
-            residual_rows = [dict(current_rows[idx]) for idx in residual_indices]
-            if residual_rows:
-                for idx in residual_indices:
-                    processed_current_indices.add(int(idx))
-                new_cluster = _create_new_cluster_from_rows(residual_rows, running_cluster_id)
-                running_cluster_id += 1
-                tail_clusters.append(new_cluster)
-                details_by_object: List[Dict[str, Any]] = []
-                for idx in residual_indices:
-                    best_rejected = best_match_by_cur_idx.get(int(idx))
-                    rejected_detail = dict(best_rejected[2]) if best_rejected is not None else None
-                    rejected_mem_idx = best_rejected[1] if best_rejected is not None else None
-                    rejected_cluster = slots[rejected_mem_idx] if rejected_mem_idx is not None and 0 <= int(rejected_mem_idx) < len(slots) else None
-                    rejected_cluster_id = (
-                        _safe_int(rejected_cluster.get("cluster_id"), -1)
-                        if rejected_cluster is not None
-                        else None
-                    )
-                    details_by_object.append(
-                        {
-                            "object_id": _safe_int(current_rows[idx].get("object_global_id"), -1),
-                            "view_id": _safe_text(current_rows[idx].get("view_id")),
-                            "similarity_reference_cluster_id": rejected_cluster_id,
-                            "score": None if best_rejected is None else float(best_rejected[0]),
-                            "detail": rejected_detail,
-                        }
-                    )
-                    assignment_diagnostics.append(
-                        _object_assignment_record(
-                            current_rows[idx],
-                            step_index=int(step_index),
-                            assignment_reason="current_only_component",
-                            cluster_id_at_assignment=int(new_cluster["cluster_id"]),
-                            similarity_reference_cluster_id=rejected_cluster_id,
-                            detail=rejected_detail,
-                        )
-                    )
-                tail_spawn_cases.append(
-                    {
-                        "step_index": int(step_index),
-                        "new_cluster_id": int(new_cluster["cluster_id"]),
-                        "reason": "current_only_component",
-                        "object_ids": [_safe_int(row.get("object_global_id"), -1) for row in residual_rows],
-                        "view_ids": sorted({_safe_text(row.get("view_id")) for row in residual_rows}),
-                        "details_by_object": details_by_object,
-                    }
-                )
-            continue
-
-        candidate_rows = [dict(current_rows[idx]) for idx in cur_indices]
-        scored_candidates: List[Tuple[float, int, Dict[str, Any]]] = []
-        for cur_idx, candidate in zip(cur_indices, candidate_rows):
-            detail = _pair_affinity_detail(
-                candidate,
-                base_cluster,
-                weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
-                global_sigma_m=global_sigma_m,
-                similarity_mode=similarity_mode,
-                distance_gate_dsq0=distance_gate_dsq0,
-            )
-            scored_candidates.append((float(detail["combined_similarity"]), int(cur_idx), detail))
-        scored_candidates.sort(key=lambda item: (-item[0], item[1]))
-
-        best_score, best_cur_idx, best_detail = scored_candidates[0]
-        best_row = dict(current_rows[best_cur_idx])
-        base_cluster = _append_member(base_cluster, best_row)
-        if base_slot_index is None:
-            raise RuntimeError("Missing base slot index while appending current object")
-        slots[base_slot_index] = base_cluster
-        processed_current_indices.add(int(best_cur_idx))
-        append_cases.append(
-            {
-                "step_index": int(step_index),
-                "cluster_id": int(base_cluster["cluster_id"]),
-                "appended_object_id": _safe_int(best_row.get("object_global_id"), -1),
-                "view_id": _safe_text(best_row.get("view_id")),
-                "reason": "component_best_append",
-                "score": float(best_score),
-                "detail": best_detail,
-                "similarity_reference_cluster_id": int(base_cluster["cluster_id"]),
-            }
-        )
-        assignment_diagnostics.append(
-            _object_assignment_record(
-                best_row,
-                step_index=int(step_index),
-                assignment_reason="component_best_append",
-                cluster_id_at_assignment=int(base_cluster["cluster_id"]),
-                similarity_reference_cluster_id=int(base_cluster["cluster_id"]),
-                detail=best_detail,
-            )
-        )
-
-        for _score, cur_idx, detail in scored_candidates[1:]:
-            new_cluster = _create_new_cluster_from_rows([current_rows[cur_idx]], running_cluster_id)
-            running_cluster_id += 1
-            tail_clusters.append(new_cluster)
-            processed_current_indices.add(int(cur_idx))
-            tail_spawn_cases.append(
-                {
-                    "step_index": int(step_index),
-                    "new_cluster_id": int(new_cluster["cluster_id"]),
-                    "reason": "tail_after_competing_for_existing_cluster",
-                    "object_ids": [_safe_int(current_rows[cur_idx].get("object_global_id"), -1)],
-                    "view_ids": [_safe_text(current_rows[cur_idx].get("view_id"))],
-                    "detail": detail,
-                    "similarity_reference_cluster_id": int(base_cluster["cluster_id"]),
-                }
-            )
+                    similarity_reference_cluster_id = None
+                    detail = None
+                else:
+                    best_mem_idx, detail = best_match
+                    similarity_reference_cluster_id = _safe_int(slots[best_mem_idx].get("cluster_id"), -1)
+                assignment_reason = "dbscan_attach"
+            else:
+                similarity_reference_cluster_id = None
+                detail = None
+                assignment_reason = "dbscan_new_cluster"
             assignment_diagnostics.append(
                 _object_assignment_record(
                     current_rows[cur_idx],
                     step_index=int(step_index),
-                    assignment_reason="tail_after_competing_for_existing_cluster",
-                    cluster_id_at_assignment=int(new_cluster["cluster_id"]),
-                    similarity_reference_cluster_id=int(base_cluster["cluster_id"]),
+                    assignment_reason=assignment_reason,
+                    cluster_id_at_assignment=int(cluster_id),
+                    similarity_reference_cluster_id=similarity_reference_cluster_id,
                     detail=detail,
                 )
             )
 
-    for cur_index, row in enumerate(current_rows):
-        if cur_index in processed_current_indices:
-            continue
-        best_match = _best_live_memory_match(
-            row,
-            slots,
-            weight_text=weight_text,
-            weight_global_geo=weight_global_geo,
-            weight_polar=weight_polar,
-            global_sigma_m=global_sigma_m,
-            similarity_mode=similarity_mode,
-            distance_gate_dsq0=distance_gate_dsq0,
-        )
-        new_cluster = _create_new_cluster_from_rows([row], running_cluster_id)
-        running_cluster_id += 1
-        tail_clusters.append(new_cluster)
-        fallback_detail = dict(best_match[2]) if best_match is not None else None
-        fallback_cluster = (
-            slots[int(best_match[1])]
-            if best_match is not None and 0 <= int(best_match[1]) < len(slots)
-            else None
-        )
-        fallback_cluster_id = (
-            _safe_int(fallback_cluster.get("cluster_id"), -1)
-            if fallback_cluster is not None
-            else None
-        )
-        tail_spawn_cases.append(
-            {
-                "step_index": int(step_index),
-                "new_cluster_id": int(new_cluster["cluster_id"]),
-                "reason": "unprocessed_current_singleton",
-                "object_ids": [_safe_int(row.get("object_global_id"), -1)],
-                "view_ids": [_safe_text(row.get("view_id"))],
-                "detail": fallback_detail,
-                "similarity_reference_cluster_id": fallback_cluster_id,
-            }
-        )
-        assignment_diagnostics.append(
-            _object_assignment_record(
-                row,
-                step_index=int(step_index),
-                assignment_reason="unprocessed_current_singleton",
-                cluster_id_at_assignment=int(new_cluster["cluster_id"]),
-                similarity_reference_cluster_id=fallback_cluster_id,
-                detail=fallback_detail,
-            )
-        )
-
-    next_memory = [cluster for cluster in slots if cluster is not None]
-    next_memory.extend(tail_clusters)
     next_memory = sorted(next_memory, key=lambda item: int(item.get("cluster_id", 10**9)))
+    dbscan_summary = _dbscan_summary(
+        dbscan_result=dbscan_result,
+        materialized_groups=groups,
+        num_noise_singletons=num_noise_singletons,
+    )
 
     return {
         "memory_clusters": next_memory,
@@ -2145,7 +1982,11 @@ def apply_incremental_step(
         "num_current_only_reattached": len(current_only_reattach_cases),
         "num_merged_clusters": len(merge_cases),
         "num_same_view_blocked_components": len(same_view_block_cases),
-        "num_new_tail_clusters": len(tail_clusters),
+        "num_new_tail_clusters": len(tail_spawn_cases),
+        "num_dbscan_clusters": len(next_memory),
+        "num_noise_singletons": int(num_noise_singletons),
+        "num_merged_memory_groups": int(num_merged_memory_groups),
+        "dbscan_summary": dbscan_summary,
     }
 
 
@@ -2181,6 +2022,8 @@ def _run_single_sequential_spectral_experiment(
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
     min_cross_affinity: float = DEFAULT_CROSS_AFFINITY_MIN,
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
+    dbscan_eps: Optional[float] = None,
+    dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
 ) -> Dict[str, Any]:
     sequence = load_sequence_objects(db_dir, entry_ids=entry_ids, view_ids=view_ids)
     selected_views = sequence["views"]
@@ -2343,6 +2186,8 @@ def _run_single_sequential_spectral_experiment(
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+            dbscan_eps=dbscan_eps,
+            dbscan_min_samples=dbscan_min_samples,
         )
         memory_clusters = update["memory_clusters"]
         next_cluster_id = int(update["next_cluster_id"])
@@ -2361,7 +2206,11 @@ def _run_single_sequential_spectral_experiment(
             "num_merged_clusters": int(update["num_merged_clusters"]),
             "num_same_view_blocked_components": int(update["num_same_view_blocked_components"]),
             "num_new_tail_clusters": int(update["num_new_tail_clusters"]),
+            "num_dbscan_clusters": int(update["num_dbscan_clusters"]),
+            "num_noise_singletons": int(update["num_noise_singletons"]),
+            "num_merged_memory_groups": int(update["num_merged_memory_groups"]),
             "spectral_summary": _spectral_result_summary(spectral_result),
+            "dbscan_summary": dict(update["dbscan_summary"]),
             "num_connected_components_after_spectral": len(component_groups),
             "clusters_after_step": [_cluster_output_summary(cluster) for cluster in memory_clusters],
             "append_cases": [_append_case_summary(case) for case in update["append_cases"]],
@@ -2407,6 +2256,8 @@ def _run_single_sequential_spectral_experiment(
         "distance_gate_dsq0": float(distance_gate_dsq0),
         "min_cross_affinity": float(min_cross_affinity),
         "current_only_reattach_min_affinity": float(current_only_reattach_min_affinity),
+        "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
+        "dbscan_min_samples": int(dbscan_min_samples),
         "step_summaries": [_step_report_summary(step_report) for step_report in step_reports],
         "final_cluster_count": len(memory_clusters),
         "cluster_size_histogram": _cluster_histogram(memory_clusters),
@@ -2455,6 +2306,8 @@ def run_sequential_spectral_experiment(
     distance_gate_dsq0_values: Optional[Sequence[Any]] = None,
     min_cross_affinity: float = DEFAULT_CROSS_AFFINITY_MIN,
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
+    dbscan_eps: Optional[float] = None,
+    dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
 ) -> Dict[str, Any]:
     normalized_dsq0_values = _normalize_float_list(distance_gate_dsq0_values)
     if distance_gate_dsq0_values is not None and not normalized_dsq0_values:
@@ -2473,6 +2326,8 @@ def run_sequential_spectral_experiment(
             distance_gate_dsq0=distance_gate_dsq0,
             min_cross_affinity=min_cross_affinity,
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+            dbscan_eps=dbscan_eps,
+            dbscan_min_samples=dbscan_min_samples,
         )
     if len(normalized_dsq0_values) == 1:
         return _run_single_sequential_spectral_experiment(
@@ -2488,6 +2343,8 @@ def run_sequential_spectral_experiment(
             distance_gate_dsq0=float(normalized_dsq0_values[0]),
             min_cross_affinity=min_cross_affinity,
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+            dbscan_eps=dbscan_eps,
+            dbscan_min_samples=dbscan_min_samples,
         )
 
     base_root = Path(output_dir) if output_dir else Path(db_dir) / "sequential_spectral_experiment_sweep"
@@ -2507,12 +2364,16 @@ def run_sequential_spectral_experiment(
             distance_gate_dsq0=float(dsq0),
             min_cross_affinity=min_cross_affinity,
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
+            dbscan_eps=dbscan_eps,
+            dbscan_min_samples=dbscan_min_samples,
         )
         sweep_runs.append(
             {
                 "dsq0": float(dsq0),
                 "output_dir": str(run_report.get("output_dir") or ""),
                 "final_cluster_count": int(run_report.get("final_cluster_count") or 0),
+                "dbscan_eps": run_report.get("dbscan_eps"),
+                "dbscan_min_samples": int(run_report.get("dbscan_min_samples") or 0),
                 "total_appended": int(run_report.get("total_appended") or 0),
                 "total_current_only_reattached": int(run_report.get("total_current_only_reattached") or 0),
                 "total_new_tail_clusters": int(run_report.get("total_new_tail_clusters") or 0),
@@ -2528,6 +2389,8 @@ def run_sequential_spectral_experiment(
         "output_dir": str(sweep_root),
         "similarity_mode": str(similarity_mode),
         "distance_gate_dsq0_values": [float(v) for v in normalized_dsq0_values],
+        "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
+        "dbscan_min_samples": int(dbscan_min_samples),
         "runs": sweep_runs,
     }
     _write_json(sweep_root / "sweep_summary.json", summary)
@@ -2579,7 +2442,19 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--current_only_reattach_min_affinity",
         type=float,
         default=DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
-        help="High-score threshold for reattaching current-only spectral components back to an existing cluster",
+        help="Deprecated compatibility flag; retained but ignored by the DBSCAN materialization stage",
+    )
+    parser.add_argument(
+        "--dbscan_eps",
+        type=float,
+        default=None,
+        help="Optional DBSCAN epsilon on the step spectral embedding; auto-estimated when omitted",
+    )
+    parser.add_argument(
+        "--dbscan_min_samples",
+        type=int,
+        default=DEFAULT_DBSCAN_MIN_SAMPLES,
+        help="DBSCAN min_samples on the step spectral embedding",
     )
     return parser.parse_args(argv)
 
@@ -2602,6 +2477,8 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         else None,
         min_cross_affinity=float(args.min_cross_affinity),
         current_only_reattach_min_affinity=float(args.current_only_reattach_min_affinity),
+        dbscan_eps=None if args.dbscan_eps is None else float(args.dbscan_eps),
+        dbscan_min_samples=int(args.dbscan_min_samples),
     )
     print(json.dumps(_to_serializable(report), ensure_ascii=True))
     return report

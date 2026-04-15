@@ -1,51 +1,70 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
-import cv2
 import numpy as np
 
 
-def _as_bool_mask(mask: np.ndarray) -> np.ndarray:
-    arr = np.asarray(mask)
-    if arr.ndim != 2:
-        raise ValueError(f"Expected 2D mask, got shape={arr.shape!r}")
-    return arr.astype(bool)
+def _safe_float(value: Any) -> Optional[float]:
+    try:
+        out = float(value)
+    except Exception:
+        return None
+    if not np.isfinite(out):
+        return None
+    return out
 
 
-def _morph_kernel(radius: int) -> np.ndarray:
-    value = max(int(radius), 0)
-    size = (2 * value) + 1
-    return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
+def _bbox_xyxy_ints(bbox_xyxy: Any) -> Optional[Tuple[int, int, int, int]]:
+    values = np.asarray(bbox_xyxy).reshape(-1)
+    if values.size < 4:
+        return None
+    try:
+        x1, y1, x2, y2 = [int(round(float(v))) for v in values[:4]]
+    except Exception:
+        return None
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return x1, y1, x2, y2
 
 
-def _erode_mask(mask: np.ndarray, radius: int) -> np.ndarray:
-    mask_u8 = np.asarray(mask, dtype=np.uint8)
-    if radius <= 0:
-        return mask_u8.astype(bool)
-    eroded = cv2.erode(mask_u8, _morph_kernel(radius), iterations=1)
-    return eroded.astype(bool)
+def _bbox_area(bbox_xyxy: Tuple[int, int, int, int]) -> int:
+    x1, y1, x2, y2 = bbox_xyxy
+    return int(max(x2 - x1, 0) * max(y2 - y1, 0))
 
 
-def _dilate_mask(mask: np.ndarray, radius: int) -> np.ndarray:
-    mask_u8 = np.asarray(mask, dtype=np.uint8)
-    if radius <= 0:
-        return mask_u8.astype(bool)
-    dilated = cv2.dilate(mask_u8, _morph_kernel(radius), iterations=1)
-    return dilated.astype(bool)
+def _bbox_intersection(
+    left: Tuple[int, int, int, int],
+    right: Tuple[int, int, int, int],
+) -> Optional[Tuple[int, int, int, int]]:
+    x1 = max(left[0], right[0])
+    y1 = max(left[1], right[1])
+    x2 = min(left[2], right[2])
+    y2 = min(left[3], right[3])
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return x1, y1, x2, y2
 
 
-def _zero_visible_occlusion_metrics(depth_margin_delta: float) -> Dict[str, Any]:
+def _zero_visible_occlusion_metrics(
+    *,
+    target_depth_m: Optional[float],
+    depth_margin_delta: float,
+    target_overlap_threshold: float,
+) -> Dict[str, Any]:
     return {
         "visible_occlusion_ratio": 0.0,
-        "occluded_boundary_ratio": 0.0,
-        "nearer_ring_overlap_ratio": 0.0,
-        "object_depth_median": None,
-        "boundary_pixel_count": 0,
-        "occluded_boundary_pixel_count": 0,
-        "ring_pixel_count": 0,
-        "nearer_ring_pixel_count": 0,
+        "occluded_boundary_ratio": None,
+        "nearer_ring_overlap_ratio": None,
+        "object_depth_median": target_depth_m,
+        "boundary_pixel_count": None,
+        "occluded_boundary_pixel_count": None,
+        "ring_pixel_count": None,
+        "nearer_ring_pixel_count": None,
         "depth_margin_delta": float(depth_margin_delta),
+        "occluding_overlap_pixel_count": 0,
+        "foreground_occluder_count": 0,
+        "occlusion_target_overlap_threshold": float(target_overlap_threshold),
     }
 
 
@@ -73,90 +92,67 @@ def visible_occlusion_ratio_to_penalty(visible_occlusion_ratio: Any) -> float:
 
 
 def compute_visible_occlusion_metrics(
-    target_mask: np.ndarray,
-    target_depth_map: np.ndarray,
-    other_object_masks: Sequence[np.ndarray],
-    depth_map: np.ndarray,
+    target_bbox_xyxy: Sequence[float],
+    target_depth_m: Any,
+    other_objects: Sequence[Mapping[str, Any]],
     *,
-    boundary_width: int = 1,
-    ring_radius: int = 5,
-    depth_margin_delta: float = 0.08,
-    boundary_neighbor_radius: int = 1,
+    target_overlap_threshold: float = 0.1,
+    depth_margin_delta: float = 0.0,
 ) -> Dict[str, Any]:
-    metrics = _zero_visible_occlusion_metrics(depth_margin_delta=float(depth_margin_delta))
-    target_mask_bool = _as_bool_mask(target_mask)
-    if not np.any(target_mask_bool):
-        return metrics
-
-    target_depth = np.asarray(target_depth_map, dtype=np.float32)
-    full_depth = np.asarray(depth_map, dtype=np.float32)
-    if target_depth.shape != target_mask_bool.shape or full_depth.shape != target_mask_bool.shape:
-        raise ValueError(
-            "target_mask, target_depth_map, and depth_map must share the same HxW shape"
-        )
-
-    valid_target_depth_mask = np.logical_and(target_mask_bool, np.isfinite(target_depth))
-    valid_target_depth_mask = np.logical_and(valid_target_depth_mask, target_depth > 0.0)
-    valid_target_depths = target_depth[valid_target_depth_mask]
-    if valid_target_depths.size == 0:
-        return metrics
-
-    object_depth_median = float(np.median(valid_target_depths.astype(np.float32)))
-    metrics["object_depth_median"] = object_depth_median
-
-    boundary = np.logical_and(target_mask_bool, np.logical_not(_erode_mask(target_mask_bool, int(boundary_width))))
-    boundary_pixel_count = int(np.count_nonzero(boundary))
-    metrics["boundary_pixel_count"] = boundary_pixel_count
-    if boundary_pixel_count == 0:
-        return metrics
-
-    ring = np.logical_and(_dilate_mask(boundary, int(ring_radius)), np.logical_not(target_mask_bool))
-    ring_pixel_count = int(np.count_nonzero(ring))
-    metrics["ring_pixel_count"] = ring_pixel_count
-
-    valid_other_masks: List[np.ndarray] = []
-    for other_mask in list(other_object_masks or []):
-        try:
-            other_mask_bool = _as_bool_mask(other_mask)
-        except Exception:
-            continue
-        if other_mask_bool.shape != target_mask_bool.shape:
-            continue
-        other_mask_bool = np.logical_and(other_mask_bool, np.logical_not(target_mask_bool))
-        if not np.any(other_mask_bool):
-            continue
-        valid_other_masks.append(other_mask_bool)
-
-    if not valid_other_masks or ring_pixel_count == 0:
-        return metrics
-
-    other_union = np.zeros_like(target_mask_bool, dtype=bool)
-    for other_mask_bool in valid_other_masks:
-        other_union = np.logical_or(other_union, other_mask_bool)
-
-    nearer_depth_mask = np.logical_and(np.isfinite(full_depth), full_depth > 0.0)
-    nearer_depth_mask = np.logical_and(
-        nearer_depth_mask,
-        full_depth < (float(object_depth_median) - float(depth_margin_delta)),
+    target_bbox = _bbox_xyxy_ints(target_bbox_xyxy)
+    target_depth = _safe_float(target_depth_m)
+    metrics = _zero_visible_occlusion_metrics(
+        target_depth_m=target_depth,
+        depth_margin_delta=float(depth_margin_delta),
+        target_overlap_threshold=float(target_overlap_threshold),
     )
-    nearer_ring_pixels = np.logical_and(ring, np.logical_and(other_union, nearer_depth_mask))
-    nearer_ring_pixel_count = int(np.count_nonzero(nearer_ring_pixels))
-    metrics["nearer_ring_pixel_count"] = nearer_ring_pixel_count
+    if target_bbox is None or target_depth is None:
+        return metrics
 
-    boundary_hits = np.logical_and(boundary, _dilate_mask(nearer_ring_pixels, int(boundary_neighbor_radius)))
-    occluded_boundary_pixel_count = int(np.count_nonzero(boundary_hits))
-    metrics["occluded_boundary_pixel_count"] = occluded_boundary_pixel_count
+    target_area = _bbox_area(target_bbox)
+    if target_area <= 0:
+        return metrics
 
-    occluded_boundary_ratio = float(occluded_boundary_pixel_count / max(boundary_pixel_count, 1))
-    nearer_ring_overlap_ratio = float(nearer_ring_pixel_count / max(ring_pixel_count, 1))
-    visible_occlusion_ratio = float(
-        min(
-            max((0.7 * occluded_boundary_ratio) + (0.3 * nearer_ring_overlap_ratio), 0.0),
-            1.0,
-        )
-    )
+    target_width = target_bbox[2] - target_bbox[0]
+    target_height = target_bbox[3] - target_bbox[1]
+    overlap_union = np.zeros((target_height, target_width), dtype=bool)
+    foreground_occluder_count = 0
+    threshold = float(target_overlap_threshold)
+    depth_margin = float(depth_margin_delta)
 
-    metrics["occluded_boundary_ratio"] = occluded_boundary_ratio
-    metrics["nearer_ring_overlap_ratio"] = nearer_ring_overlap_ratio
-    metrics["visible_occlusion_ratio"] = visible_occlusion_ratio
+    for other in list(other_objects or []):
+        if not isinstance(other, Mapping):
+            continue
+        other_bbox = _bbox_xyxy_ints(other.get("bbox_xyxy") or other.get("bbox"))
+        if other_bbox is None:
+            continue
+        intersection_bbox = _bbox_intersection(target_bbox, other_bbox)
+        if intersection_bbox is None:
+            continue
+        intersection_area = _bbox_area(intersection_bbox)
+        if intersection_area <= 0:
+            continue
+        target_overlap_ratio = float(intersection_area / max(target_area, 1))
+        if target_overlap_ratio < threshold:
+            continue
+
+        other_depth = _safe_float(other.get("object_depth_median"))
+        if other_depth is None:
+            other_depth = _safe_float(other.get("distance_from_camera_m"))
+        if other_depth is None:
+            continue
+        if not (other_depth < (target_depth - depth_margin)):
+            continue
+
+        foreground_occluder_count += 1
+        rel_x1 = intersection_bbox[0] - target_bbox[0]
+        rel_y1 = intersection_bbox[1] - target_bbox[1]
+        rel_x2 = intersection_bbox[2] - target_bbox[0]
+        rel_y2 = intersection_bbox[3] - target_bbox[1]
+        overlap_union[rel_y1:rel_y2, rel_x1:rel_x2] = True
+
+    occluding_overlap_pixel_count = int(np.count_nonzero(overlap_union))
+    metrics["occluding_overlap_pixel_count"] = occluding_overlap_pixel_count
+    metrics["foreground_occluder_count"] = int(foreground_occluder_count)
+    metrics["visible_occlusion_ratio"] = float(occluding_overlap_pixel_count / max(target_area, 1))
     return metrics

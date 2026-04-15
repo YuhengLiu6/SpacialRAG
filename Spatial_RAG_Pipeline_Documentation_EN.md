@@ -313,6 +313,35 @@ It also avoids returning absolute global coordinates.
 > **One-sentence summary**
 > The core idea of DepthPro is not to estimate depth separately for each bbox, but to first generate a dense depth map for the whole image, then aggregate a robust object depth within the target region using NanoSAM’s object mask, and finally combine it with angles to convert it into object-level spatial attributes.
 
+#### 2.5 Detection filtering and deterministic occlusion
+
+The deterministic occlusion source still uses the compatibility name `visible_mask`, but the current implementation is **bbox overlap + depth ordering**, not mask-boundary interaction.
+
+**Detection filtering**
+- YOLO-World detections first pass a confidence threshold:
+  - `bbox_conf_threshold = 0.3` by default
+- Boxes below that threshold are:
+  - excluded from final `object_rows`
+  - written to `filtered_detections.json`
+  - drawn into `filtered_detection_overlay.jpg`
+- These low-confidence boxes do **not** participate in the occlusion calculation.
+
+**Deterministic occlusion logic**
+1. Reuse the target object's depth representative from the existing mask+DepthPro geometry path.
+2. Compare the target bbox against every other kept bbox in the same image.
+3. Compute:
+   `target_overlap_ratio = intersection_area(target_bbox, other_bbox) / target_bbox_area`
+4. Keep only pairs with:
+   `target_overlap_ratio >= 0.1`
+5. Treat the other box as a foreground occluder only if:
+   `other_depth < target_depth - depth_margin_delta`
+   with current default:
+   `depth_margin_delta = 0.0`
+6. Union all foreground intersection regions and compute:
+   `visible_occlusion_ratio = union_overlap_area / target_bbox_area`
+
+So the current deterministic score is a **bbox coverage ratio by nearer detected objects**, not a visible-boundary contact score.
+
 #### 3. Angle Estimation
 The angle is measured from the camera optical-axis center to the centroid of the object mask, not the bbox center.
 
@@ -531,46 +560,48 @@ Then:
 ---
 
 ### 2. Sequential Pipeline
-**text embedding (no neighbor) + geo + polar -> affinity**
+**text embedding (no neighbor) + geo distance gate -> spectral graph -> DBSCAN materialization**
 
 ```mermaid
 flowchart TD
     A["Selected views<br/>from built spatial DB"]
 
     subgraph S1["Load sequence"]
-        B["Load object observations<br/>text embedding + geo + polar metadata"]
+        B["Load object observations<br/>text embedding + global xyz + polar metadata"]
         C["Order views sequentially"]
     end
 
     subgraph S2["Initialize memory"]
         D["Initial view"]
         E["Create singleton memory clusters<br/>one object -> one cluster"]
+        E2["Build cluster prototypes<br/>prototype_embedding + prototype_xyz + prototype_polar"]
     end
 
     subgraph S3["For each new view"]
         F["Current view objects"]
 
         G["Cross-affinity<br/>current objects vs memory clusters"]
-        G1["Text similarity"]
-        G2["Geo similarity"]
-        G3["Polar similarity"]
+        G1["Cosine similarity<br/>row embedding vs prototype_embedding"]
+        G2["Distance gate<br/>exp(-dsq / (2*dsq0))"]
+        G3["dsq = planar x-y distance squared<br/>row xy vs prototype_xyz.xy"]
 
         H["Bipartite affinity graph"]
-        I["Spectral clustering + component grouping"]
+        I["Capped spectral clustering<br/>eigengap then cc+2 cap"]
 
-        J["Incremental cluster update"]
-        J1["Append to existing cluster"]
-        J2["Merge old clusters"]
-        J3["Reattach high-score cur obj"]
-        J4["Spawn new tail cluster"]
+        J["DBSCAN on step spectral embedding"]
+        J1["Reuse smallest existing cluster_id<br/>if memory nodes are present"]
+        J2["Allocate new cluster_id<br/>for current-only DBSCAN groups"]
+        J3["Noise memory node -> keep singleton"]
+        J4["Noise current node -> new singleton"]
     end
 
     subgraph S4["Outputs"]
         K["Updated memory registry"]
         L["Final object clusters"]
+        M["Step reports + optional dsq0 sweep summary"]
     end
 
-    A --> B --> C --> D --> E --> F
+    A --> B --> C --> D --> E --> E2 --> F
 
     F --> G
     G --> G1
@@ -593,13 +624,15 @@ flowchart TD
 
     K --> F
     K --> L
+    K --> M
 
 ```
 
 This pipeline differs from the one above:
 - the text embedding does not include neighbors
-- the affinity does not look only at text, but additionally includes geo similarity and polar similarity
-So it is more like a multimodal / multi-factor similarity fusion.
+- the default similarity is no longer a weighted fusion of text/geo/polar
+- instead, it uses **cosine similarity gated by global planar distance**
+- after the spectral stage, the next-step memory registry is materialized by **DBSCAN on the step spectral embedding**
 - when initializing memory clusters, each object is its own cluster, and the initial clusters are not merged with one another
 
 #### 2.1 Text embedding
@@ -627,11 +660,23 @@ It uses the global coordinates of the object, for example:
 }
 ```
 A historical memory cluster also has a representative prototype/global position.
-Geo similarity is essentially checking:
-- whether the new object appears in roughly the same place in the room
-- whether it is spatially close to an existing cluster
 
-You can think of it as: **text asks whether they are the same kind of thing, while geo asks whether they are in the same place.**
+In the latest logic, geo is used as a **distance gate** rather than as an additive similarity term:
+
+`similarity = cosine_sim * exp(-dsq / (2 * dsq0))`
+
+where:
+- `cosine_sim` is the cosine similarity between the current row embedding and the cluster `prototype_embedding`
+- `dsq` is the squared planar distance on the global `x-y` plane
+- `dsq0` controls how quickly similarity decays with distance
+
+So you can think of it as:
+- **text** asks whether they look semantically similar
+- **geo gate** asks whether they are close enough in the world to remain a plausible match
+
+Important implementation note:
+- although the cluster still stores `prototype_xyz`, the current default gate uses only `estimated_global_x` and `estimated_global_y`
+- `estimated_global_z` is retained in metadata and summaries, but it is not used by the default distance gate
 
 #### 2.3 Polar
 Polar means whether the object’s relative positional pattern in the camera-view coordinate system resembles that of a historical cluster.
@@ -657,7 +702,7 @@ The key metadata used here is:
   - For example: `+0.6` (the object is above the camera’s horizontal sight line)
   - For example: `-0.4` (the object is below the camera)
 
-**How polar similarity is compared**
+**How polar is used in the latest sequential logic**
 Suppose the current new object (row) is:
 ```json
 {
@@ -676,29 +721,16 @@ The `prototype_polar` of the historical cluster is:
 ```
 Note: the cluster_distance / cluster_bearing / cluster_height here do not come from a single old object, but from the `prototype_polar` of the memory cluster, which is the representative value of these polar fields among historical members.
 
-**Step 1: compute normalized differences**
-- Distance difference: `(row_distance - cluster_distance) / 2.0 = (2.4 - 2.0) / 2.0 = 0.2`
-- Horizontal angle difference: `wrap(row_bearing - cluster_bearing) / 45.0 = wrap(-18 - (-10)) / 45 = -8 / 45 ≈ -0.178`
-- Height difference: `(row_height - cluster_height) / 1.0 = (0.3 - 0.1) / 1.0 = 0.2`
+In the current default implementation, **polar metadata is still loaded and maintained in the cluster prototype, but it no longer contributes to the default similarity score**. It remains useful for:
+- diagnostics
+- cluster summaries
+- possible legacy comparisons
+- optional compatibility runs using `legacy_weighted_fusion`
 
-This gives a polar difference vector:
-`dims = [0.2, -0.178, 0.2]`
-
-**Step 2: compute the L2 norm**
-`||dims|| = sqrt(0.2^2 + (-0.178)^2 + 0.2^2)`
-The smaller this value is, the more similar the new object and the cluster are in polar geometry.
-
-**Step 3: pass through a Gaussian function**
-`polar_similarity = exp( - ||dims||^2 )`
-So:
-- If all three dimensions are close, `||dims||` is small and `polar_similarity` approaches 1
-- If the differences are large, `||dims||` increases and `polar_similarity` decreases rapidly
-
-**Intuitive interpretation**
-When this sequential pipeline compares whether an object belongs to a historical cluster, it is actually looking at three things:
-1. **Text**: whether the text description of this object resembles that cluster
-2. **Geo**: whether its position in world coordinates is also close to that cluster
-3. **Polar**: whether its relative distance / left-right angle / height relationship in the current camera view also resembles that cluster
+So the current sequential matching logic is:
+1. **Text** provides the semantic similarity
+2. **Global planar geo** provides the distance gate
+3. **Polar** is retained as metadata, but not used in the default affinity computation
 
 ---
 
@@ -732,6 +764,7 @@ These are aggregated, and the current implementation uses the median.
 to represent the approximate position of this cluster in world coordinates
 
 When a new object arrives later, it is compared with this `prototype_xyz` to compute geo similarity.
+In the current default path, only the `x` and `y` coordinates participate in the distance gate.
 
 **3. `prototype_polar`**
 Represents the camera-relative geometric prototype of this cluster
@@ -751,56 +784,126 @@ When a new object arrives later, it is compared with this `prototype_polar` to c
 
 #### 2.5
 
-**2.5.1 `min_cross_affinity=0.35`: first decide whether to connect edges in the graph**
+**2.5.1 `min_cross_affinity=0.25`: first decide which cross edges are allowed into the graph**
 
-This step happens after the `cross-affinity` between `current objects` and `memory clusters` has been computed. Each value is the fused `combined_similarity`, coming from `text similarity` + `geo similarity` + `polar similarity`. All `cross edges` with values `< 0.35` are set to 0, removing connections that are obviously too weak and unnecessary for spectral clustering structure inference.
+This step happens after the `cross-affinity` between `current objects` and `memory clusters` has been computed.
 
-**2.5.2 `same-view collision`: decide whether nodes with edges are still allowed to merge**
+In the current default mode:
+- the score is **not** a text/geo/polar weighted fusion
+- it is `cosine_sim * exp(-dsq / (2 * dsq0))`
+- `polar` stays in metadata, but does not contribute to the default score
 
-- **`component`**: a group of `memory clusters` and `current objects` that are connected in the matching graph of this round. This `component`, and the “graph” itself, are constructed temporarily during each incremental update step of the sequential pipeline. They are not pre-stored in the database.
-- **`edge`**: edges come from the `cross-affinity matrix`
+All `cross edges` with values `< 0.25` are set to 0 before graph construction.
+This pruning removes obviously weak links and gives spectral clustering a cleaner bipartite structure.
 
-The system converts this `cross-affinity` matrix into a bipartite `affinity matrix`, obtains `connected components`, and also runs `spectral clustering` on the entire `affinity graph`. Therefore, each node simultaneously has two labels:
-- **`connectivity label`**: indicates which connected component it belongs to
-- **`spectral label`**: indicates which group spectral clustering thinks it should belong to
+**2.5.2 Build the bipartite affinity graph and run capped spectral clustering**
 
-Within the same connected component, it may further be split by `spectral clustering` into multiple smaller processing units, each handled separately.
+The system converts the pruned `cross-affinity` matrix into a bipartite `affinity matrix`:
+- upper-left block: memory nodes
+- lower-right block: current nodes
+- off-diagonal blocks: surviving cross edges
 
-**2.5.3 `current_only_reattach_min_affinity=0.75`: decide whether to forcibly attach back to an old cluster after being split off**
+Then it computes two structural views of the graph:
+- **`connectivity label`**: which connected component a node belongs to
+- **`spectral label`**: which cluster the capped spectral stage assigns to that node
 
-When a `current object` is “not formally attached to any old `memory cluster`” in the spectral/component grouping of this round, the system gives it one “high-confidence reattachment opportunity.”
+The spectral stage is not a free unconstrained eigengap estimate.
+Instead, the code:
+1. estimates `k` by eigengap
+2. computes the connected-component count of the graph
+3. caps the requested cluster count at `connected_components + 2`
 
-**Why a `current-only component` can appear**
+So spectral clustering can still split a connected component, but only within a controlled range.
 
-- All of its edges to old clusters were pruned by `min_cross_affinity=0.35`.
-- Or although it has edges to old clusters, `spectral clustering` still separates it on its own
+**2.5.3 Run DBSCAN on the step spectral embedding**
 
-For each `current object` in this `current-only component`, the system searches again for the best match among all `live memory clusters`.
-The `live memory clusters` here are not old snapshots, but the latest cluster states after the merge/append updates earlier in this round.
+After spectral clustering, the pipeline takes the **step spectral embedding** itself and runs DBSCAN over **all nodes in this round’s graph**:
+- memory cluster nodes
+- current object nodes
 
-Only when:
-- `best_score >= current_only_reattach_min_affinity`
-- the default value is `0.75`
+Current default DBSCAN settings are:
+- `dbscan_eps=None`
+  - meaning epsilon is auto-estimated from the spectral embedding
+  - specifically, the implementation uses a median k-nearest-neighbor distance heuristic in embedding space
+- `dbscan_min_samples=2`
 
-is this `current object` allowed to be appended back to that old cluster.
-If the score is not high enough, it is not forcibly attached back, and is instead left to the later `tail cluster` logic.
+This means the actual “which nodes become one updated cluster” decision is no longer made by append/merge/reattach heuristics.
+It is made by density structure in the step spectral embedding.
+
+**2.5.4 Materialize the next-step memory registry from DBSCAN groups**
+
+Once DBSCAN labels are available, the next memory registry is built with fixed rules:
+
+- If a DBSCAN group contains one or more old memory nodes:
+  - merge all rows represented by that group
+  - reuse the **smallest existing `cluster_id`** among those memory nodes
+- If a DBSCAN group contains only current objects:
+  - allocate a **new `cluster_id`**
+- If DBSCAN marks an old memory node as noise:
+  - keep it as a singleton cluster
+- If DBSCAN marks a current object as noise:
+  - create a new singleton cluster for that object
+
+So the sequential experiment still updates memory step by step, but the update policy is now:
+- **spectral graph construction**
+- then **DBSCAN-based cluster materialization**
+
+instead of:
+- append / merge / reattach / tail-cluster heuristics
+
+**2.5.5 What no longer happens in the active default path**
+
+The current DBSCAN-based sequential experiment no longer performs these old heuristic decisions:
+- no `same-view collision` hard blocking stage
+- no competitive append among old clusters
+- no `current_only_reattach_min_affinity` reattachment pass
+- no tail-cluster spawning heuristic
+
+The compatibility argument `current_only_reattach_min_affinity` is still accepted by the API and CLI, but it is now a no-op in the active DBSCAN materialization path.
+
+**2.5.6 Assignment tables and reports**
+
+The output files are still largely the same, but their semantics changed:
+
+- `step_XX_cluster_update.json` still exists
+  - now it contains both `spectral_summary` and `dbscan_summary`
+- `object_cluster_similarity_table.csv` still exists
+  - step `0` rows are still `initial_seed`
+  - later rows now use:
+    - `dbscan_attach`
+    - `dbscan_new_cluster`
+
+For a current object assigned by `dbscan_attach`:
+- the table chooses the best-affinity memory cluster **within the same DBSCAN group**
+- that cluster becomes `similarity_reference_cluster_id`
+- the corresponding text / geo-gate detail is copied into the row
+
+For a current object assigned by `dbscan_new_cluster`:
+- no old memory cluster is referenced
+- the similarity-detail fields are left empty
+- the object simply starts a new cluster in that step
 
 ### 3. Core differences between the two pipelines
 
 #### Batch multi-view dedup
-**text only**
-- text embedding uses neighbor-enhanced text
-- affinity only considers text cosine similarity
+**text-driven**
+- text embedding can use `long` or `long_neighbors`
+- default mode uses object text only
+- affinity is based on text cosine similarity, then adjusted by same-view penalty and similarity threshold
 - it does not consider geo or polar
 
 #### Sequential pipeline
-**text + geometry**
+**text + geo gate + spectral embedding DBSCAN**
 - text embedding does not use neighbors
-- affinity jointly combines text similarity, geo similarity, and polar similarity
+- affinity uses `cosine_sim * exp(-dsq / (2*dsq0))`
+- `dsq` is the squared planar `x-y` distance to the cluster prototype
+- polar metadata is retained, but not used in the default similarity
+- the final per-step cluster materialization comes from DBSCAN on the step spectral embedding
+- same-view collisions are no longer hard-blocked in the active default path
 
 **Summary:**
 - **batch multi-view dedup** is more focused on deduplication after text-context enhancement
-- **sequential pipeline** is more focused on joint matching of text + spatial geometry
+- **sequential pipeline** is more focused on geo-gated semantic matching followed by graph-structure-based DBSCAN materialization
 
 | Item | Value |
 |---|---:|
@@ -929,17 +1032,20 @@ Each record represents the final object-level metadata of one object.
     "estimated_global_y": 1.1379, // object global y derived from vertical angle / height
     "estimated_global_z": -6.7283, // object global z projected from depth + bearing
 
-    "visible_occlusion_ratio": 0.28, // deterministic visible-level occlusion score in [0, 1], derived from masks + depth only
-    "occluded_boundary_ratio": 0.31, // fraction of the object's visible boundary that is pressed against nearer object masks
-    "nearer_ring_overlap_ratio": 0.21, // fraction of the object's immediate exterior ring occupied by nearer object masks
-    "object_depth_median": 3.74, // median valid depth inside the visible object mask
-    "boundary_pixel_count": 142, // number of visible boundary pixels used for the occlusion calculation
-    "occluded_boundary_pixel_count": 44, // number of boundary pixels adjacent to nearer-object ring pixels
-    "ring_pixel_count": 510, // number of pixels in the boundary-adjacent outer ring
-    "nearer_ring_pixel_count": 109, // number of outer-ring pixels covered by other nearer detected objects
-    "depth_margin_delta": 0.08, // minimum depth advantage (meters) required for another object to count as an occluder
+    "visible_occlusion_ratio": 0.28, // union overlap area / target bbox area, in [0, 1]
+    "occluded_boundary_ratio": null, // legacy boundary metric; null in the current bbox-overlap deterministic path
+    "nearer_ring_overlap_ratio": null, // legacy ring metric; null in the current bbox-overlap deterministic path
+    "object_depth_median": 3.74, // target depth representative reused for deterministic depth ordering
+    "boundary_pixel_count": null, // legacy boundary diagnostic; null in the current bbox-overlap deterministic path
+    "occluded_boundary_pixel_count": null, // legacy boundary diagnostic; null in the current bbox-overlap deterministic path
+    "ring_pixel_count": null, // legacy ring diagnostic; null in the current bbox-overlap deterministic path
+    "nearer_ring_pixel_count": null, // legacy ring diagnostic; null in the current bbox-overlap deterministic path
+    "depth_margin_delta": 0.0, // minimum depth advantage (meters) required for another overlapping bbox to count as an occluder
+    "occluding_overlap_pixel_count": 68, // union area of all nearer overlapping bbox intersections with the target bbox
+    "foreground_occluder_count": 1, // number of nearer overlapping bboxes that passed the deterministic occlusion test
+    "occlusion_target_overlap_threshold": 0.1, // minimum intersection_area / target_bbox_area required to become an occlusion candidate
 
-    "occlusion_level": "slightly occluded", // compatibility bucket derived from visible_occlusion_ratio, not produced by the VLM
+    "occlusion_level": "slightly occluded", // compatibility bucket derived from bbox-overlap deterministic visible_occlusion_ratio
     "occlusion_penalty_p_o": 0.14, // compatibility penalty derived as 0.5 * visible_occlusion_ratio
     "reweighted_detection_score_r": 0.79, // detector confidence reweighted by the deterministic visible occlusion penalty
 
@@ -992,7 +1098,7 @@ Each record represents the final object-level metadata of one object.
     "view_id": "view_00000" // view id to which this object belongs
 }
 ```
-`visible_occlusion_ratio` is a **visible-level** metric, not an amodal occlusion percentage. It only measures how much of the object's currently visible boundary and immediate exterior neighborhood is pressed against **other detected nearer objects** in the same frame. Background pixels, plain walls, image-border truncation, and farther objects do **not** count as occlusion in this score. The categorical `occlusion_level` field is kept only as a compatibility view derived from the continuous ratio.
+`visible_occlusion_ratio` is now a **bbox coverage ratio by nearer detected objects**, not an amodal occlusion percentage and not a mask-boundary contact metric. It measures the union of overlap regions between the target bbox and other nearer kept bboxes in the same frame, divided by the target bbox area. The categorical `occlusion_level` field is still a compatibility bucket derived from that continuous ratio.
 **The `surrounding_context` structure is as follows:**
 ```json
 {

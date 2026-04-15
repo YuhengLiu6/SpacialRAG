@@ -8,6 +8,10 @@ def test_object_crop_prompt_version_bumped_for_yolo_hard_constraint():
     assert VLMCaptioner._object_crop_prompt_version() == "object_crop_descriptor_builder_aligned_v5"
 
 
+def test_object_crop_prompt_version_differs_when_occlusion_requested():
+    assert VLMCaptioner._object_crop_prompt_version(include_occlusion=True) != VLMCaptioner._object_crop_prompt_version()
+
+
 def test_batched_object_prompt_version_bumped_for_text_only_batch_schema():
     assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_textonly_v3"
 
@@ -35,6 +39,14 @@ def test_crop_response_schema_contains_required_fields():
     assert "long_description" in props
     assert "attributes" in props
     assert "distance_from_camera_m" in props
+
+
+def test_crop_response_schema_includes_occlusion_when_requested():
+    schema = VLMCaptioner._object_crop_response_schema(include_occlusion=True)
+    required = schema["schema"]["required"]
+    assert "occlusion_level" in required
+    props = schema["schema"]["properties"]
+    assert "occlusion_level" in props
 
 
 def test_batched_detected_object_schema_is_text_only():
@@ -128,6 +140,18 @@ def test_object_crop_cache_path_groups_by_view_directory(tmp_path):
     assert rel_parts[3] == "view_00007"
     assert cache_path.name.startswith("obj_003_crop__")
     assert cache_path.name.endswith(".crop.json")
+
+
+def test_object_crop_cache_path_differs_when_occlusion_requested(tmp_path):
+    crop_path = tmp_path / "geometry" / "view_00007" / "objects" / "obj_003_crop.jpg"
+    crop_path.parent.mkdir(parents=True, exist_ok=True)
+    crop_path.write_bytes(b"fake-image")
+    captioner = VLMCaptioner(use_cache=False, object_use_cache=True, object_cache_dir=str(tmp_path / "vlm_object_cache"))
+
+    default_cache_path = captioner._object_crop_cache_path(str(crop_path))
+    occlusion_cache_path = captioner._object_crop_cache_path(str(crop_path), include_occlusion=True)
+
+    assert default_cache_path != occlusion_cache_path
 
 
 def test_angle_split_prompt_mentions_new_geometry_and_scene_attributes():
