@@ -532,6 +532,63 @@ def _write_object_r_scores_pre_threshold_csv(path: Path, rows: Sequence[Mapping[
     return int(len(list(rows)))
 
 
+def _load_object_r_scores_pre_threshold_rows(path: Path) -> Dict[int, List[Dict[str, Any]]]:
+    if not path.exists() or not path.is_file():
+        return {}
+    grouped_rows: Dict[int, List[Dict[str, Any]]] = {}
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            try:
+                entry_id = int(row.get("entry_id", ""))
+            except Exception:
+                continue
+            grouped_rows.setdefault(entry_id, []).append(dict(row))
+    return grouped_rows
+
+
+def _store_object_r_scores_pre_threshold_rows(
+    store: Dict[int, List[Dict[str, Any]]],
+    *,
+    entry_id: int,
+    rows: Sequence[Mapping[str, Any]],
+) -> None:
+    store[int(entry_id)] = [dict(row) for row in list(rows)]
+
+
+def _flatten_object_r_scores_pre_threshold_rows(
+    rows_by_entry_id: Mapping[int, Sequence[Mapping[str, Any]]],
+) -> List[Dict[str, Any]]:
+    flattened: List[Dict[str, Any]] = []
+    for entry_id in sorted(int(key) for key in rows_by_entry_id.keys()):
+        flattened.extend(dict(row) for row in list(rows_by_entry_id.get(entry_id, [])))
+    return flattened
+
+
+def _rebuild_object_r_scores_pre_threshold_rows_from_records(
+    object_records: Sequence[Mapping[str, Any]],
+    *,
+    r_threshold: Optional[float],
+) -> List[Dict[str, Any]]:
+    rebuilt_rows: List[Dict[str, Any]] = []
+    for row in list(object_records or []):
+        try:
+            entry_id = int(row.get("entry_id", -1))
+            frame_id = int(row.get("frame_id", entry_id))
+        except Exception:
+            continue
+        rebuilt_rows.append(
+            _build_object_r_scores_pre_threshold_row(
+                row,
+                entry_id=entry_id,
+                frame_id=frame_id,
+                file_name=str(row.get("file_name") or ""),
+                r_threshold=r_threshold,
+            )
+        )
+    return rebuilt_rows
+
+
 def _write_object_r_scores_csv(path: Path, object_metadata_records: Sequence[Mapping[str, Any]]) -> int:
     rows = [
         {
@@ -880,6 +937,26 @@ def _make_thread_local_captioner_getter(
         return captioner
 
     return _get_captioner
+
+
+def _summarize_geometry_outcomes_from_object_groups(
+    object_groups_by_entry_id: Mapping[int, Sequence[Tuple[Dict, np.ndarray, np.ndarray]]],
+) -> Tuple[int, int]:
+    geometry_ok_count = 0
+    geometry_fallback_count = 0
+    for _entry_id, groups in object_groups_by_entry_id.items():
+        rows = [dict(item[0]) for item in list(groups or []) if item]
+        if not rows:
+            continue
+        sources = {str(row.get("geometry_source") or "").strip() for row in rows if isinstance(row, dict)}
+        sources.discard("")
+        if not sources:
+            continue
+        if any(source != "vlm_fallback" for source in sources):
+            geometry_ok_count += 1
+        else:
+            geometry_fallback_count += 1
+    return int(geometry_ok_count), int(geometry_fallback_count)
 
 
 def _run_parallel_vlm_stage(
@@ -1654,7 +1731,7 @@ def _build_spatial_database_core(
     except ModuleNotFoundError as exc:
         raise RuntimeError(
             "Failed to import Embedder dependencies. "
-            "Ensure the current Python environment has torch/open_clip installed."
+            "Ensure the current Python environment has torch plus either open_clip or clip installed."
         ) from exc
 
     try:
@@ -1877,7 +1954,9 @@ def _build_spatial_database_core(
     file_name_to_entry_id: Dict[str, int] = dict(resume_state["file_name_to_entry_id"])
     failures: List[Dict] = []
     timing_records: List[Dict] = []
-    pre_threshold_r_score_rows: List[Dict[str, Any]] = []
+    pre_threshold_r_score_rows_by_entry_id: Dict[int, List[Dict[str, Any]]] = _load_object_r_scores_pre_threshold_rows(
+        output_root / "object_r_scores_pre_threshold.csv"
+    )
 
     try:
         if tour_mode == "full_house":
@@ -2211,15 +2290,19 @@ def _build_spatial_database_core(
                     raw_vlm_output = str(geometry_result.selector_raw_json or "")
                     raw_api_source = str(geometry_result.selector_source or "")
                     raw_api_response = geometry_result.selector_raw_api_response
-                    pre_threshold_r_score_rows.extend(
-                        _build_object_r_scores_pre_threshold_row(
-                            row,
-                            entry_id=int(entry_id),
-                            frame_id=int(frame_idx),
-                            file_name=file_name,
-                            r_threshold=r_threshold,
-                        )
-                        for row in geometry_object_rows
+                    _store_object_r_scores_pre_threshold_rows(
+                        pre_threshold_r_score_rows_by_entry_id,
+                        entry_id=int(entry_id),
+                        rows=[
+                            _build_object_r_scores_pre_threshold_row(
+                                row,
+                                entry_id=int(entry_id),
+                                frame_id=int(frame_idx),
+                                file_name=file_name,
+                                r_threshold=r_threshold,
+                            )
+                            for row in geometry_object_rows
+                        ],
                     )
                     (
                         geometry_object_rows,
@@ -2632,7 +2715,7 @@ def _build_spatial_database_core(
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
                         entry_object_records.append((record, obj_emb_short, obj_emb_long))
-                        pre_threshold_r_score_rows.append(
+                        pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                             _build_object_r_scores_pre_threshold_row(
                                 record,
                                 entry_id=int(entry_id),
@@ -2704,7 +2787,7 @@ def _build_spatial_database_core(
                         depth_margin_delta=None,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
-                    pre_threshold_r_score_rows.append(
+                    pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                         _build_object_r_scores_pre_threshold_row(
                             record,
                             entry_id=int(entry_id),
@@ -2963,15 +3046,19 @@ def _build_spatial_database_core(
                         planned_entry_id = (
                             int(existing_entry_id) if existing_entry_id is not None else int(len(metadata_records))
                         )
-                        pre_threshold_r_score_rows.extend(
-                            _build_object_r_scores_pre_threshold_row(
-                                row,
-                                entry_id=planned_entry_id,
-                                frame_id=int(frame_idx),
-                                file_name=file_name,
-                                r_threshold=r_threshold,
-                            )
-                            for row in geometry_object_rows
+                        _store_object_r_scores_pre_threshold_rows(
+                            pre_threshold_r_score_rows_by_entry_id,
+                            entry_id=planned_entry_id,
+                            rows=[
+                                _build_object_r_scores_pre_threshold_row(
+                                    row,
+                                    entry_id=planned_entry_id,
+                                    frame_id=int(frame_idx),
+                                    file_name=file_name,
+                                    r_threshold=r_threshold,
+                                )
+                                for row in geometry_object_rows
+                            ],
                         )
                         (
                             geometry_object_rows,
@@ -3450,7 +3537,7 @@ def _build_spatial_database_core(
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
                         )
                         entry_object_records.append((record, obj_emb_short, obj_emb_long))
-                        pre_threshold_r_score_rows.append(
+                        pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                             _build_object_r_scores_pre_threshold_row(
                                 record,
                                 entry_id=int(entry_id),
@@ -3522,7 +3609,7 @@ def _build_spatial_database_core(
                         depth_margin_delta=None,
                     )
                     entry_object_records.append((record, obj_emb_short, obj_emb_long))
-                    pre_threshold_r_score_rows.append(
+                    pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                         _build_object_r_scores_pre_threshold_row(
                             record,
                             entry_id=int(entry_id),
@@ -3688,9 +3775,17 @@ def _build_spatial_database_core(
         np.save(output_root / "object_text_emb_long.npy", object_arr_long)
         pre_threshold_r_scores_path = output_root / "object_r_scores_pre_threshold.csv"
         final_r_scores_path = output_root / "object_r_scores.csv"
+        final_pre_threshold_r_score_rows = _flatten_object_r_scores_pre_threshold_rows(
+            pre_threshold_r_score_rows_by_entry_id
+        )
+        if not final_pre_threshold_r_score_rows and object_metadata_records:
+            final_pre_threshold_r_score_rows = _rebuild_object_r_scores_pre_threshold_rows_from_records(
+                object_metadata_records,
+                r_threshold=r_threshold,
+            )
         report["object_r_scores_pre_threshold_count"] = _write_object_r_scores_pre_threshold_csv(
             pre_threshold_r_scores_path,
-            pre_threshold_r_score_rows,
+            final_pre_threshold_r_score_rows,
         )
         report["object_r_scores_count"] = _write_object_r_scores_csv(
             final_r_scores_path,
@@ -3759,6 +3854,44 @@ def _build_spatial_database_core(
             1
             for row in metadata_records
             if str(row.get("parse_status") or "") not in {"ok", "fallback"}
+        )
+        geometry_ok_count, geometry_fallback_count = _summarize_geometry_outcomes_from_object_groups(
+            object_groups_by_entry_id
+        )
+        report["geometry_ok_count"] = int(geometry_ok_count)
+        report["geometry_fallback_count"] = int(geometry_fallback_count)
+        report["geometry_objects_before_r_threshold"] = sum(
+            1 for row in final_pre_threshold_r_score_rows if str(row.get("object_route") or "") == "geometry"
+        )
+        report["geometry_objects_after_r_threshold"] = sum(
+            1 for row in object_metadata_records if str(row.get("geometry_source") or "") != "vlm_fallback"
+        )
+        report["geometry_objects_filtered_by_r_threshold"] = max(
+            0,
+            int(report["geometry_objects_before_r_threshold"]) - int(report["geometry_objects_after_r_threshold"]),
+        )
+        geometry_before_by_entry: Dict[int, int] = {}
+        for row in final_pre_threshold_r_score_rows:
+            if str(row.get("object_route") or "") != "geometry":
+                continue
+            try:
+                entry_id = int(row.get("entry_id", -1))
+            except Exception:
+                continue
+            geometry_before_by_entry[entry_id] = int(geometry_before_by_entry.get(entry_id, 0)) + 1
+        geometry_after_by_entry: Dict[int, int] = {}
+        for row in object_metadata_records:
+            if str(row.get("geometry_source") or "") == "vlm_fallback":
+                continue
+            try:
+                entry_id = int(row.get("entry_id", -1))
+            except Exception:
+                continue
+            geometry_after_by_entry[entry_id] = int(geometry_after_by_entry.get(entry_id, 0)) + 1
+        report["frames_all_geometry_objects_filtered"] = sum(
+            1
+            for entry_id, before_count in geometry_before_by_entry.items()
+            if int(before_count) > 0 and int(geometry_after_by_entry.get(entry_id, 0)) == 0
         )
         report["total_left_bucket_objects"] = sum(
             1 for row in object_metadata_records if str(row.get("angle_bucket") or "") == "left"
