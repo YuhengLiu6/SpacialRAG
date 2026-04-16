@@ -17,6 +17,7 @@ from spatial_rag.config import (
     FOV,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
+    NANOSAM_CHECKPOINT_PATH,
     NANOSAM_DECODER_PATH,
     NANOSAM_ENCODER_PATH,
     OCCLUSION_REWEIGHT_B,
@@ -263,68 +264,118 @@ class NanoSAMMaskRefiner:
         self,
         image_encoder: Optional[str] = None,
         mask_decoder: Optional[str] = None,
+        checkpoint_path: Optional[str] = None,
     ):
+        self._predictor_backend = ""
+        trt_error: Optional[BaseException] = None
+
         try:
             from nanosam.utils.predictor import Predictor  # type: ignore
         except Exception as exc:
-            raise GeometryPipelineUnavailable(
-                "NanoSAM predictor import failed. NanoSAM requires its Python package plus torch2trt/TensorRT support. "
+            trt_error = GeometryPipelineUnavailable(
+                "NanoSAM TensorRT predictor import failed. NanoSAM TensorRT mode requires torch2trt/TensorRT support. "
                 f"Original error: {type(exc).__name__}: {exc}"
+            )
+        else:
+            encoder_path = str(image_encoder or NANOSAM_ENCODER_PATH or "").strip()
+            decoder_path = str(mask_decoder or NANOSAM_DECODER_PATH or "").strip()
+            try:
+                if not encoder_path or not decoder_path:
+                    raise GeometryPipelineUnavailable(
+                        "NanoSAM requires NANOSAM_ENCODER_PATH and NANOSAM_DECODER_PATH engine paths."
+                    )
+                if not Path(encoder_path).exists():
+                    raise GeometryPipelineUnavailable(f"NanoSAM image encoder not found: {encoder_path}")
+                if not Path(decoder_path).exists():
+                    raise GeometryPipelineUnavailable(f"NanoSAM mask decoder not found: {decoder_path}")
+                _validate_tensorrt_engine(encoder_path, "image encoder")
+                _validate_tensorrt_engine(decoder_path, "mask decoder")
+
+                try:
+                    predictor_signature = inspect.signature(Predictor)
+                except Exception:
+                    predictor_signature = None
+                predictor_kwargs: Dict[str, Any]
+                if predictor_signature is not None and "image_encoder_engine" in predictor_signature.parameters:
+                    predictor_kwargs = {
+                        "image_encoder_engine": encoder_path,
+                        "mask_decoder_engine": decoder_path,
+                    }
+                else:
+                    predictor_kwargs = {
+                        "image_encoder": encoder_path,
+                        "mask_decoder": decoder_path,
+                    }
+                self.predictor = Predictor(**predictor_kwargs)
+                self._predictor_backend = "tensorrt"
+                return
+            except Exception as exc:
+                trt_error = exc
+
+        checkpoint_path_str = str(checkpoint_path or NANOSAM_CHECKPOINT_PATH or "").strip()
+        if not checkpoint_path_str:
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. No checkpoint path configured for PyTorch fallback."
+            )
+        if not Path(checkpoint_path_str).exists():
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. NanoSAM checkpoint not found: {checkpoint_path_str}"
+            )
+
+        try:
+            import torch
+            from nanosam.mobile_sam import sam_model_registry  # type: ignore
+            from nanosam.mobile_sam.predictor import SamPredictor  # type: ignore
+        except Exception as exc:
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. PyTorch fallback import failed: {type(exc).__name__}: {exc}"
             ) from exc
 
-        encoder_path = str(image_encoder or NANOSAM_ENCODER_PATH or "").strip()
-        decoder_path = str(mask_decoder or NANOSAM_DECODER_PATH or "").strip()
-        if not encoder_path or not decoder_path:
-            raise GeometryPipelineUnavailable(
-                "NanoSAM requires NANOSAM_ENCODER_PATH and NANOSAM_DECODER_PATH engine paths."
-            )
-        if not Path(encoder_path).exists():
-            raise GeometryPipelineUnavailable(f"NanoSAM image encoder not found: {encoder_path}")
-        if not Path(decoder_path).exists():
-            raise GeometryPipelineUnavailable(f"NanoSAM mask decoder not found: {decoder_path}")
-        _validate_tensorrt_engine(encoder_path, "image encoder")
-        _validate_tensorrt_engine(decoder_path, "mask decoder")
-
         try:
-            try:
-                predictor_signature = inspect.signature(Predictor)
-            except Exception:
-                predictor_signature = None
-            predictor_kwargs: Dict[str, Any]
-            if predictor_signature is not None and "image_encoder_engine" in predictor_signature.parameters:
-                predictor_kwargs = {
-                    "image_encoder_engine": encoder_path,
-                    "mask_decoder_engine": decoder_path,
-                }
-            else:
-                predictor_kwargs = {
-                    "image_encoder": encoder_path,
-                    "mask_decoder": decoder_path,
-                }
-            self.predictor = Predictor(**predictor_kwargs)
+            model = sam_model_registry["vit_t"](checkpoint=checkpoint_path_str)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model.to(device=device)
+            model.eval()
+            self.predictor = SamPredictor(model)
+            self._predictor_backend = "pytorch"
         except Exception as exc:
-            raise GeometryPipelineUnavailable(f"NanoSAM Predictor init failed: {exc}") from exc
+            raise GeometryPipelineUnavailable(
+                f"NanoSAM TensorRT init failed: {trt_error}. PyTorch fallback init failed: {type(exc).__name__}: {exc}"
+            ) from exc
 
     def segment(self, image_rgb: np.ndarray, bbox_xyxy: Sequence[float]) -> np.ndarray:
-        try:
-            from PIL import Image
-        except Exception as exc:
-            raise GeometryPipelineUnavailable("Pillow is required for NanoSAM segmentation.") from exc
-
         try:
             import torch
         except Exception:
             torch = None  # type: ignore
 
-        self.predictor.set_image(Image.fromarray(np.asarray(image_rgb, dtype=np.uint8)))
         x1, y1, x2, y2 = [float(v) for v in bbox_xyxy[:4]]
-        point_coords = np.asarray([[x1, y1], [x2, y2]], dtype=np.float32)
-        point_labels = np.asarray([2, 3], dtype=np.int32)
-        prediction = self.predictor.predict(point_coords, point_labels)
-        if isinstance(prediction, tuple):
-            mask = prediction[0]
+        image_rgb_uint8 = np.asarray(image_rgb, dtype=np.uint8)
+
+        if self._predictor_backend == "tensorrt":
+            try:
+                from PIL import Image
+            except Exception as exc:
+                raise GeometryPipelineUnavailable("Pillow is required for NanoSAM TensorRT segmentation.") from exc
+
+            self.predictor.set_image(Image.fromarray(image_rgb_uint8))
+            point_coords = np.asarray([[x1, y1], [x2, y2]], dtype=np.float32)
+            point_labels = np.asarray([2, 3], dtype=np.int32)
+            prediction = self.predictor.predict(point_coords, point_labels)
+            if isinstance(prediction, tuple):
+                mask = prediction[0]
+            else:
+                mask = prediction
         else:
-            mask = prediction
+            self.predictor.set_image(image_rgb_uint8)
+            prediction = self.predictor.predict(
+                box=np.asarray([x1, y1, x2, y2], dtype=np.float32),
+                multimask_output=False,
+            )
+            if isinstance(prediction, tuple):
+                mask = prediction[0]
+            else:
+                mask = prediction
         if torch is not None and isinstance(mask, torch.Tensor):
             mask = mask.detach().cpu().numpy()
         mask_arr = np.asarray(mask)
