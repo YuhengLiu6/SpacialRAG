@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import cv2
 import numpy as np
 
+from spatial_rag.config import OCCLUSION_TARGET_OVERLAP_THRESHOLD
 from spatial_rag.spatial_db_builder import (
     _apply_batched_description_result_to_geometry,
     _build_object_r_scores_pre_threshold_row,
@@ -250,7 +251,7 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         depth_margin_delta=0.08,
         occluding_overlap_pixel_count=20,
         foreground_occluder_count=1,
-        occlusion_target_overlap_threshold=0.1,
+        occlusion_target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
     )
 
     assert record["orientation"] == 90
@@ -286,7 +287,7 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
     assert record["depth_margin_delta"] == 0.08
     assert record["occluding_overlap_pixel_count"] == 20
     assert record["foreground_occluder_count"] == 1
-    assert record["occlusion_target_overlap_threshold"] == 0.1
+    assert record["occlusion_target_overlap_threshold"] == OCCLUSION_TARGET_OVERLAP_THRESHOLD
     assert record["view_type"] == "living room"
     assert record["geometry_source"] == "vlm_fallback"
 
@@ -343,7 +344,7 @@ def test_apply_batched_description_result_to_geometry_preserves_deterministic_oc
                 "visible_occlusion_ratio": 0.4,
                 "occluding_overlap_pixel_count": 18,
                 "foreground_occluder_count": 1,
-                "occlusion_target_overlap_threshold": 0.1,
+                "occlusion_target_overlap_threshold": OCCLUSION_TARGET_OVERLAP_THRESHOLD,
             }
         ],
         timings={},
@@ -374,7 +375,7 @@ def test_apply_batched_description_result_to_geometry_preserves_deterministic_oc
     assert row["visible_occlusion_ratio"] == 0.4
     assert row["occluding_overlap_pixel_count"] == 18
     assert row["foreground_occluder_count"] == 1
-    assert row["occlusion_target_overlap_threshold"] == 0.1
+    assert row["occlusion_target_overlap_threshold"] == OCCLUSION_TARGET_OVERLAP_THRESHOLD
 
 
 def test_filter_geometry_rows_by_r_threshold_drops_strictly_lower_scores():

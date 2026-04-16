@@ -88,3 +88,7 @@ NANOSAM_ENCODER_PATH = os.environ.get("NANOSAM_ENCODER_PATH", "data/resnet18_ima
 NANOSAM_DECODER_PATH = os.environ.get("NANOSAM_DECODER_PATH", "data/mobile_sam_mask_decoder.engine")
 NANOSAM_CHECKPOINT_PATH = os.environ.get("NANOSAM_CHECKPOINT_PATH", "models/nanosam/assets/mobile_sam.pt")
 DEPTH_PRO_MODEL_PATH = os.environ.get("DEPTH_PRO_MODEL_PATH", "models/depth_pro/depth_pro.pt")
+
+# Sequential spectral experiment defaults
+DEFAULT_CROSS_AFFINITY_MIN = 0.25
+DEFAULT_DISTANCE_GATE_DSQ0 = 2.0

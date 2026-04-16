@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import spatial_rag.object_geometry_pipeline as object_geometry_pipeline_module
 
+from spatial_rag.config import BBOX_CONF_THRESHOLD, OCCLUSION_TARGET_OVERLAP_THRESHOLD
 from spatial_rag.object_geometry_pipeline import (
     NanoSAMMaskRefiner,
     ObjectGeometryPipeline,
@@ -395,7 +396,7 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     assert row["object_depth_median"] == 2.0
     assert row["occluding_overlap_pixel_count"] == 0
     assert row["foreground_occluder_count"] == 0
-    assert row["occlusion_target_overlap_threshold"] == 0.1
+    assert row["occlusion_target_overlap_threshold"] == OCCLUSION_TARGET_OVERLAP_THRESHOLD
     assert row["occlusion_level"] == "fully visible"
     assert row["occlusion_penalty_p_o"] == 0.0
     assert row["reweighted_detection_score_r"] == compute_reweighted_detection_score_from_penalty(0.92, 0.0)
@@ -537,7 +538,7 @@ def test_object_geometry_pipeline_writes_filtered_detection_artifacts_for_low_co
     stored = json.loads(filtered_path.read_text(encoding="utf-8"))
     assert len(stored) == 1
     assert stored[0]["filter_reason"] == "bbox_conf_threshold"
-    assert stored[0]["bbox_conf_threshold"] == 0.3
+    assert stored[0]["bbox_conf_threshold"] == BBOX_CONF_THRESHOLD
     assert stored[0]["confidence"] == 0.15
 
 
@@ -617,7 +618,7 @@ def test_object_geometry_pipeline_visible_occlusion_uses_nearer_overlapping_bbox
     assert left_row["nearer_ring_overlap_ratio"] is None
     assert left_row["occluding_overlap_pixel_count"] > 0
     assert left_row["foreground_occluder_count"] == 1
-    assert left_row["occlusion_target_overlap_threshold"] == 0.1
+    assert left_row["occlusion_target_overlap_threshold"] == OCCLUSION_TARGET_OVERLAP_THRESHOLD
     assert left_row["occlusion_penalty_p_o"] == 0.5 * left_row["visible_occlusion_ratio"]
     assert left_row["reweighted_detection_score_r"] == compute_reweighted_detection_score_from_penalty(
         left_row["detector_confidence"],

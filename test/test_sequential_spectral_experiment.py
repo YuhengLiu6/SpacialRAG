@@ -5,6 +5,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from spatial_rag.config import (
+    DEFAULT_CROSS_AFFINITY_MIN as CONFIG_DEFAULT_CROSS_AFFINITY_MIN,
+    DEFAULT_DISTANCE_GATE_DSQ0 as CONFIG_DEFAULT_DISTANCE_GATE_DSQ0,
+)
 import spatial_rag.sequential_spectral_experiment as sequential_spectral_experiment
 from spatial_rag.sequential_spectral_experiment import (
     DEFAULT_DBSCAN_MIN_SAMPLES,
@@ -341,9 +345,18 @@ def test_full_bipartite_affinity_uses_lower_default_cross_affinity_threshold():
 
     full_affinity = _full_bipartite_affinity(cross_affinity)
 
-    assert np.isclose(DEFAULT_CROSS_AFFINITY_MIN, 0.25)
+    assert np.isclose(DEFAULT_CROSS_AFFINITY_MIN, CONFIG_DEFAULT_CROSS_AFFINITY_MIN)
     assert np.isclose(full_affinity[2, 0], 0.30)
     assert np.isclose(full_affinity[2, 1], 0.0)
+
+
+def test_parse_args_uses_config_defaults_for_cross_affinity_and_distance_gate():
+    args = sequential_spectral_experiment._parse_args([])
+
+    assert np.isclose(DEFAULT_CROSS_AFFINITY_MIN, CONFIG_DEFAULT_CROSS_AFFINITY_MIN)
+    assert np.isclose(sequential_spectral_experiment.DEFAULT_DISTANCE_GATE_DSQ0, CONFIG_DEFAULT_DISTANCE_GATE_DSQ0)
+    assert np.isclose(args.min_cross_affinity, CONFIG_DEFAULT_CROSS_AFFINITY_MIN)
+    assert np.isclose(args.distance_gate_dsq0, CONFIG_DEFAULT_DISTANCE_GATE_DSQ0)
 
 
 def test_run_capped_sequential_spectral_clustering_caps_eigengap_to_cc_plus_two(monkeypatch):

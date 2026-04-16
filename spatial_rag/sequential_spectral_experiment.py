@@ -15,6 +15,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, laplacian
 
+from spatial_rag.config import DEFAULT_CROSS_AFFINITY_MIN, DEFAULT_DISTANCE_GATE_DSQ0
 from spatial_rag.object_index import load_object_db
 from spatial_rag.object_instance_clustering import (
     _estimate_dbscan_eps,
@@ -41,10 +42,8 @@ DEFAULT_WEIGHT_TEXT = 0.70
 DEFAULT_WEIGHT_GLOBAL_GEO = 0.20
 DEFAULT_WEIGHT_POLAR = 0.10
 DEFAULT_GLOBAL_SIGMA_M = 2.0
-DEFAULT_CROSS_AFFINITY_MIN = 0.25
 DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY = 0.75
 DEFAULT_SIMILARITY_MODE = "cosine_geo_gate"
-DEFAULT_DISTANCE_GATE_DSQ0 = 2.0
 DEFAULT_DISTANCE_GATE_DSQ0_SWEEP = (0.5, 1.0, 2.0, 4.0, 8.0)
 DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS = 2
 DEFAULT_DBSCAN_MIN_SAMPLES = 2

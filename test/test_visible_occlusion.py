@@ -1,5 +1,6 @@
 import math
 
+from spatial_rag.config import OCCLUSION_TARGET_OVERLAP_THRESHOLD
 from spatial_rag.visible_occlusion import (
     compute_visible_occlusion_metrics,
     visible_occlusion_ratio_to_level,
@@ -17,7 +18,7 @@ def test_visible_occlusion_zero_when_no_other_objects_overlap_enough():
                 "distance_from_camera_m": 1.5,
             }
         ],
-        target_overlap_threshold=0.1,
+        target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
         depth_margin_delta=0.0,
     )
 
@@ -36,7 +37,7 @@ def test_visible_occlusion_positive_for_nearer_overlapping_object():
                 "distance_from_camera_m": 1.5,
             }
         ],
-        target_overlap_threshold=0.1,
+        target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
         depth_margin_delta=0.0,
     )
 
@@ -56,7 +57,7 @@ def test_visible_occlusion_ignores_farther_overlapping_object():
                 "distance_from_camera_m": 2.6,
             }
         ],
-        target_overlap_threshold=0.1,
+        target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
         depth_margin_delta=0.0,
     )
 
@@ -76,7 +77,7 @@ def test_visible_occlusion_respects_target_overlap_threshold_boundary():
                 "distance_from_camera_m": 1.5,
             }
         ],
-        target_overlap_threshold=0.1,
+        target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
         depth_margin_delta=0.0,
     )
 
@@ -98,7 +99,7 @@ def test_visible_occlusion_unions_multiple_foreground_occluders_without_double_c
                 "distance_from_camera_m": 1.6,
             },
         ],
-        target_overlap_threshold=0.1,
+        target_overlap_threshold=OCCLUSION_TARGET_OVERLAP_THRESHOLD,
         depth_margin_delta=0.0,
     )
 
@@ -113,3 +114,13 @@ def test_visible_occlusion_bucket_and_penalty_mapping_are_continuous_derivatives
     assert visible_occlusion_ratio_to_level(0.4) == "moderately occluded"
     assert visible_occlusion_ratio_to_level(0.8) == "heavily occluded"
     assert math.isclose(visible_occlusion_ratio_to_penalty(0.6), 0.3)
+
+
+def test_visible_occlusion_default_threshold_comes_from_config():
+    metrics = compute_visible_occlusion_metrics(
+        target_bbox_xyxy=[10, 10, 30, 30],
+        target_depth_m=2.0,
+        other_objects=[],
+    )
+
+    assert metrics["occlusion_target_overlap_threshold"] == OCCLUSION_TARGET_OVERLAP_THRESHOLD

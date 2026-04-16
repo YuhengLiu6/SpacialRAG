@@ -4,6 +4,8 @@ from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from spatial_rag.config import OCCLUSION_TARGET_OVERLAP_THRESHOLD
+
 
 def _safe_float(value: Any) -> Optional[float]:
     try:
@@ -96,7 +98,7 @@ def compute_visible_occlusion_metrics(
     target_depth_m: Any,
     other_objects: Sequence[Mapping[str, Any]],
     *,
-    target_overlap_threshold: float = 0.1,
+    target_overlap_threshold: float = OCCLUSION_TARGET_OVERLAP_THRESHOLD,
     depth_margin_delta: float = 0.0,
 ) -> Dict[str, Any]:
     target_bbox = _bbox_xyxy_ints(target_bbox_xyxy)
