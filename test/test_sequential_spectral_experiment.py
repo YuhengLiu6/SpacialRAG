@@ -7,6 +7,7 @@ import numpy as np
 
 import spatial_rag.sequential_spectral_experiment as sequential_spectral_experiment
 from spatial_rag.sequential_spectral_experiment import (
+    DEFAULT_DBSCAN_MIN_SAMPLES,
     DEFAULT_CROSS_AFFINITY_MIN,
     DEFAULT_DISTANCE_GATE_DSQ0_SWEEP,
     DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS,
@@ -139,6 +140,15 @@ def _make_sequence_db(tmp_path):
     return db_dir
 
 
+def _spectral_result(labels, embedding):
+    label_values = np.asarray(labels, dtype=np.int32)
+    return {
+        "labels": label_values,
+        "spectral_embedding": np.asarray(embedding, dtype=np.float32),
+        "n_clusters": len(set(label_values.tolist())),
+    }
+
+
 def test_load_sequence_objects_respects_fixed_view_order(tmp_path):
     db_dir = _make_sequence_db(tmp_path)
     sequence = load_sequence_objects(str(db_dir))
@@ -195,7 +205,7 @@ def test_store_selected_view_images_skips_rows_without_bbox_or_object_id(tmp_pat
     assert overlay_path.exists()
 
 
-def test_apply_incremental_step_appends_best_candidate_and_spawns_tail():
+def test_apply_incremental_step_dbscan_reuses_memory_cluster_for_attached_object():
     memory_row = {
         "object_global_id": 1,
         "view_id": "view_00019",
@@ -236,38 +246,43 @@ def test_apply_incremental_step_appends_best_candidate_and_spawns_tail():
     ]
     memory_clusters = [_build_cluster(0, [memory_row])]
     cross_affinity = np.asarray([[0.9], [0.1]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
+    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
     result = apply_incremental_step(
         memory_clusters,
         current_rows,
         cross_affinity=cross_affinity,
-        cross_details=[[], []],
+        cross_details=[[_affinity_detail(0.9)], [_affinity_detail(0.1)]],
         full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 0, 1], dtype=np.int32)},
+        spectral_result=_spectral_result([0, 0, 1], [[0.0], [0.02], [1.0]]),
         step_index=1,
         next_cluster_id=1,
+        dbscan_eps=0.05,
+        dbscan_min_samples=2,
     )
 
-    assert result["num_appended"] == 1
-    assert result["num_new_tail_clusters"] == 1
+    assert result["num_appended"] == 0
+    assert result["num_dbscan_clusters"] == 2
+    assert result["num_noise_singletons"] == 1
     cluster_ids = [cluster["cluster_id"] for cluster in result["memory_clusters"]]
     assert cluster_ids == [0, 1]
     merged = result["memory_clusters"][0]
     assert merged["member_object_ids"] == [1, 2]
-    assert result["tail_spawn_cases"][0]["object_ids"] == [3]
     diagnostics_by_object = {
         item["object_global_id"]: item for item in result["assignment_diagnostics"]
     }
-    assert diagnostics_by_object[2]["assignment_reason"] == "component_best_append"
+    assert diagnostics_by_object[2]["assignment_reason"] == "dbscan_attach"
     assert diagnostics_by_object[2]["similarity_detail_status"] == "assigned_match"
     assert diagnostics_by_object[2]["cluster_id_at_assignment"] == 0
-    assert diagnostics_by_object[3]["assignment_reason"] == "current_only_component"
-    assert diagnostics_by_object[3]["similarity_detail_status"] == "best_rejected_candidate"
+    assert diagnostics_by_object[2]["similarity_reference_cluster_id"] == 0
+    assert diagnostics_by_object[3]["assignment_reason"] == "dbscan_new_cluster"
+    assert diagnostics_by_object[3]["similarity_detail_status"] == "no_candidate_detail"
     assert diagnostics_by_object[3]["cluster_id_at_assignment"] == 1
-    assert diagnostics_by_object[3]["similarity_reference_cluster_id"] == 0
+    assert diagnostics_by_object[3]["similarity_reference_cluster_id"] is None
+    assert result["dbscan_summary"]["dbscan_eps"] == 0.05
+    assert result["dbscan_summary"]["used_auto_eps"] is False
 
 
-def test_apply_incremental_step_merges_memory_clusters_when_same_component():
+def test_apply_incremental_step_dbscan_merges_memory_clusters_under_smallest_id():
     memory_a = {
         "object_global_id": 10,
         "view_id": "view_00019",
@@ -292,38 +307,33 @@ def test_apply_incremental_step_merges_memory_clusters_when_same_component():
         "relative_bearing_deg": 1.0,
         "relative_height_from_camera_m": 0.0,
     }
-    current = {
-        "object_global_id": 12,
-        "view_id": "view_00058",
-        "label": "chair",
-        "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
-        "estimated_global_x": 0.05,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.05,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 0.0,
-        "relative_height_from_camera_m": 0.0,
-    }
     memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
-    cross_affinity = np.asarray([[0.9, 0.85]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
+    cross_affinity = np.zeros((0, 2), dtype=np.float32)
+    full_affinity = np.asarray(
+        [
+            [1.0, 0.88],
+            [0.88, 1.0],
+        ],
+        dtype=np.float32,
+    )
     result = apply_incremental_step(
         memory_clusters,
-        [current],
+        [],
         cross_affinity=cross_affinity,
-        cross_details=[[]],
+        cross_details=[],
         full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 0, 0], dtype=np.int32)},
+        spectral_result=_spectral_result([0, 0], [[0.0], [0.02]]),
         step_index=2,
         next_cluster_id=2,
+        dbscan_eps=0.05,
     )
 
-    assert result["num_merged_clusters"] == 1
-    assert result["num_appended"] == 1
+    assert result["num_merged_clusters"] == 0
+    assert result["num_merged_memory_groups"] == 1
     assert len(result["memory_clusters"]) == 1
     merged_cluster = result["memory_clusters"][0]
     assert merged_cluster["cluster_id"] == 0
-    assert merged_cluster["member_object_ids"] == [10, 11, 12]
+    assert merged_cluster["member_object_ids"] == [10, 11]
 
 
 def test_full_bipartite_affinity_uses_lower_default_cross_affinity_threshold():
@@ -464,283 +474,7 @@ def _affinity_detail(score: float) -> dict:
     }
 
 
-def test_apply_incremental_step_blocks_same_view_bridge_merge():
-    memory_a = {
-        "object_global_id": 20,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
-        "estimated_global_x": 0.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 0.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    memory_b = {
-        "object_global_id": 21,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([0.98, 0.02], dtype=np.float32),
-        "estimated_global_x": 0.5,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.1,
-        "relative_bearing_deg": 6.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    current = {
-        "object_global_id": 22,
-        "view_id": "view_00024",
-        "label": "wide cabinet view",
-        "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
-        "estimated_global_x": 0.25,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 3.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-
-    memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
-    cross_affinity = np.asarray([[0.91, 0.87]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
-    result = apply_incremental_step(
-        memory_clusters,
-        [current],
-        cross_affinity=cross_affinity,
-        cross_details=[[_affinity_detail(0.91), _affinity_detail(0.87)]],
-        full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 0, 0], dtype=np.int32)},
-        step_index=1,
-        next_cluster_id=2,
-    )
-
-    assert result["num_merged_clusters"] == 0
-    assert result["num_same_view_blocked_components"] == 1
-    assert result["num_appended"] == 1
-    assert result["num_new_tail_clusters"] == 0
-    assert [cluster["cluster_id"] for cluster in result["memory_clusters"]] == [0, 1]
-    assert result["memory_clusters"][0]["member_object_ids"] == [20, 22]
-    assert result["memory_clusters"][1]["member_object_ids"] == [21]
-    block_case = result["same_view_block_cases"][0]
-    assert block_case["blocked_merge_cluster_ids"] == [0, 1]
-    assert block_case["collision_pairs"][0]["shared_view_ids"] == ["view_00019"]
-
-
-def test_apply_incremental_step_same_view_block_competitive_matching():
-    memory_a = {
-        "object_global_id": 30,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
-        "estimated_global_x": 0.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 0.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    memory_b = {
-        "object_global_id": 31,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([0.0, 1.0], dtype=np.float32),
-        "estimated_global_x": 2.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 25.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    current_rows = [
-        {
-            "object_global_id": 32,
-            "view_id": "view_00024",
-            "label": "cabinet left",
-            "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
-            "estimated_global_x": 0.1,
-            "estimated_global_y": 0.0,
-            "estimated_global_z": 0.0,
-            "distance_from_camera_m": 1.0,
-            "relative_bearing_deg": 2.0,
-            "relative_height_from_camera_m": 0.0,
-        },
-        {
-            "object_global_id": 33,
-            "view_id": "view_00024",
-            "label": "cabinet right",
-            "embedding": np.asarray([0.02, 0.98], dtype=np.float32),
-            "estimated_global_x": 1.9,
-            "estimated_global_y": 0.0,
-            "estimated_global_z": 0.0,
-            "distance_from_camera_m": 1.0,
-            "relative_bearing_deg": 22.0,
-            "relative_height_from_camera_m": 0.0,
-        },
-    ]
-
-    memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
-    cross_affinity = np.asarray([[0.95, 0.82], [0.71, 0.93]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
-    result = apply_incremental_step(
-        memory_clusters,
-        current_rows,
-        cross_affinity=cross_affinity,
-        cross_details=[
-            [_affinity_detail(0.95), _affinity_detail(0.82)],
-            [_affinity_detail(0.71), _affinity_detail(0.93)],
-        ],
-        full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 0, 0, 0], dtype=np.int32)},
-        step_index=1,
-        next_cluster_id=2,
-    )
-
-    assert result["num_merged_clusters"] == 0
-    assert result["num_same_view_blocked_components"] == 1
-    assert result["num_appended"] == 2
-    assert result["num_new_tail_clusters"] == 0
-    assert [cluster["member_object_ids"] for cluster in result["memory_clusters"]] == [[30, 32], [31, 33]]
-
-
-def test_apply_incremental_step_same_view_block_records_rejected_tail_detail():
-    memory_a = {
-        "object_global_id": 40,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
-        "estimated_global_x": 0.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 0.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    memory_b = {
-        "object_global_id": 41,
-        "view_id": "view_00019",
-        "label": "cabinet",
-        "embedding": np.asarray([0.0, 1.0], dtype=np.float32),
-        "estimated_global_x": 2.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 20.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    current_rows = [
-        {
-            "object_global_id": 42,
-            "view_id": "view_00024",
-            "label": "cabinet left",
-            "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
-            "estimated_global_x": 0.1,
-            "estimated_global_y": 0.0,
-            "estimated_global_z": 0.0,
-            "distance_from_camera_m": 1.0,
-            "relative_bearing_deg": 1.0,
-            "relative_height_from_camera_m": 0.0,
-        },
-        {
-            "object_global_id": 43,
-            "view_id": "view_00024",
-            "label": "cabinet center",
-            "embedding": np.asarray([0.7, 0.3], dtype=np.float32),
-            "estimated_global_x": 0.8,
-            "estimated_global_y": 0.0,
-            "estimated_global_z": 0.0,
-            "distance_from_camera_m": 1.0,
-            "relative_bearing_deg": 10.0,
-            "relative_height_from_camera_m": 0.0,
-        },
-        {
-            "object_global_id": 44,
-            "view_id": "view_00024",
-            "label": "cabinet right",
-            "embedding": np.asarray([0.01, 0.99], dtype=np.float32),
-            "estimated_global_x": 1.9,
-            "estimated_global_y": 0.0,
-            "estimated_global_z": 0.0,
-            "distance_from_camera_m": 1.0,
-            "relative_bearing_deg": 22.0,
-            "relative_height_from_camera_m": 0.0,
-        },
-    ]
-    memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
-    cross_affinity = np.asarray([[0.95, 0.30], [0.88, 0.55], [0.35, 0.93]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
-    result = apply_incremental_step(
-        memory_clusters,
-        current_rows,
-        cross_affinity=cross_affinity,
-        cross_details=[
-            [_affinity_detail(0.95), _affinity_detail(0.30)],
-            [_affinity_detail(0.88), _affinity_detail(0.55)],
-            [_affinity_detail(0.35), _affinity_detail(0.93)],
-        ],
-        full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 0, 0, 0, 0], dtype=np.int32)},
-        step_index=1,
-        next_cluster_id=2,
-    )
-
-    diagnostics_by_object = {
-        item["object_global_id"]: item for item in result["assignment_diagnostics"]
-    }
-    assert diagnostics_by_object[43]["assignment_reason"] == "tail_after_same_view_hard_block_competition"
-    assert diagnostics_by_object[43]["similarity_detail_status"] == "best_rejected_candidate"
-    assert diagnostics_by_object[43]["similarity_reference_cluster_id"] == 0
-
-
-def test_apply_incremental_step_reattaches_current_only_high_score_match():
-    memory = {
-        "object_global_id": 50,
-        "view_id": "view_00019",
-        "label": "chair",
-        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
-        "estimated_global_x": 0.0,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 0.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    current = {
-        "object_global_id": 51,
-        "view_id": "view_00024",
-        "label": "chair",
-        "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
-        "estimated_global_x": 0.1,
-        "estimated_global_y": 0.0,
-        "estimated_global_z": 0.0,
-        "distance_from_camera_m": 1.0,
-        "relative_bearing_deg": 1.0,
-        "relative_height_from_camera_m": 0.0,
-    }
-    memory_clusters = [_build_cluster(0, [memory])]
-    cross_affinity = np.asarray([[0.82]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
-    result = apply_incremental_step(
-        memory_clusters,
-        [current],
-        cross_affinity=cross_affinity,
-        cross_details=[[_affinity_detail(0.82)]],
-        full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 1], dtype=np.int32)},
-        step_index=1,
-        next_cluster_id=1,
-        current_only_reattach_min_affinity=0.75,
-    )
-
-    assert result["num_appended"] == 1
-    assert result["num_current_only_reattached"] == 1
-    assert result["num_new_tail_clusters"] == 0
-    assert result["memory_clusters"][0]["member_object_ids"] == [50, 51]
-    assert result["append_cases"][0]["reason"] == "current_only_high_score_reattach"
-
-
-def test_apply_incremental_step_keeps_current_only_singleton_when_score_too_low():
+def test_apply_incremental_step_dbscan_creates_singleton_for_current_noise():
     memory = {
         "object_global_id": 60,
         "view_id": "view_00019",
@@ -757,7 +491,7 @@ def test_apply_incremental_step_keeps_current_only_singleton_when_score_too_low(
         "object_global_id": 61,
         "view_id": "view_00024",
         "label": "chair",
-        "embedding": np.asarray([0.0, 1.0], dtype=np.float32),
+        "embedding": np.asarray([0.7, 0.3], dtype=np.float32),
         "estimated_global_x": 5.0,
         "estimated_global_y": 0.0,
         "estimated_global_z": 0.0,
@@ -767,60 +501,92 @@ def test_apply_incremental_step_keeps_current_only_singleton_when_score_too_low(
     }
     memory_clusters = [_build_cluster(0, [memory])]
     cross_affinity = np.asarray([[0.72]], dtype=np.float32)
-    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.35)
+    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.80)
     result = apply_incremental_step(
         memory_clusters,
         [current],
         cross_affinity=cross_affinity,
         cross_details=[[_affinity_detail(0.72)]],
         full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0, 1], dtype=np.int32)},
+        spectral_result=_spectral_result([0, 1], [[0.0], [1.0]]),
         step_index=1,
         next_cluster_id=1,
-        current_only_reattach_min_affinity=0.75,
+        dbscan_eps=0.10,
     )
 
     assert result["num_appended"] == 0
     assert result["num_current_only_reattached"] == 0
-    assert result["num_new_tail_clusters"] == 1
+    assert result["num_dbscan_clusters"] == 2
+    assert result["num_noise_singletons"] == 2
     assert [cluster["member_object_ids"] for cluster in result["memory_clusters"]] == [[60], [61]]
     diagnostic = result["assignment_diagnostics"][0]
     assert diagnostic["object_global_id"] == 61
-    assert diagnostic["assignment_reason"] == "current_only_component"
-    assert diagnostic["similarity_detail_status"] == "best_rejected_candidate"
-    assert diagnostic["similarity_reference_cluster_id"] == 0
+    assert diagnostic["assignment_reason"] == "dbscan_new_cluster"
+    assert diagnostic["similarity_detail_status"] == "no_candidate_detail"
+    assert diagnostic["similarity_reference_cluster_id"] is None
 
 
-def test_apply_incremental_step_marks_no_candidate_detail_when_no_memory_exists():
-    current = {
+def test_apply_incremental_step_dbscan_honors_explicit_eps_override_vs_auto_estimate():
+    memory = {
         "object_global_id": 70,
-        "view_id": "view_00024",
+        "view_id": "view_00019",
         "label": "chair",
         "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
-        "estimated_global_x": 1.0,
+        "estimated_global_x": 0.0,
         "estimated_global_y": 0.0,
-        "estimated_global_z": 1.0,
+        "estimated_global_z": 0.0,
         "distance_from_camera_m": 1.0,
         "relative_bearing_deg": 0.0,
         "relative_height_from_camera_m": 0.0,
     }
-    cross_affinity = np.zeros((1, 0), dtype=np.float32)
+    current = {
+        "object_global_id": 71,
+        "view_id": "view_00024",
+        "label": "chair",
+        "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
+        "estimated_global_x": 0.1,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 1.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_clusters = [_build_cluster(0, [memory])]
+    cross_affinity = np.asarray([[0.91]], dtype=np.float32)
     full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
-    result = apply_incremental_step(
-        [],
+    spectral_result = _spectral_result([0, 0], [[0.0], [0.5]])
+
+    auto_result = apply_incremental_step(
+        memory_clusters,
         [current],
         cross_affinity=cross_affinity,
-        cross_details=[[]],
+        cross_details=[[_affinity_detail(0.91)]],
         full_affinity=full_affinity,
-        spectral_result={"labels": np.asarray([0], dtype=np.int32)},
+        spectral_result=spectral_result,
         step_index=1,
-        next_cluster_id=0,
+        next_cluster_id=1,
+        dbscan_eps=None,
+        dbscan_min_samples=2,
+    )
+    explicit_result = apply_incremental_step(
+        memory_clusters,
+        [current],
+        cross_affinity=cross_affinity,
+        cross_details=[[_affinity_detail(0.91)]],
+        full_affinity=full_affinity,
+        spectral_result=spectral_result,
+        step_index=1,
+        next_cluster_id=1,
+        dbscan_eps=0.10,
+        dbscan_min_samples=2,
     )
 
-    diagnostic = result["assignment_diagnostics"][0]
-    assert diagnostic["assignment_reason"] == "current_only_component"
-    assert diagnostic["similarity_detail_status"] == "no_candidate_detail"
-    assert diagnostic["similarity_reference_cluster_id"] is None
+    assert auto_result["dbscan_summary"]["used_auto_eps"] is True
+    assert explicit_result["dbscan_summary"]["used_auto_eps"] is False
+    assert np.isclose(auto_result["dbscan_summary"]["dbscan_eps"], 0.5)
+    assert np.isclose(explicit_result["dbscan_summary"]["dbscan_eps"], 0.10)
+    assert auto_result["num_dbscan_clusters"] == 1
+    assert explicit_result["num_dbscan_clusters"] == 2
 
 
 def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
@@ -869,9 +635,11 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
         assert (run_dir / f"cocluster_laplacian_step_{step:02d}.png").exists()
     step_report = json.loads((run_dir / "step_01_cluster_update.json").read_text(encoding="utf-8"))
     assert "spectral_summary" in step_report
+    assert "dbscan_summary" in step_report
     assert "spectral_result" not in step_report
     assert "num_connected_components_after_spectral" in step_report
     assert "cocluster_shape" in step_report
+    assert step_report["dbscan_summary"]["dbscan_min_samples"] == DEFAULT_DBSCAN_MIN_SAMPLES
     assert step_report["clusters_after_step"]
     assert set(step_report["clusters_after_step"][0].keys()) == {
         "cluster_id",
@@ -909,12 +677,13 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
     )
     assert len(progression_manifest["steps"]) == 4
     assert progression_manifest["overview_path"].endswith("cumulative_cluster_progression_overview.png")
-    assert "num_current_only_reattached" in experiment_report["step_summaries"][0]
-    assert "num_same_view_blocked_components" in experiment_report["step_summaries"][0]
-    assert "current_only_reattach_cases" in step_report
-    assert "same_view_block_cases" in step_report
-    assert "total_current_only_reattached" in experiment_report
-    assert "total_same_view_blocked_components" in experiment_report
+    assert experiment_report["step_summaries"][0]["num_dbscan_clusters"] >= 1
+    assert experiment_report["step_summaries"][0]["num_noise_singletons"] >= 0
+    assert experiment_report["dbscan_min_samples"] == DEFAULT_DBSCAN_MIN_SAMPLES
+    assert step_report["current_only_reattach_cases"] == []
+    assert step_report["same_view_block_cases"] == []
+    assert experiment_report["total_current_only_reattached"] == 0
+    assert experiment_report["total_same_view_blocked_components"] == 0
     first_progression_step = json.loads(
         (run_dir / "cumulative_cluster_matrix_step_00.json").read_text(encoding="utf-8")
     )
@@ -924,8 +693,8 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
     assert "final_clusters" in experiment_report
     assert experiment_report["step_summaries"]
     assert experiment_report["final_clusters"]
-    assert "append_case_examples" in experiment_report
-    assert "tail_spawn_case_examples" in experiment_report
+    assert experiment_report["append_case_examples"] == []
+    assert experiment_report["tail_spawn_case_examples"] == []
     assert experiment_report["views"][0]["stored_detection_overlay_path"].endswith("_yolo_overlay.jpg")
     assert experiment_report["views"][0]["detection_overlay_status"] == "rendered"
     with (run_dir / "object_cluster_similarity_table.csv").open("r", encoding="utf-8", newline="") as handle:
@@ -968,13 +737,19 @@ def test_run_sequential_spectral_experiment_supports_dsq0_sweep(tmp_path):
         str(db_dir),
         output_dir=str(output_dir),
         distance_gate_dsq0_values=DEFAULT_DISTANCE_GATE_DSQ0_SWEEP[:2],
+        dbscan_eps=0.15,
+        dbscan_min_samples=1,
     )
 
     sweep_dir = output_dir / Path(report["output_dir"]).name
     assert report["distance_gate_dsq0_values"] == [0.5, 1.0]
+    assert np.isclose(report["dbscan_eps"], 0.15)
+    assert report["dbscan_min_samples"] == 1
     assert len(report["runs"]) == 2
     assert (sweep_dir / "sweep_summary.json").exists()
     for run in report["runs"]:
         assert Path(run["output_dir"]).exists()
         assert run["dsq0"] in {0.5, 1.0}
+        assert np.isclose(run["dbscan_eps"], 0.15)
+        assert run["dbscan_min_samples"] == 1
         assert Path(run["object_cluster_similarity_table"]).exists()

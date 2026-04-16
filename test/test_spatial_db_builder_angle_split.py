@@ -1,16 +1,24 @@
+import csv
 import json
 from types import SimpleNamespace
 
+import cv2
 import numpy as np
 
 from spatial_rag.spatial_db_builder import (
+    _apply_batched_description_result_to_geometry,
+    _build_object_r_scores_pre_threshold_row,
     _build_view_attribute,
     _build_object_object_relations,
     _build_location_summary_from_surroundings,
     _build_view_object_relations,
     _classify_view_aligned_direction,
     _classify_vertical_direction,
+    _filter_geometry_rows_by_r_threshold,
+    _frame_route_label,
     _compute_object_orientation,
+    export_object_occlusion_levels_csv,
+    export_object_crops_by_global_id,
     _fallback_relative_bearing_from_laterality,
     _format_object_text_long,
     _load_resume_state,
@@ -19,6 +27,8 @@ from spatial_rag.spatial_db_builder import (
     _response_has_length_finish_reason,
     _run_optional_polar_surrounding_postprocess,
     _should_reuse_existing_entry,
+    _write_object_r_scores_csv,
+    _write_object_r_scores_pre_threshold_csv,
     _write_floor_plan_projection,
     build_spatial_database,
     build_spatial_database_angle_split,
@@ -225,6 +235,22 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
         scene_attributes=["painted trim"],
         object_text_short="object: chair | attrs: wooden | anchor: x=1.0, y=2.0 | nearby: table@(1.5,2.5)",
         object_text_long="left sector | object: chair | attributes: wooden | camera_relation: distance=2.0, bearing=-30.0",
+        occlusion_source="vlm",
+        occlusion_level="moderately occluded",
+        occlusion_penalty_p_o=0.25,
+        reweighted_detection_score_r=0.73,
+        visible_occlusion_ratio=0.5,
+        occluded_boundary_ratio=0.6,
+        nearer_ring_overlap_ratio=0.3,
+        object_depth_median=2.0,
+        boundary_pixel_count=40,
+        occluded_boundary_pixel_count=24,
+        ring_pixel_count=50,
+        nearer_ring_pixel_count=15,
+        depth_margin_delta=0.08,
+        occluding_overlap_pixel_count=20,
+        foreground_occluder_count=1,
+        occlusion_target_overlap_threshold=0.1,
     )
 
     assert record["orientation"] == 90
@@ -245,6 +271,22 @@ def test_make_object_record_keeps_core_fields_and_adds_geometry_metadata():
     assert record["scene_attributes"] == ["painted trim"]
     assert record["object_text_short"].startswith("object: chair")
     assert record["object_text_long"].startswith("left sector | object: chair")
+    assert record["occlusion_source"] == "vlm"
+    assert record["occlusion_level"] == "moderately occluded"
+    assert record["occlusion_penalty_p_o"] == 0.25
+    assert record["reweighted_detection_score_r"] == 0.73
+    assert record["visible_occlusion_ratio"] == 0.5
+    assert record["occluded_boundary_ratio"] == 0.6
+    assert record["nearer_ring_overlap_ratio"] == 0.3
+    assert record["object_depth_median"] == 2.0
+    assert record["boundary_pixel_count"] == 40
+    assert record["occluded_boundary_pixel_count"] == 24
+    assert record["ring_pixel_count"] == 50
+    assert record["nearer_ring_pixel_count"] == 15
+    assert record["depth_margin_delta"] == 0.08
+    assert record["occluding_overlap_pixel_count"] == 20
+    assert record["foreground_occluder_count"] == 1
+    assert record["occlusion_target_overlap_threshold"] == 0.1
     assert record["view_type"] == "living room"
     assert record["geometry_source"] == "vlm_fallback"
 
@@ -277,6 +319,271 @@ def test_build_view_attribute_collects_room_level_fields():
         "additional_notes": "stairs on the right",
         "image_summary": "living room facing the back wall",
     }
+
+
+def test_apply_batched_description_result_to_geometry_preserves_deterministic_occlusion_fields():
+    geometry_result = SimpleNamespace(
+        description_requests=[
+            {
+                "object_local_id": "det_000",
+                "detector_label": "chair",
+                "detector_confidence": 0.8,
+            }
+        ],
+        object_rows=[
+            {
+                "object_local_id": "det_000",
+                "detector_label": "chair",
+                "detector_confidence": 0.8,
+                "object_confidence": 0.8,
+                "label": "chair",
+                "occlusion_level": "moderately occluded",
+                "occlusion_penalty_p_o": 0.2,
+                "reweighted_detection_score_r": 0.61,
+                "visible_occlusion_ratio": 0.4,
+                "occluding_overlap_pixel_count": 18,
+                "foreground_occluder_count": 1,
+                "occlusion_target_overlap_threshold": 0.1,
+            }
+        ],
+        timings={},
+    )
+
+    updated = _apply_batched_description_result_to_geometry(
+        geometry_result,
+        description_result={
+            "objects": [
+                {
+                    "object_local_id": "det_000",
+                    "label": "chair",
+                    "short_description": "brown chair",
+                    "long_description": "brown chair near the wall",
+                    "attributes": ["brown"],
+                    "distance_from_camera_m": 2.0,
+                }
+            ]
+        },
+        description_total_sec=3.0,
+    )
+
+    row = updated.object_rows[0]
+    assert row["description"] == "brown chair"
+    assert row["occlusion_level"] == "moderately occluded"
+    assert row["occlusion_penalty_p_o"] == 0.2
+    assert row["reweighted_detection_score_r"] == 0.61
+    assert row["visible_occlusion_ratio"] == 0.4
+    assert row["occluding_overlap_pixel_count"] == 18
+    assert row["foreground_occluder_count"] == 1
+    assert row["occlusion_target_overlap_threshold"] == 0.1
+
+
+def test_filter_geometry_rows_by_r_threshold_drops_strictly_lower_scores():
+    rows = [
+        {"object_local_id": "det_000", "reweighted_detection_score_r": 0.25},
+        {"object_local_id": "det_001", "reweighted_detection_score_r": 0.4},
+        {"object_local_id": "det_002", "reweighted_detection_score_r": 0.6},
+    ]
+
+    filtered_rows, before_count, after_count, filtered_count = _filter_geometry_rows_by_r_threshold(
+        rows,
+        r_threshold=0.4,
+    )
+
+    assert before_count == 3
+    assert after_count == 2
+    assert filtered_count == 1
+    assert [row["object_local_id"] for row in filtered_rows] == ["det_001", "det_002"]
+
+
+def test_frame_route_label_keeps_geometry_route_when_all_rows_filtered():
+    assert _frame_route_label(
+        geometry_object_rows=[],
+        geometry_all_objects_filtered_by_r_threshold=True,
+    ) == "mask_depth"
+    assert _frame_route_label(
+        geometry_object_rows=[],
+        geometry_all_objects_filtered_by_r_threshold=False,
+    ) == "vlm_fallback"
+
+
+def test_build_object_r_scores_pre_threshold_row_marks_geometry_filtering():
+    row = _build_object_r_scores_pre_threshold_row(
+        {
+            "object_local_id": "det_004",
+            "geometry_source": "mask_depth",
+            "label": "chair",
+            "bbox_xyxy": [1.0, 2.0, 3.0, 4.0],
+            "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
+            "object_confidence": 0.7,
+            "detector_confidence": 0.7,
+            "occlusion_level": "uncertain",
+            "occlusion_penalty_p_o": 0.35,
+            "reweighted_detection_score_r": 0.31,
+        },
+        entry_id=5,
+        frame_id=9,
+        file_name="images/frame.jpg",
+        r_threshold=0.4,
+    )
+
+    assert row["entry_id"] == 5
+    assert row["frame_id"] == 9
+    assert row["file_name"] == "images/frame.jpg"
+    assert row["object_route"] == "geometry"
+    assert row["would_be_filtered_by_r_threshold"] is True
+
+
+def test_write_object_r_scores_pre_threshold_csv_persists_debug_rows(tmp_path):
+    out = tmp_path / "object_r_scores_pre_threshold.csv"
+    count = _write_object_r_scores_pre_threshold_csv(
+        out,
+        [
+            {
+                "entry_id": 1,
+                "frame_id": 2,
+                "file_name": "images/a.jpg",
+                "object_local_id": "det_000",
+                "object_route": "geometry",
+                "label": "chair",
+                "bbox_xyxy": [1.0, 2.0, 3.0, 4.0],
+                "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
+                "object_confidence": 0.8,
+                "detector_confidence": 0.8,
+                "occlusion_level": "slightly occluded",
+                "occlusion_penalty_p_o": 0.1,
+                "reweighted_detection_score_r": 0.61,
+                "r_threshold_used": 0.65,
+                "would_be_filtered_by_r_threshold": True,
+            }
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert count == 1
+    assert rows[0]["object_local_id"] == "det_000"
+    assert rows[0]["would_be_filtered_by_r_threshold"] == "True"
+    assert rows[0]["bbox_xyxy"] == "[1.0, 2.0, 3.0, 4.0]"
+
+
+def test_write_object_r_scores_csv_persists_final_scores(tmp_path):
+    out = tmp_path / "object_r_scores.csv"
+    count = _write_object_r_scores_csv(
+        out,
+        [
+            {"object_global_id": 7, "reweighted_detection_score_r": 0.42},
+            {"object_global_id": 8, "reweighted_detection_score_r": 0.91},
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert count == 2
+    assert rows == [
+        {"object_global_id": "7", "reweighted_detection_score_r": "0.42"},
+        {"object_global_id": "8", "reweighted_detection_score_r": "0.91"},
+    ]
+
+
+def test_export_object_occlusion_levels_csv_persists_object_id_and_level(tmp_path):
+    out = tmp_path / "object_occlusion_levels.csv"
+    summary = export_object_occlusion_levels_csv(
+        db_root=tmp_path,
+        output_path=out,
+        object_rows=[
+            {"object_global_id": 7, "occlusion_level": "Fully Visible"},
+            {"object_global_id": 8},
+        ],
+    )
+
+    with out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert summary["row_count"] == 2
+    assert summary["skipped_count"] == 0
+    assert rows == [
+        {"object_global_id": "7", "occlusion_level": "fully visible"},
+        {"object_global_id": "8", "occlusion_level": "uncertain"},
+    ]
+
+
+def test_export_object_crops_by_global_id_copies_existing_crop(tmp_path):
+    db_root = tmp_path / "db"
+    crop_path = db_root / "geometry" / "view_00000" / "objects" / "obj_000_crop.jpg"
+    crop_path.parent.mkdir(parents=True, exist_ok=True)
+    crop = np.full((20, 30, 3), 180, dtype=np.uint8)
+    assert cv2.imwrite(str(crop_path), crop)
+
+    summary = export_object_crops_by_global_id(
+        db_root=db_root,
+        object_rows=[
+            {
+                "object_global_id": 7,
+                "occlusion_level": "moderately occluded",
+                "detector_confidence": 0.7325,
+                "entry_id": 0,
+                "frame_id": 0,
+                "file_name": "images/source.jpg",
+                "label": "chair",
+                "geometry_source": "mask_depth",
+                "crop_path": str(crop_path),
+            }
+        ],
+        output_dir=db_root / "object_crops_by_global_id",
+    )
+
+    exported_path = db_root / "object_crops_by_global_id" / "7_chair_moderately_occluded_0p733.jpg"
+    manifest_rows = list(csv.DictReader((db_root / "object_crops_by_global_id" / "manifest.csv").open()))
+    assert summary["exported_count"] == 1
+    assert summary["copied_count"] == 1
+    assert summary["regenerated_count"] == 0
+    assert exported_path.exists()
+    assert manifest_rows[0]["crop_export_source"] == "existing_crop_path"
+    assert manifest_rows[0]["occlusion_level"] == "moderately occluded"
+    assert manifest_rows[0]["original_score"] == "0.7325"
+    assert manifest_rows[0]["original_score_token"] == "0p733"
+
+
+def test_export_object_crops_by_global_id_reconstructs_from_bbox(tmp_path):
+    db_root = tmp_path / "db"
+    image_path = db_root / "images" / "frame.jpg"
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+    image = np.zeros((40, 50, 3), dtype=np.uint8)
+    image[10:30, 5:25] = 255
+    assert cv2.imwrite(str(image_path), image)
+
+    summary = export_object_crops_by_global_id(
+        db_root=db_root,
+        object_rows=[
+            {
+                "object_global_id": 8,
+                "occlusion_level": "fully visible",
+                "object_confidence": 0.8,
+                "entry_id": 0,
+                "frame_id": 0,
+                "file_name": "images/frame.jpg",
+                "label": "lamp",
+                "geometry_source": "vlm_fallback",
+                "bbox_xyxy": [5, 10, 25, 30],
+            }
+        ],
+        output_dir=db_root / "object_crops_by_global_id",
+    )
+
+    exported_path = db_root / "object_crops_by_global_id" / "8_lamp_fully_visible_0p8.jpg"
+    exported = cv2.imread(str(exported_path), cv2.IMREAD_COLOR)
+    manifest_rows = list(csv.DictReader((db_root / "object_crops_by_global_id" / "manifest.csv").open()))
+    assert summary["exported_count"] == 1
+    assert summary["copied_count"] == 0
+    assert summary["regenerated_count"] == 1
+    assert exported is not None
+    assert exported.shape[:2] == (20, 20)
+    assert manifest_rows[0]["crop_export_source"] == "reconstructed_from_bbox"
+    assert manifest_rows[0]["occlusion_level"] == "fully visible"
+    assert manifest_rows[0]["original_score"] == "0.8"
+    assert manifest_rows[0]["original_score_token"] == "0p8"
 
 
 def test_load_resume_state_backfills_attribute_from_raw_vlm_output(tmp_path):
@@ -469,6 +776,102 @@ def test_build_spatial_database_forwards_execution_mode_flags(monkeypatch):
     assert captured["legacy_per_frame"] is True
 
 
+def test_build_spatial_database_forwards_occlusion_reweight_params(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(
+        occlusion_reweight_w1=1.25,
+        occlusion_reweight_w2=0.8,
+        occlusion_reweight_b=-0.15,
+    )
+
+    assert report == {"ok": True}
+    assert captured["occlusion_reweight_w1"] == 1.25
+    assert captured["occlusion_reweight_w2"] == 0.8
+    assert captured["occlusion_reweight_b"] == -0.15
+
+
+def test_build_spatial_database_forwards_r_threshold(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(r_threshold=0.37)
+
+    assert report == {"ok": True}
+    assert captured["r_threshold"] == 0.37
+
+
+def test_build_spatial_database_forwards_occlusion_source(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(occlusion_source="vlm")
+
+    assert report == {"ok": True}
+    assert captured["occlusion_source"] == "vlm"
+
+
+def test_build_spatial_database_forwards_bbox_conf_threshold(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(bbox_conf_threshold=0.42)
+
+    assert report == {"ok": True}
+    assert captured["bbox_conf_threshold"] == 0.42
+
+
+def test_build_spatial_database_forwards_occlusion_target_overlap_threshold(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(occlusion_target_overlap_threshold=0.15)
+
+    assert report == {"ok": True}
+    assert captured["occlusion_target_overlap_threshold"] == 0.15
+
+
+def test_build_spatial_database_forwards_crop_export_dir(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(export_object_crops_by_global_id_dir="object_crops_by_global_id")
+
+    assert report == {"ok": True}
+    assert captured["export_object_crops_by_global_id_dir"] == "object_crops_by_global_id"
+
+
 def test_main_dispatches_to_standard_builder(monkeypatch, capsys):
     calls = []
 
@@ -530,6 +933,198 @@ def test_main_forwards_execution_mode_flags(monkeypatch, capsys):
     assert calls[0][1]["execution_mode"] == "legacy_per_frame"
     assert calls[0][1]["vlm_max_in_flight"] == 6
     assert calls[0][1]["legacy_per_frame"] is True
+
+
+def test_main_forwards_occlusion_reweight_flags(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--occlusion_reweight_w1",
+            "1.2",
+            "--occlusion_reweight_w2",
+            "0.9",
+            "--occlusion_reweight_b",
+            "-0.2",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["occlusion_reweight_w1"] == 1.2
+    assert calls[0][1]["occlusion_reweight_w2"] == 0.9
+    assert calls[0][1]["occlusion_reweight_b"] == -0.2
+
+
+def test_main_forwards_occlusion_source_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--occlusion_source",
+            "vlm",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["occlusion_source"] == "vlm"
+
+
+def test_main_forwards_bbox_conf_threshold_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--bbox_conf_threshold",
+            "0.4",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["bbox_conf_threshold"] == 0.4
+
+
+def test_main_forwards_occlusion_target_overlap_threshold_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--occlusion_target_overlap_threshold",
+            "0.25",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["occlusion_target_overlap_threshold"] == 0.25
+
+
+def test_main_forwards_r_threshold_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--r_threshold",
+            "0.45",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["r_threshold"] == 0.45
+
+
+def test_main_forwards_crop_export_dir_flag(monkeypatch, capsys):
+    calls = []
+
+    def _fake_standard(**kwargs):
+        calls.append(("standard", kwargs))
+        return {"builder_variant": "standard"}
+
+    def _fake_angle_split(**kwargs):
+        calls.append(("angle_split", kwargs))
+        return {"builder_variant": "angle_split"}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database", _fake_standard)
+    monkeypatch.setattr("spatial_rag.spatial_db_builder.build_spatial_database_angle_split", _fake_angle_split)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "spatial_db_builder.py",
+            "--builder_variant",
+            "standard",
+            "--export_object_crops_by_global_id_dir",
+            "object_crops_by_global_id",
+        ],
+    )
+
+    main()
+
+    out = capsys.readouterr().out
+    assert '"builder_variant": "standard"' in out
+    assert calls[0][1]["export_object_crops_by_global_id_dir"] == "object_crops_by_global_id"
 
 
 def test_main_dispatches_to_angle_split_builder(monkeypatch, capsys):

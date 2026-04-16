@@ -497,6 +497,119 @@ YOLO-World 只给出一个矩形框，但框里会混进背景。NanoSAM 的作�
 <p><strong>一句话总结</strong>
 DepthPro 的核心不是“对每个 bbox 单独估深”，而是：先对整张图生成 dense depth map，再用 NanoSAM 的 object mask 在目标区域内聚合出稳健的 object depth，最后和角度一起转成 object-level spatial attributes。</p>
 </blockquote>
+<h4 id="25-visible-occlusion-estimation">2.5 Visible occlusion estimation</h4>
+<p>当前 deterministic <code>occlusion_level</code> 仍然保留兼容接口名 <code>visible_mask</code>，但实现已经变成 <strong>bbox overlap + depth ordering</strong>，不是旧的 mask-boundary 逻辑。</p>
+<p><strong>做 occlusion 前，先做 detection filtering</strong></p>
+<ul>
+<li>YOLO-World 检测框先按 <code>bbox_conf_threshold</code> 过滤，默认 <code>0.3</code>。</li>
+<li>低于这个阈值的框不会进入最终 <code>object_rows</code>。</li>
+<li>但它们会单独写入：
+<ul>
+<li><code>geometry/view_xxxxx/filtered_detections.json</code></li>
+<li><code>geometry/view_xxxxx/filtered_detection_overlay.jpg</code></li>
+</ul>
+</li>
+<li>这些低置信度框也不会参与任何 occlusion 计算。</li>
+</ul>
+<p><strong>现在到底在测什么</strong></p>
+<ul>
+<li>不是在问 crop 看起来杂不杂乱。</li>
+<li>不是在问语义上的 amodal occlusion。</li>
+<li>而是在问：同一张图里已经保留下来的 detected objects 中，有多少目标 <strong>bbox</strong> 面积被其他 bbox 覆盖，并且这些 bbox 跟目标重叠足够大，同时深度上比目标更靠近相机。</li>
+</ul>
+<p><strong>详细逻辑</strong></p>
+<ol>
+<li><strong>目标 bbox 和目标深度</strong>
+<ul>
+<li>保留目标的 YOLO bbox。</li>
+<li>深度直接复用现有 mask+DepthPro geometry 路径已经算好的 object depth。</li>
+<li>这个目标深度代表值对外暴露为 <code>object_depth_median</code>。</li>
+</ul>
+</li>
+<li><strong>筛选重叠候选框</strong>
+<ul>
+<li>把目标 bbox 和同图里其他保留 bbox 逐一比较。</li>
+<li>计算：<code>target_overlap_ratio = intersection_area(target_bbox, other_bbox) / target_bbox_area</code></li>
+<li>只保留满足：<code>target_overlap_ratio &gt;= occlusion_target_overlap_threshold</code></li>
+<li>当前默认值：<code>occlusion_target_overlap_threshold = 0.1</code></li>
+</ul>
+</li>
+<li><strong>判断前后关系</strong>
+<ul>
+<li>对每个重叠候选，比较它和目标的深度代表值。</li>
+<li>如果：<code>other_depth &lt; target_depth - depth_margin_delta</code>，就把它当成位于目标前方的 foreground occluder。</li>
+<li>当前默认值：<code>depth_margin_delta = 0.0</code></li>
+</ul>
+</li>
+<li><strong>把所有前景重叠区域取并集</strong>
+<ul>
+<li>对每个 foreground occluder，取它和目标 bbox 的交集区域。</li>
+<li>把这些交集区域做并集。</li>
+<li>记：<code>occluding_overlap_pixel_count = area(union_of_intersections)</code></li>
+</ul>
+</li>
+<li><strong>得到最终 continuous ratio</strong>
+<ul>
+<li>计算：<code>visible_occlusion_ratio = occluding_overlap_pixel_count / target_bbox_area</code></li>
+<li>最终 clamp 到 <code>[0, 1]</code></li>
+</ul>
+</li>
+<li><strong>把 ratio 分桶成 occlusion level</strong>
+<ul>
+<li><code>ratio &lt; 0.10</code> -&gt; <code>fully visible</code></li>
+<li><code>0.10 &lt;= ratio &lt; 0.30</code> -&gt; <code>slightly occluded</code></li>
+<li><code>0.30 &lt;= ratio &lt; 0.60</code> -&gt; <code>moderately occluded</code></li>
+<li><code>ratio &gt;= 0.60</code> -&gt; <code>heavily occluded</code></li>
+</ul>
+</li>
+<li><strong>把 ratio 变成 penalty</strong>
+<ul>
+<li>当前保存的 penalty 是：<code>occlusion_penalty_p_o = 0.5 * visible_occlusion_ratio</code></li>
+</ul>
+</li>
+</ol>
+<p><strong>简化伪代码</strong></p>
+<pre><code>kept = detections with confidence &gt;= bbox_conf_threshold
+
+for target in kept:
+    target_depth = target.depth_from_mask_depth
+    overlap_union = union(
+        intersection(target.bbox, other.bbox)
+        for other in kept if other != target
+        if intersection_area(target.bbox, other.bbox) / area(target.bbox) &gt;= 0.1
+        if other.depth &lt; target_depth - depth_margin_delta
+    )
+
+    visible_occlusion_ratio = area(overlap_union) / area(target.bbox)
+    occlusion_level = bucket(visible_occlusion_ratio)
+    occlusion_penalty_p_o = 0.5 * visible_occlusion_ratio
+</code></pre>
+<p><strong>解释上要注意</strong></p>
+<ul>
+<li>这个分数现在是一个 <strong>bbox coverage ratio</strong>，不是 visible-boundary contact metric。</li>
+<li>没被 detector 检到的物体不会参与计算。</li>
+<li>普通背景像素和墙面不会参与计算。</li>
+<li>旧的 boundary/ring diagnostic 字段为了兼容仍然保留在 schema 里，但 deterministic bbox-overlap 路径会统一写成 <code>null</code>。</li>
+</ul>
+<p><strong>代码位置</strong></p>
+<ul>
+<li>Occlusion level 分桶：
+<ul>
+<li><code>spatial_rag/visible_occlusion.py</code></li>
+</ul>
+</li>
+<li>Occlusion metrics：
+<ul>
+<li><code>spatial_rag/object_geometry_pipeline.py</code></li>
+<li><code>spatial_rag/visible_occlusion.py</code></li>
+</ul>
+</li>
+<li>Penalty / reweighted score：
+<ul>
+<li><code>spatial_rag/occlusion_scoring.py</code></li>
+</ul>
+</li>
+</ul>
 <h4 id="3-angle-estimation">3. Angle Estimation</h4>
 <p>相机光轴中心 -&gt; object mask 的 centroid，而不是 bbox center。</p>
 <p><strong>核心概念：</strong>
@@ -780,50 +893,129 @@ v</p>
 </ol>
 <hr>
 <h3 id="2-sequential-pipeline">2. Sequential Pipeline</h3>
-<p><strong>text embedding (no neighbor) + geo + polar -&gt; affinity</strong></p>
+<p><strong>text embedding (no neighbor) + geo distance gate -&gt; spectral graph -&gt; DBSCAN materialization</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    A[&quot;Selected views&lt;br/&gt;from built spatial DB&quot;]
+
+    subgraph S1[&quot;Load sequence&quot;]
+        B[&quot;Load object observations&lt;br/&gt;text embedding + global xyz + polar metadata&quot;]
+        C[&quot;Order views sequentially&quot;]
+    end
+
+    subgraph S2[&quot;Initialize memory&quot;]
+        D[&quot;Initial view&quot;]
+        E[&quot;Create singleton memory clusters&lt;br/&gt;one object -&gt; one cluster&quot;]
+        E2[&quot;Build cluster prototypes&lt;br/&gt;prototype_embedding + prototype_xyz + prototype_polar&quot;]
+    end
+
+    subgraph S3[&quot;For each new view&quot;]
+        F[&quot;Current view objects&quot;]
+
+        G[&quot;Cross-affinity&lt;br/&gt;current objects vs memory clusters&quot;]
+        G1[&quot;Cosine similarity&lt;br/&gt;row embedding vs prototype_embedding&quot;]
+        G2[&quot;Distance gate&lt;br/&gt;exp(-dsq / (2*dsq0))&quot;]
+        G3[&quot;dsq = planar x-y distance squared&lt;br/&gt;row xy vs prototype_xyz.xy&quot;]
+
+        H[&quot;Bipartite affinity graph&quot;]
+        I[&quot;Capped spectral clustering&lt;br/&gt;eigengap then cc+2 cap&quot;]
+
+        J[&quot;DBSCAN on step spectral embedding&quot;]
+        J1[&quot;Reuse smallest existing cluster_id&lt;br/&gt;if memory nodes are present&quot;]
+        J2[&quot;Allocate new cluster_id&lt;br/&gt;for current-only DBSCAN groups&quot;]
+        J3[&quot;Noise memory node -&gt; keep singleton&quot;]
+        J4[&quot;Noise current node -&gt; new singleton&quot;]
+    end
+
+    subgraph S4[&quot;Outputs&quot;]
+        K[&quot;Updated memory registry&quot;]
+        L[&quot;Final object clusters&quot;]
+        M[&quot;Step reports + optional dsq0 sweep summary&quot;]
+    end
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E --&gt; E2 --&gt; F
+
+    F --&gt; G
+    G --&gt; G1
+    G --&gt; G2
+    G --&gt; G3
+    G1 --&gt; H
+    G2 --&gt; H
+    G3 --&gt; H
+
+    H --&gt; I --&gt; J
+    J --&gt; J1
+    J --&gt; J2
+    J --&gt; J3
+    J --&gt; J4
+
+    J1 --&gt; K
+    J2 --&gt; K
+    J3 --&gt; K
+    J4 --&gt; K
+
+    K --&gt; F
+    K --&gt; L
+    K --&gt; M
+
+</code></pre>
 <p>这条 pipeline 和上面不同：</p>
 <ul>
 <li>text embedding 不带 neighbor</li>
-<li>affinity 不只看 text，还会额外加入 geo similarity 和 polar similarity
-所以它更像是一个多模态/多因素的相似度融合。</li>
+<li>默认 similarity 不再是 text / geo / polar 的加权融合</li>
+<li>而是 <strong>cosine similarity 被全局平面距离 gate</strong></li>
+<li>spectral 之后，下一步 memory registry 由 <strong>step spectral embedding 上的 DBSCAN</strong> 来物化</li>
+<li>initialize memory cluster 的时候，每个 object 就是一个 cluster，初始 clusters 相互之间不会被合并</li>
 </ul>
-<h4 id="21-text-embedding">2.1 Text embedding</h4>
+<h4 id="2-1-text-embedding">2.1 Text embedding</h4>
 <p>这里用的是 object 自身文本，不拼 neighbor。
 例如：</p>
-<pre><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;dining table&quot;</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;long_form_open_description&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;a wooden dining table with a dark surface in the kitchen&quot;</span>
-<span class="hljs-punctuation">}</span>
+<pre><code class="language-json">{
+  &quot;label&quot;: &quot;dining table&quot;,
+  &quot;long_form_open_description&quot;: &quot;a wooden dining table with a dark surface in the kitchen&quot;
+}
 </code></pre>
 <p>送去 embedding 的就是：</p>
 <blockquote>
 <p>a wooden dining table with a dark surface in the kitchen</p>
 </blockquote>
 <p>这一项主要比较的是：这个 object 的语义描述像不像历史 cluster 里的对象。</p>
-<h4 id="22-geo">2.2 Geo</h4>
+<h4 id="2-2-geo">2.2 Geo</h4>
 <p>Geo 表示：在世界坐标里，这个 object 和 memory cluster 的位置接不接近。
 它用的是 object 的全局坐标，例如：</p>
-<pre><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;estimated_global_x&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-3.42</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;estimated_global_y&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.78</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;estimated_global_z&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">5.16</span>
-<span class="hljs-punctuation">}</span>
+<pre><code class="language-json">{
+  &quot;estimated_global_x&quot;: -3.42,
+  &quot;estimated_global_y&quot;: 0.78,
+  &quot;estimated_global_z&quot;: 5.16
+}
 </code></pre>
 <p>历史 memory cluster 也会有一个代表性的 prototype/global position。
-Geo similarity 本质上是在看：</p>
+在最新逻辑里，geo 不是一个单独加到总分里的 similarity term，而是一个 <strong>distance gate</strong>：</p>
+<p><code>similarity = cosine_sim * exp(-dsq / (2 * dsq0))</code></p>
+<p>其中：</p>
 <ul>
-<li>新对象在房间里是不是出现在差不多的位置</li>
-<li>是否和某个已有 cluster 空间上接近</li>
+<li><code>cosine_sim</code> 是当前对象 embedding 和 cluster <code>prototype_embedding</code> 的 cosine similarity</li>
+<li><code>dsq</code> 是全局 <code>x-y</code> 平面上的平方距离</li>
+<li><code>dsq0</code> 控制距离变远时相似度衰减得有多快</li>
 </ul>
-<p>你可以把它理解成：<strong>text 像不像是同一种东西，geo 像不像是在同一个地方。</strong></p>
-<h4 id="23-polar">2.3 Polar</h4>
+<p>所以你可以把它理解成：</p>
+<ul>
+<li><strong>text</strong> 在问：语义上像不像</li>
+<li><strong>geo gate</strong> 在问：它们在世界里离得够不够近，近到仍然像同一个实例</li>
+</ul>
+<p>实现上的重要说明：</p>
+<ul>
+<li>cluster 仍然保留 <code>prototype_xyz</code></li>
+<li>但默认 gate 只使用 <code>estimated_global_x</code> 和 <code>estimated_global_y</code></li>
+<li><code>estimated_global_z</code> 仍然保留在 metadata / summary 里，但默认 distance gate 不使用它</li>
+</ul>
+<h4 id="2-3-polar">2.3 Polar</h4>
 <p>Polar 表示：在相机视角坐标里，这个 object 的相对位置形状和历史 cluster 像不像。
 这里用到的关键 metadata 是：</p>
-<pre><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.4</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-18.0</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.3</span>
-<span class="hljs-punctuation">}</span>
+<pre><code class="language-json">{
+  &quot;distance_from_camera_m&quot;: 2.4,
+  &quot;relative_bearing_deg&quot;: -18.0,
+  &quot;relative_height_from_camera_m&quot;: 0.3
+}
 </code></pre>
 <p><strong>这些 polar 字段分别是什么意思</strong></p>
 <ul>
@@ -848,48 +1040,198 @@ Geo similarity 本质上是在看：</p>
 </ul>
 </li>
 </ul>
-<p><strong>Polar similarity 怎么比较</strong>
+<p><strong>Polar 在最新 sequential 逻辑里怎么使用</strong>
 假设当前新对象（row）：</p>
-<pre><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.4</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-18.0</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.3</span>
-<span class="hljs-punctuation">}</span>
+<pre><code class="language-json">{
+  &quot;distance_from_camera_m&quot;: 2.4,
+  &quot;relative_bearing_deg&quot;: -18.0,
+  &quot;relative_height_from_camera_m&quot;: 0.3
+}
 </code></pre>
 <p>历史 cluster 的 <code>prototype_polar</code>：</p>
-<pre><code class="language-json"><span class="hljs-punctuation">{</span>
-  <span class="hljs-attr">&quot;distance_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">2.0</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_bearing_deg&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">-10.0</span><span class="hljs-punctuation">,</span>
-  <span class="hljs-attr">&quot;relative_height_from_camera_m&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.1</span>
-<span class="hljs-punctuation">}</span>
+<pre><code class="language-json">{
+  &quot;distance_from_camera_m&quot;: 2.0,
+  &quot;relative_bearing_deg&quot;: -10.0,
+  &quot;relative_height_from_camera_m&quot;: 0.1
+}
 </code></pre>
 <p>注意：这里的 cluster_distance / cluster_bearing / cluster_height 不是单个旧对象，而是 memory cluster 的 <code>prototype_polar</code>，也就是历史成员这些 polar 字段的代表值。</p>
-<p><strong>第一步：算归一化差值</strong></p>
+<p>在当前默认实现里，<strong>polar metadata 仍然会被加载并保存在 cluster prototype 里，但它已经不参与默认 similarity score</strong>。它现在主要用于：</p>
 <ul>
-<li>距离差：<code>(row_distance - cluster_distance) / 2.0 = (2.4 - 2.0) / 2.0 = 0.2</code></li>
-<li>水平角差：<code>wrap(row_bearing - cluster_bearing) / 45.0 = wrap(-18 - (-10)) / 45 = -8 / 45 ≈ -0.178</code></li>
-<li>高度差：<code>(row_height - cluster_height) / 1.0 = (0.3 - 0.1) / 1.0 = 0.2</code></li>
+<li>diagnostics</li>
+<li>cluster summaries</li>
+<li>legacy comparison</li>
+<li>兼容性实验，比如 <code>legacy_weighted_fusion</code></li>
 </ul>
-<p>于是得到一个 polar difference vector：
-<code>dims = [0.2, -0.178, 0.2]</code></p>
-<p><strong>第二步：算 L2 norm</strong>
-<code>||dims|| = sqrt(0.2^2 + (-0.178)^2 + 0.2^2)</code>
-这个值越小，表示新的 object 和 cluster 在 polar geometry 上越像。</p>
-<p><strong>第三步：过高斯函数</strong>
-<code>polar_similarity = exp( - ||dims||^2 )</code>
-所以：</p>
-<ul>
-<li>如果三个维度都很接近，<code>||dims||</code> 很小，<code>polar_similarity</code> 接近 1</li>
-<li>如果差别很大，<code>||dims||</code> 变大，<code>polar_similarity</code> 迅速变小</li>
-</ul>
-<p><strong>直观理解</strong>
-这条 sequential pipeline 在比较一个 object 是否属于某个历史 cluster 时，实际上看三件事：</p>
+<p>所以当前 sequential 的默认 matching 逻辑是：</p>
 <ol>
-<li><strong>Text</strong>: 这个 object 的文本描述像不像那个 cluster</li>
-<li><strong>Geo</strong>: 它在世界坐标里的位置是不是也接近那个 cluster</li>
-<li><strong>Polar</strong>: 它在当前相机视角下呈现出的相对距离 / 左右角度 / 高低关系是不是也像那个 cluster</li>
+<li><strong>Text</strong> 提供语义相似度</li>
+<li><strong>Global planar geo</strong> 提供距离 gate</li>
+<li><strong>Polar</strong> 保留为 metadata，但默认不参与 affinity 计算</li>
 </ol>
-<hr>
+<hr />
+<h4 id="2-4-maintain-cluster">2.4 Maintain cluster</h4>
+<p>因为一个 cluster 里可能已经有多个历史 object observations，系统不可能每次都拿新 object 和 cluster 里所有成员逐个比，所以会先把 cluster 压缩成几个代表值，也就是 prototype；prototype 是为了让“一个 cluster”能像“一个可比较的对象”一样参与匹配。</p>
+<p><strong>1. <code>prototype_embedding</code></strong>
+表示这个 cluster 的文本语义中心</p>
+<p><strong>它是：</strong></p>
+<ul>
+<li>cluster 内所有成员的 text embedding</li>
+<li>先求平均</li>
+<li>再做 L2 normalize</li>
+</ul>
+<p><strong>作用是：</strong>
+代表这个 cluster 的“语义长相”</p>
+<p>后面新 object 来了，就拿它的 embedding 去和这个 <code>prototype_embedding</code> 比，算 text similarity。</p>
+<p><strong>2. <code>prototype_xyz</code></strong>
+表示这个 cluster 的全局空间位置代表值</p>
+<p><strong>它由成员的：</strong></p>
+<ul>
+<li><code>estimated_global_x</code></li>
+<li><code>estimated_global_y</code></li>
+<li><code>estimated_global_z</code></li>
+</ul>
+<p>聚合得到，当前实现里取的是中位数。</p>
+<p><strong>作用是：</strong>
+代表这个 cluster 在世界坐标里的大致位置</p>
+<p>后面新 object 来了，就和这个 <code>prototype_xyz</code> 比，计算 geo gate。
+当前默认路径里，只有 <code>x</code> 和 <code>y</code> 会参与这个 distance gate。</p>
+<p><strong>3. <code>prototype_polar</code></strong>
+表示这个 cluster 的相机相对几何代表值</p>
+<p><strong>它由成员的：</strong></p>
+<ul>
+<li><code>distance_from_camera_m</code></li>
+<li><code>relative_bearing_deg</code></li>
+<li><code>relative_height_from_camera_m</code></li>
+</ul>
+<p>聚合得到，当前实现里也是取中位数。</p>
+<p><strong>作用是：</strong>
+代表这个 cluster 在视角坐标里的典型相对位置形态</p>
+<p>后面新 object 来了，<code>prototype_polar</code> 仍然会保留给 diagnostics / summaries / legacy 模式，但默认 similarity 不使用它。</p>
+<h4 id="2-5">2.5</h4>
+<p><strong>2.5.1 <code>min_cross_affinity=0.25</code>：先决定哪些 cross edge 可以进图</strong></p>
+<p>这一步发生在 <code>current objects</code> 和 <code>memory clusters</code> 算完 <code>cross-affinity</code> 之后。</p>
+<p>当前默认模式下：</p>
+<ul>
+<li>分数不是 text / geo / polar 的加权融合</li>
+<li>而是 <code>cosine_sim * exp(-dsq / (2 * dsq0))</code></li>
+<li><code>polar</code> 保留在 metadata 中，但默认不参与打分</li>
+</ul>
+<p>所有 <code>&lt; 0.25</code> 的 <code>cross edge</code> 会先被置 0，再进入建图流程。
+这样可以先剪掉明显很弱的连接，让后面的 spectral 看到更干净的二部图结构。</p>
+<p><strong>2.5.2 建立 bipartite affinity graph，再跑 capped spectral clustering</strong></p>
+<p>系统会把剪枝后的 <code>cross-affinity</code> 变成一个二部图 <code>affinity matrix</code>：</p>
+<ul>
+<li>左上块：memory nodes</li>
+<li>右下块：current nodes</li>
+<li>非对角块：保留下来的 cross edges</li>
+</ul>
+<p>然后同时得到两种结构标签：</p>
+<ul>
+<li><strong><code>connectivity label</code></strong>：节点属于哪个 connected component</li>
+<li><strong><code>spectral label</code></strong>：capped spectral stage 认为节点更应该分到哪一组</li>
+</ul>
+<p>这里的 spectral 不是完全自由的 eigengap 估计。
+当前实现会：</p>
+<ol>
+<li>先用 eigengap 估 <code>k</code></li>
+<li>再计算整张图的 connected-component 数</li>
+<li>把最终允许的 cluster 数 cap 在 <code>connected_components + 2</code></li>
+</ol>
+<p>也就是说，spectral 仍然可以把一个连通块内部再切开，但切开的自由度被控制住了。</p>
+<p><strong>2.5.3 在这一步的 spectral embedding 上跑 DBSCAN</strong></p>
+<p>跑完 spectral 之后，pipeline 会直接拿 <strong>本轮图的 spectral embedding</strong>，对 <strong>所有节点</strong> 跑 DBSCAN：</p>
+<ul>
+<li>memory cluster nodes</li>
+<li>current object nodes</li>
+</ul>
+<p>当前默认 DBSCAN 设置是：</p>
+<ul>
+<li><code>dbscan_eps=None</code>
+<ul>
+<li>表示 epsilon 自动从 spectral embedding 里估计</li>
+<li>当前实现使用的是 embedding 空间里的 median k-nearest-neighbor distance heuristic</li>
+</ul>
+</li>
+<li><code>dbscan_min_samples=2</code></li>
+</ul>
+<p>所以现在“哪些节点最终物化成一个更新后的 cluster”，已经不再由 append / merge / reattach 这些启发式规则决定，而是由 spectral embedding 里的 density structure 决定。</p>
+<p><strong>2.5.4 根据 DBSCAN 分组物化下一步 memory registry</strong></p>
+<p>拿到 DBSCAN label 之后，下一轮 memory registry 会按固定规则构造：</p>
+<ul>
+<li>如果一个 DBSCAN group 里含有一个或多个旧 memory node：
+<ul>
+<li>把这个 group 代表的所有行 merge 成一个更新 cluster</li>
+<li>复用这些 memory node 中 <strong>最小的已有 <code>cluster_id</code></strong></li>
+</ul>
+</li>
+<li>如果一个 DBSCAN group 里只有 current objects：
+<ul>
+<li>分配一个 <strong>新的 <code>cluster_id</code></strong></li>
+</ul>
+</li>
+<li>如果 DBSCAN 把一个旧 memory node 标成 noise：
+<ul>
+<li>它保持为 singleton cluster</li>
+</ul>
+</li>
+<li>如果 DBSCAN 把一个 current object 标成 noise：
+<ul>
+<li>为这个 object 新建 singleton cluster</li>
+</ul>
+</li>
+</ul>
+<p>所以 sequential experiment 仍然是 step by step 更新 memory，但更新策略已经变成：</p>
+<ul>
+<li><strong>先构图并做 spectral</strong></li>
+<li><strong>再用 DBSCAN 物化 cluster</strong></li>
+</ul>
+<p>而不再是：</p>
+<ul>
+<li>append / merge / reattach / tail-cluster heuristics</li>
+</ul>
+<p><strong>2.5.5 当前默认路径里，不再发生的旧启发式动作</strong></p>
+<p>现在这条 DBSCAN 版 sequential experiment 已经不再执行这些旧决策：</p>
+<ul>
+<li>不再有 <code>same-view collision</code> 的硬阻断阶段</li>
+<li>不再有不同旧 cluster 之间的 competitive append</li>
+<li>不再跑 <code>current_only_reattach_min_affinity</code> 的补挂回流程</li>
+<li>不再有 tail-cluster spawning heuristic</li>
+</ul>
+<p>兼容性参数 <code>current_only_reattach_min_affinity</code> 仍然在 API / CLI 里接受，但在当前 DBSCAN materialization 路径里已经是 no-op。</p>
+<p><strong>2.5.6 Assignment table 和 step report 现在怎么解释</strong></p>
+<p>输出文件名大体没变，但语义已经更新：</p>
+<ul>
+<li><code>step_XX_cluster_update.json</code> 仍然存在
+<ul>
+<li>现在里面同时会有 <code>spectral_summary</code> 和 <code>dbscan_summary</code></li>
+</ul>
+</li>
+<li><code>object_cluster_similarity_table.csv</code> 仍然存在
+<ul>
+<li>step <code>0</code> 仍然是 <code>initial_seed</code></li>
+<li>后续 step 的 assignment reason 现在主要是：
+<ul>
+<li><code>dbscan_attach</code></li>
+<li><code>dbscan_new_cluster</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>当一个 current object 属于 <code>dbscan_attach</code> 时：</p>
+<ul>
+<li>表里会在同一个 DBSCAN group 内，选 affinity 最好的那个 memory cluster</li>
+<li>它会成为 <code>similarity_reference_cluster_id</code></li>
+<li>对应的 text / geo-gate detail 也会被拷贝进这一行</li>
+</ul>
+<p>当一个 current object 属于 <code>dbscan_new_cluster</code> 时：</p>
+<ul>
+<li>不会引用任何旧 memory cluster</li>
+<li>similarity-detail 相关字段会留空</li>
+<li>它会在这一轮直接启动一个新 cluster</li>
+</ul>
+
 <h3 id="3-两条-pipeline-的核心区别">3. 两条 pipeline 的核心区别</h3>
 <h4 id="batch-multi-view-dedup">Batch multi-view dedup</h4>
 <p><strong>text only</strong></p>
@@ -1227,6 +1569,22 @@ Geo similarity 本质上是在看：</p>
     <span class="hljs-attr">&quot;detector_label&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;picture frame&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// YOLO-World 原始标签</span>
     <span class="hljs-attr">&quot;detector_confidence&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.9086</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// YOLO-World 原始检测置信度</span>
 
+    <span class="hljs-attr">&quot;occlusion_level&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;fully visible&quot;</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 由 bbox-overlap+depth deterministic occlusion 派生出来的兼容分桶</span>
+    <span class="hljs-attr">&quot;occlusion_penalty_p_o&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 由 visible_occlusion_ratio 派生出来的遮挡惩罚</span>
+    <span class="hljs-attr">&quot;reweighted_detection_score_r&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.9534</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 遮挡感知重加权后的 detector confidence</span>
+    <span class="hljs-attr">&quot;visible_occlusion_ratio&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标 bbox 中被更近重叠 bbox 覆盖的并集面积比例，范围 [0, 1]</span>
+    <span class="hljs-attr">&quot;occluded_boundary_ratio&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 boundary 指标；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;nearer_ring_overlap_ratio&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 ring 指标；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;object_depth_median&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3.7554</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 目标深度代表值；用于深度前后关系判断</span>
+    <span class="hljs-attr">&quot;boundary_pixel_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 boundary diagnostic；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;occluded_boundary_pixel_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 boundary diagnostic；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;ring_pixel_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 ring diagnostic；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;nearer_ring_pixel_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-keyword">null</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 旧 ring diagnostic；当前 bbox-overlap deterministic 路径里为 null</span>
+    <span class="hljs-attr">&quot;depth_margin_delta&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 判断另一个重叠 bbox 是否在目标前方时要求的最小深度优势</span>
+    <span class="hljs-attr">&quot;occluding_overlap_pixel_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 所有更近重叠 bbox 与目标 bbox 的交集并集面积</span>
+    <span class="hljs-attr">&quot;foreground_occluder_count&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 通过 deterministic occlusion 测试的前景遮挡 bbox 数量</span>
+    <span class="hljs-attr">&quot;occlusion_target_overlap_threshold&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 成为遮挡候选所需的最小 intersection_area / target_bbox_area</span>
+
     <span class="hljs-attr">&quot;mask_area_px&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">59000</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 前景像素数</span>
     <span class="hljs-attr">&quot;mask_area_ratio&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">0.02845</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask 面积占整张图比例</span>
     <span class="hljs-attr">&quot;mask_centroid_x_px&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1242.5542</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// mask centroid 的 x 像素坐标</span>
@@ -1252,6 +1610,7 @@ Geo similarity 本质上是在看：</p>
     <span class="hljs-attr">&quot;view_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;view_00000&quot;</span> <span class="hljs-comment">// 该 object 所属 view id</span>
 <span class="hljs-punctuation">}</span>
 </code></pre>
+<p><code>visible_occlusion_ratio</code> 现在表示一个 <strong>bbox coverage ratio</strong>，不是 amodal 遮挡比例，也不是 mask-boundary 接触分数。它表示：同一帧里其他更近且重叠足够大的保留 bbox，与目标 bbox 的交集并集面积，再除以目标 bbox 面积。分类字段 <code>occlusion_level</code> 仍然只是从这个连续值映射出来的兼容分桶。</p>
 <p><strong><code>surrounding_context</code> 结构如下：</strong></p>
 <pre><code class="language-json"><span class="hljs-punctuation">{</span>
     <span class="hljs-attr">&quot;target_object_global_id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">// 被关联的邻近对象 id</span>

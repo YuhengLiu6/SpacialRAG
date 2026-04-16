@@ -1,0 +1,62 @@
+# Cluster Summary: selected_views
+
+- group_type: selected_views
+- n_objects: 49
+- n_clusters: 1
+
+## Cluster 0
+- candidate_instance_id: selected_views:selected_views:cluster_000
+- num_members: 49
+- representative_label: cabinet
+- representative_description: Small rectangular lower cabinet panel with dark stained wood finish beneath the counter, visible between larger cabinets, located on the right side of the kitchen about 3.0 m from camera.
+- same_view_collision: True
+- offending_view_ids: view_00015, view_00019, view_00023, view_00027
+- member: object_id=93 view_id=view_00015 label=towel description=white oven towel hanging
+- member: object_id=94 view_id=view_00015 label=oven description=stainless steel freestanding oven
+- member: object_id=95 view_id=view_00015 label=cabinet description=dark wood upper cabinet
+- member: object_id=96 view_id=view_00015 label=cabinet description=dark upper cabinet pair
+- member: object_id=97 view_id=view_00015 label=dining table description=kitchen island with countertop
+- member: object_id=98 view_id=view_00015 label=chair description=dark wooden chair edge
+- member: object_id=99 view_id=view_00015 label=chair description=ornate wooden island chair
+- member: object_id=100 view_id=view_00015 label=refrigerator description=stainless double-door refrigerator
+- member: object_id=101 view_id=view_00015 label=table lamp description=white fabric table lamp
+- member: object_id=102 view_id=view_00015 label=cabinet description=lower dark cabinet near fridge
+- member: object_id=103 view_id=view_00015 label=cabinet description=narrow upper cabinet dark
+- member: object_id=104 view_id=view_00015 label=rug description=small floor rug mat
+- member: object_id=105 view_id=view_00015 label=cabinet description=upper cabinet near sink
+- member: object_id=106 view_id=view_00015 label=cabinet description=tall pantry cabinet edge-cropped
+- member: object_id=107 view_id=view_00015 label=cabinet description=upper cabinet above fridge
+- member: object_id=109 view_id=view_00015 label=cabinet description=lower cabinet cluster
+- member: object_id=110 view_id=view_00015 label=cabinet description=upper corner cabinet cropped
+- member: object_id=139 view_id=view_00019 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=140 view_id=view_00019 label=picture frame description=small framed wall picture left-edge
+- member: object_id=141 view_id=view_00019 label=cabinet description=dark wood upper cabinet
+- member: object_id=142 view_id=view_00019 label=chair description=ornate wooden barstool, carved back
+- member: object_id=143 view_id=view_00019 label=chair description=dark wooden dining chair
+- member: object_id=144 view_id=view_00019 label=dining table description=large stone-top kitchen island
+- member: object_id=145 view_id=view_00019 label=cabinet description=dark upper cabinet above fridge
+- member: object_id=146 view_id=view_00019 label=cabinet description=tall dark wood corner cabinet
+- member: object_id=147 view_id=view_00019 label=cabinet description=dark base cabinet right edge-crop
+- member: object_id=148 view_id=view_00019 label=coffee maker description=black single-serve coffee maker
+- member: object_id=149 view_id=view_00019 label=clock description=large dark scalloped wall clock
+- member: object_id=150 view_id=view_00019 label=chair description=small wooden chair partial
+- member: object_id=151 view_id=view_00019 label=cabinet description=dark lower cabinet small panel
+- member: object_id=152 view_id=view_00019 label=cabinet description=short dark cabinet door
+- member: object_id=194 view_id=view_00023 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=195 view_id=view_00023 label=chair description=dark wood dining chair back
+- member: object_id=196 view_id=view_00023 label=clock description=large round wall clock (dark frame)
+- member: object_id=197 view_id=view_00023 label=dining table description=granite kitchen island counter (partial)
+- member: object_id=198 view_id=view_00023 label=cabinet description=dark wood upper cabinet door
+- member: object_id=199 view_id=view_00023 label=cabinet description=small dark cabinet above fridge
+- member: object_id=234 view_id=view_00027 label=refrigerator description=stainless steel double-door refrigerator
+- member: object_id=235 view_id=view_00027 label=cabinet description=dark wood upper corner cabinet
+- member: object_id=236 view_id=view_00027 label=cabinet description=dark wood upper cabinet
+- member: object_id=237 view_id=view_00027 label=cabinet description=tall dark corner cabinet (cropped)
+- member: object_id=238 view_id=view_00027 label=cabinet description=dark base cabinet lower right
+- member: object_id=239 view_id=view_00027 label=coffee maker description=black single-serve coffee maker
+- member: object_id=240 view_id=view_00027 label=cabinet description=dark upper cabinet left-of-fridge
+- member: object_id=241 view_id=view_00027 label=cabinet description=small upper wood cabinet above counter
+- member: object_id=242 view_id=view_00027 label=cabinet description=large right-side cabinetry (edge-cropped)
+- member: object_id=243 view_id=view_00027 label=cabinet description=dark upper cabinet central-right
+- member: object_id=244 view_id=view_00027 label=table description=granite kitchen island countertop (foreground)
+- member: object_id=245 view_id=view_00027 label=cabinet description=dark base cabinet under counter

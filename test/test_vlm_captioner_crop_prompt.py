@@ -8,6 +8,14 @@ def test_object_crop_prompt_version_bumped_for_yolo_hard_constraint():
     assert VLMCaptioner._object_crop_prompt_version() == "object_crop_descriptor_builder_aligned_v5"
 
 
+def test_object_crop_prompt_version_differs_when_occlusion_requested():
+    assert VLMCaptioner._object_crop_prompt_version(include_occlusion=True) != VLMCaptioner._object_crop_prompt_version()
+
+
+def test_batched_object_prompt_version_bumped_for_text_only_batch_schema():
+    assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_textonly_v3"
+
+
 def test_object_prompt_version_differs_between_standard_and_angle_split():
     assert VLMCaptioner._object_prompt_version("standard") != VLMCaptioner._object_prompt_version("angle_split")
 
@@ -31,6 +39,21 @@ def test_crop_response_schema_contains_required_fields():
     assert "long_description" in props
     assert "attributes" in props
     assert "distance_from_camera_m" in props
+
+
+def test_crop_response_schema_includes_occlusion_when_requested():
+    schema = VLMCaptioner._object_crop_response_schema(include_occlusion=True)
+    required = schema["schema"]["required"]
+    assert "occlusion_level" in required
+    props = schema["schema"]["properties"]
+    assert "occlusion_level" in props
+
+
+def test_batched_detected_object_schema_is_text_only():
+    schema = VLMCaptioner._batched_detected_objects_response_schema(max_objects=3)
+    item_schema = schema["schema"]["properties"]["objects"]["items"]
+    assert "occlusion_level" not in item_schema["required"]
+    assert "occlusion_level" not in item_schema["properties"]
 
 
 def test_object_cache_path_varies_by_prompt_variant_and_camera_context(tmp_path):
@@ -119,6 +142,18 @@ def test_object_crop_cache_path_groups_by_view_directory(tmp_path):
     assert cache_path.name.endswith(".crop.json")
 
 
+def test_object_crop_cache_path_differs_when_occlusion_requested(tmp_path):
+    crop_path = tmp_path / "geometry" / "view_00007" / "objects" / "obj_003_crop.jpg"
+    crop_path.parent.mkdir(parents=True, exist_ok=True)
+    crop_path.write_bytes(b"fake-image")
+    captioner = VLMCaptioner(use_cache=False, object_use_cache=True, object_cache_dir=str(tmp_path / "vlm_object_cache"))
+
+    default_cache_path = captioner._object_crop_cache_path(str(crop_path))
+    occlusion_cache_path = captioner._object_crop_cache_path(str(crop_path), include_occlusion=True)
+
+    assert default_cache_path != occlusion_cache_path
+
+
 def test_angle_split_prompt_mentions_new_geometry_and_scene_attributes():
     prompt = VLMCaptioner._object_user_prompt(
         max_objects=8,
@@ -171,6 +206,25 @@ def test_object_crop_user_prompt_includes_detector_context():
     assert '"chair"' in prompt
     assert "0.716" in prompt
     assert "short_description should correspond to a short precise object description" in prompt
+
+
+def test_batched_detected_objects_prompt_no_longer_requests_occlusion_level():
+    system_prompt = VLMCaptioner._batched_detected_objects_system_prompt()
+    user_prompt = VLMCaptioner._batched_detected_objects_user_prompt(
+        [
+            {
+                "object_local_id": "det_000",
+                "detector_label": "chair",
+                "detector_confidence": 0.912,
+                "bbox_xyxy": [10.0, 20.0, 30.0, 40.0],
+                "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
+            }
+        ]
+    )
+
+    assert "occlusion_level" not in system_prompt
+    assert "occlusion_level" not in user_prompt
+    assert "Judge occlusion for the detector-localized object instance itself" not in user_prompt
 
 
 def test_response_has_length_finish_reason_detects_truncated_cache_payload():
