@@ -218,7 +218,7 @@ class VLMCaptioner:
 
     @staticmethod
     def _batched_object_description_prompt_version() -> str:
-        return "object_detection_batch_descriptor_textonly_v3"
+        return "object_detection_batch_descriptor_textonly_v5_prelist_label"
 
     def _detected_objects_batch_cache_path(
         self,
@@ -337,22 +337,28 @@ class VLMCaptioner:
     @staticmethod
     def _object_crop_prompt_version(*, include_occlusion: bool = False) -> str:
         return (
-            "object_crop_descriptor_builder_aligned_v6_with_occlusion"
+            "object_crop_descriptor_builder_aligned_v8_prelist_label_and_occlusion"
             if include_occlusion
-            else "object_crop_descriptor_builder_aligned_v5"
+            else "object_crop_descriptor_builder_aligned_v8_prelist_label"
         )
 
     @staticmethod
     def _object_crop_system_prompt(*, include_occlusion: bool = False) -> str:
+        allowed_label_text = VLMCaptioner._object_label_prelist_text(include_unknown=True)
         prompt = (
             "You are a strict vision parser for object crops. "
             "Return JSON only, matching the schema exactly. "
             "Describe only the main visible object in the crop. "
-            "Use the detector-provided class as the object category you must describe. "
+            "Use the detector-provided class only as a localization and category hint, not as a hard constraint. "
+            "The label field must be chosen from the provided household pre-list only. "
+            f"Allowed label values: {allowed_label_text}. "
+            "If none of the listed labels fit the main visible object, return unknown. "
+            "Return the visually judged category of the main object as label, even when it differs from the detector hint. "
             "Match the style of object descriptions used in a spatial database builder: "
             "the short description should read like a concise object instance description, "
             "and the long description should read like a detailed open-form object description. "
             "Do not return generic placeholders when any visible cue is available. "
+            "Do not output markdown, explanations, or extra keys. "
             "If the object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
         )
         if include_occlusion:
@@ -364,13 +370,38 @@ class VLMCaptioner:
         return prompt
 
     @staticmethod
+    def _object_label_prelist_values(*, include_unknown: bool = True) -> List[str]:
+        values = list(COMMON_PRELIST_OBJECT_TYPES)
+        if include_unknown:
+            values.append("unknown")
+        return values
+
+    @staticmethod
+    def _object_label_prelist_text(*, include_unknown: bool = True) -> str:
+        return selector_candidate_list_text(
+            VLMCaptioner._object_label_prelist_values(include_unknown=include_unknown)
+        )
+
+    @staticmethod
+    def _normalize_prelisted_object_label(value: Any) -> str:
+        allowed_lookup = {
+            str(label).strip().lower().replace("_", " ").replace("-", " "): str(label)
+            for label in VLMCaptioner._object_label_prelist_values(include_unknown=True)
+        }
+        token = str(value or "").strip().lower().replace("_", " ").replace("-", " ")
+        return allowed_lookup.get(token, "unknown")
+
+    @staticmethod
     def _object_description_requirements_prompt() -> str:
+        allowed_label_text = VLMCaptioner._object_label_prelist_text(include_unknown=True)
         return (
-            "Return a compact label for that detected category, a short description useful for retrieval, "
+            "Return a compact visually judged category label for the main object, a short description useful for retrieval, "
             "a richer long description, a list of notable visual attributes, and an approximate distance "
             "from the camera in meters when you can infer it. Mention the approximate distance directly "
             "in the short or long description when possible. "
             "Requirements: "
+            f"label must be exactly one value from this household pre-list: {allowed_label_text}. "
+            "If no listed category fits, label must be unknown. "
             "short_description must be 3 to 8 words and must include at least one visible cue beyond the class name, "
             "such as color, material, shape, state, position in crop, or partial visibility. "
             "Prefer noun phrases like 'dark wooden chair edge crop' or 'gold-framed wall picture' over generic labels. "
@@ -391,10 +422,15 @@ class VLMCaptioner:
         *,
         include_occlusion: bool = False,
     ) -> str:
+        allowed_label_text = VLMCaptioner._object_label_prelist_text(include_unknown=True)
         prompt = (
             f'A detector has identified the object in this crop as "{yolo_label_clean or "unknown"}" '
             f"(confidence: {yolo_conf_text}). "
-            "Treat this detected class as the object category to describe. "
+            "Treat this detected class only as a hint about the intended object. "
+            "Use the crop itself to decide the actual visible object category and return that as label. "
+            f"Choose label from this same household pre-list: {allowed_label_text}. "
+            "If none of those labels fit the visible object, return unknown. "
+            "If your visually judged category differs from the detector hint, return your own judged label from the list above. "
             "Describe this specific object instance visible in the cropped image in the same style as the database builder's "
             "object fields: short_description should correspond to a short precise object description, and long_description "
             "should correspond to a detailed long-form open description. "
@@ -410,20 +446,27 @@ class VLMCaptioner:
 
     @staticmethod
     def _batched_detected_objects_system_prompt() -> str:
+        allowed_label_text = VLMCaptioner._object_label_prelist_text(include_unknown=True)
         return (
             "You are a strict vision parser for detector-guided whole-image object description. "
             "Return JSON only, matching the schema exactly. "
             "Describe each listed detector-localized object separately. "
-            "Use the detector-provided class as the object category you must describe for that listed object. "
+            "Use the detector-provided class only as a localization hint for each listed object, not as a hard category constraint. "
+            "For each listed object, choose label from the provided household pre-list only. "
+            f"Allowed label values: {allowed_label_text}. "
+            "If none of the listed labels fit a detector-localized object, return unknown for that object. "
+            "For each listed object, return the visually judged category in label even when it differs from the detector hint. "
             "Match the style of object descriptions used in a spatial database builder: "
             "the short description should read like a concise object instance description, "
             "and the long description should read like a detailed open-form object description. "
             "Do not return generic placeholders when any visible cue is available. "
+            "Do not output markdown, explanations, or extra keys. "
             "If an object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions."
         )
 
     @staticmethod
     def _batched_detected_objects_user_prompt(detections: Sequence[Mapping[str, Any]]) -> str:
+        allowed_label_text = VLMCaptioner._object_label_prelist_text(include_unknown=True)
         lines: List[str] = []
         for det in list(detections or []):
             object_local_id = str(det.get("object_local_id") or "unknown").strip() or "unknown"
@@ -443,9 +486,12 @@ class VLMCaptioner:
         return (
             "I am going to show you a whole image and a list of detector-localized objects in that image. "
             "Your job is to describe each listed object instance separately. "
-            "Treat the detector class for each listed object as the object category to describe. "
+            "Use the provided detector class only as a hint about the intended object. "
             "Use the provided bounding box coordinates only as localization hints to anchor which visible object instance each item refers to. "
-            "Do not invent extra objects and do not omit listed object_local_id values. "
+            f"For each listed object, choose label from this same household pre-list: {allowed_label_text}. "
+            "If none of those labels fit a listed object, return unknown for that object. "
+            "For each listed object, return your own visually judged category in label. "
+            "Do not invent extra objects, do not omit listed object_local_id values, and do not return more than one object per listed object_local_id. "
             "The listed detections are:\n"
             f"{detections_block}\n\n"
             "For each listed object, describe that specific object instance visible in the image in the same style as the database builder's "
@@ -453,7 +499,7 @@ class VLMCaptioner:
             "should correspond to a detailed long-form open description. "
             "Ignore the wider room except where it helps disambiguate the listed object. "
             f"{VLMCaptioner._object_description_requirements_prompt()}"
-            "Return one JSON object per listed object_local_id. "
+            "Return exactly one JSON object per listed object_local_id, preserving every listed object_local_id. "
             "Output JSON only."
         )
 
@@ -956,9 +1002,13 @@ class VLMCaptioner:
             "distance_from_camera_m",
         ]
         properties: Dict[str, Any] = {
-            "label": {"type": "string"},
-            "short_description": {"type": "string"},
-            "long_description": {"type": "string"},
+            "label": {
+                "type": "string",
+                "minLength": 1,
+                "enum": VLMCaptioner._object_label_prelist_values(include_unknown=True),
+            },
+            "short_description": {"type": "string", "minLength": 1},
+            "long_description": {"type": "string", "minLength": 1},
             "attributes": {
                 "type": "array",
                 "items": {"type": "string"},
@@ -968,7 +1018,7 @@ class VLMCaptioner:
         }
         if include_object_local_id:
             required = ["object_local_id"] + required
-            properties["object_local_id"] = {"type": "string"}
+            properties["object_local_id"] = {"type": "string", "minLength": 1}
         if include_occlusion:
             required = required + ["occlusion_level"]
             properties["occlusion_level"] = {
@@ -1034,11 +1084,11 @@ class VLMCaptioner:
             or VLMCaptioner._default_object_crop_description(include_occlusion=include_occlusion)
         )
         raw = dict(payload or {})
-        result_label = str(raw.get("label") or fallback["label"]).strip() or "unknown"
+        result_label = VLMCaptioner._normalize_prelisted_object_label(
+            raw.get("label") or fallback["label"]
+        )
         result_short = str(raw.get("short_description") or fallback["short_description"]).strip() or "unknown"
         result_long = str(raw.get("long_description") or fallback["long_description"]).strip()
-        if (not result_label or result_label.lower() == "unknown") and label_hint:
-            result_label = label_hint
         if (not result_short or result_short.lower() == "unknown") and label_hint:
             result_short = label_hint
         if not result_long or result_long.lower() == "unknown":

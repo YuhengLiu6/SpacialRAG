@@ -12,7 +12,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from spatial_rag.graph_builder import build_graph_payload
-from spatial_rag.object_index import load_object_db
+from spatial_rag.object_index import load_object_db, load_object_dinov2_db
 
 
 @dataclass(frozen=True)
@@ -39,6 +39,7 @@ class PairScoreRecord:
     short_cosine: float
     long_cosine: float
     graph_cosine: float
+    dinov2_cosine: float = float("nan")
 
 
 def _now_iso() -> str:
@@ -451,6 +452,7 @@ def compute_pairwise_cosines(
     short_emb: np.ndarray,
     long_emb: np.ndarray,
     graph_emb: np.ndarray,
+    dinov2_emb: Optional[np.ndarray] = None,
 ) -> List[PairScoreRecord]:
     short_norm = _l2_normalize_rows(short_emb.astype(np.float32))
     long_norm = _l2_normalize_rows(long_emb.astype(np.float32))
@@ -461,6 +463,8 @@ def compute_pairwise_cosines(
         for name, arr in (("short", short_norm), ("long", long_norm), ("graph", graph_norm)):
             if max_required >= int(arr.shape[0]):
                 raise KeyError(f"Pair {pair.pair_id} references object id {max_required} outside {name} embedding range")
+        if dinov2_emb is not None and max_required >= int(dinov2_emb.shape[0]):
+            raise KeyError(f"Pair {pair.pair_id} references object id {max_required} outside dinov2 embedding range")
         a = int(pair.obj_a_id)
         b = int(pair.obj_b_id)
         results.append(
@@ -474,19 +478,27 @@ def compute_pairwise_cosines(
                 short_cosine=float(np.dot(short_norm[a], short_norm[b])),
                 long_cosine=float(np.dot(long_norm[a], long_norm[b])),
                 graph_cosine=float(np.dot(graph_norm[a], graph_norm[b])),
+                dinov2_cosine=(
+                    float(np.dot(dinov2_emb[a], dinov2_emb[b]))
+                    if dinov2_emb is not None
+                    else float("nan")
+                ),
             )
         )
     return results
 
 
 def summarize_similarity_metrics(pair_scores: Sequence[PairScoreRecord]) -> Dict[str, Any]:
-    return {
+    summary = {
         "generated_at": _now_iso(),
         "num_pairs": int(len(pair_scores)),
         "short": _representation_metrics(pair_scores, field_name="short_cosine"),
         "long": _representation_metrics(pair_scores, field_name="long_cosine"),
         "graph": _representation_metrics(pair_scores, field_name="graph_cosine"),
     }
+    if any(math.isfinite(float(getattr(row, "dinov2_cosine", float("nan")))) for row in pair_scores):
+        summary["dinov2"] = _representation_metrics(pair_scores, field_name="dinov2_cosine")
+    return summary
 
 
 def export_pair_artifacts(
@@ -561,6 +573,7 @@ def _write_pairs_csv(path: Path, pair_scores: Sequence[PairScoreRecord]) -> None
             "short_cosine",
             "long_cosine",
             "graph_cosine",
+            "dinov2_cosine",
         ])
         writer.writeheader()
         for row in pair_scores:
@@ -580,7 +593,9 @@ def _write_summary_markdown(path: Path, report: Mapping[str, Any]) -> None:
         "| Representation | Pos Mean | Neg Mean | ROC-AUC | PR-AUC | Best F1 | Recall@1 | Recall@5 | MRR |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
-    for key in ("short", "long", "graph"):
+    for key in ("short", "long", "graph", "dinov2"):
+        if key not in metrics:
+            continue
         item = metrics.get(key, {})
         best = item.get("best_threshold") or {}
         retrieval = item.get("retrieval") or {}
@@ -626,6 +641,17 @@ def _load_representation_embeddings(
             use_long_descriptions=use_long_descriptions,
         )
         embeddings["graph"] = embed_graph_contexts(contexts)
+    if "dinov2" in modes:
+        loaded = load_object_dinov2_db(db_dir)
+        if loaded is None:
+            raise FileNotFoundError(f"Missing DINOv2 object DB artifacts in {db_dir}")
+        meta_rows, emb, object_id_to_sidecar_row = loaded
+        if meta_rows:
+            max_obj_id = max(int(row.get("object_global_id", -1)) for row in meta_rows)
+            dense = np.zeros((max_obj_id + 1, emb.shape[1]), dtype=np.float32)
+            for object_id, sidecar_row in object_id_to_sidecar_row.items():
+                dense[int(object_id)] = emb[int(sidecar_row)]
+            embeddings["dinov2"] = _l2_normalize_rows(dense)
     return embeddings
 
 
@@ -661,7 +687,13 @@ def _prepare_pair_scores(
     graph_emb = embeddings.get("graph")
     if short_emb is None or long_emb is None or graph_emb is None:
         raise ValueError("First implementation requires short, long, and graph embeddings together")
-    pair_scores = compute_pairwise_cosines(pair_gt, short_emb=short_emb, long_emb=long_emb, graph_emb=graph_emb)
+    pair_scores = compute_pairwise_cosines(
+        pair_gt,
+        short_emb=short_emb,
+        long_emb=long_emb,
+        graph_emb=graph_emb,
+        dinov2_emb=embeddings.get("dinov2"),
+    )
     return pair_gt, pair_scores, graph_context_by_obj_id
 
 
@@ -670,7 +702,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--db_dir", type=str, required=True, help="Spatial DB directory containing object_meta.jsonl and embeddings")
     parser.add_argument("--gt_pairs", type=str, required=True, help="JSONL file with manual same-instance pair annotations")
     parser.add_argument("--output_dir", type=str, required=True, help="Output directory for evaluation report and artifacts")
-    parser.add_argument("--text_modes", type=str, default="short,long,graph", help="Comma-separated list of representations to evaluate")
+    parser.add_argument("--text_modes", type=str, default="short,long,graph", help="Comma-separated list of representations to evaluate, e.g. short,long,graph,dinov2")
     parser.add_argument("--split", type=str, default=None, help="Optional split filter, e.g. dev/test")
     parser.add_argument("--max_examples_per_bucket", type=int, default=20, help="How many example pairs to export per bucket")
     parser.add_argument("--use_long_descriptions", type=str, default="true", help="Whether graph context should include long descriptions")

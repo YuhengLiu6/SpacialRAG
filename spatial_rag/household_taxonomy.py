@@ -1,6 +1,6 @@
 from __future__ import annotations
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from typing import Dict, Iterable, List, Sequence, Tuple
 
 
 HOUSEHOLD_OBJECT_TYPES: Tuple[str, ...] = (
@@ -211,7 +211,7 @@ def household_label_enum_values(include_unknown: bool = True, include_other: boo
     return tuple(out)
 
 
-def selector_candidate_list_text(labels: Sequence[str] | None = None) -> str:
+def selector_candidate_list_text(labels: Optional[Sequence[str]] = None) -> str:
     values = list(labels or COMMON_PRELIST_OBJECT_TYPES)
     return ", ".join(str(label).strip() for label in values if str(label).strip())
 

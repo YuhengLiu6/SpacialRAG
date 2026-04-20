@@ -25,7 +25,7 @@ from spatial_rag.config import (
 )
 from spatial_rag.graph_builder import build_graph_payload
 from spatial_rag.object_canonicalizer import UNKNOWN_TEXT_TOKEN, compose_frame_text, select_object_text, sorted_objects
-from spatial_rag.object_index import load_object_db
+from spatial_rag.object_index import load_object_db, load_object_dinov2_db
 from spatial_rag.spatial_db_builder import (
     _build_view_attribute,
     _enrich_scene_objects_geometry,
@@ -123,7 +123,7 @@ def _to_serializable(value: Any) -> Any:
 
 def _normalize_text_mode(text_mode: str) -> str:
     mode = str(text_mode or DEFAULT_TEXT_MODE).strip().lower()
-    if mode not in {"short", "long", "long_neighbors"}:
+    if mode not in {"short", "long", "long_neighbors", "dinov2"}:
         raise ValueError(f"Unsupported text_mode: {text_mode}")
     return mode
 
@@ -255,7 +255,14 @@ def _view_sort_key(row: Mapping[str, Any]) -> Tuple[int, str]:
 
 def _resolve_object_text(row: Mapping[str, Any], text_mode: str = DEFAULT_TEXT_MODE) -> str:
     mode = _normalize_text_mode(text_mode)
-    if mode in {"long", "long_neighbors"}:
+    if mode == "dinov2":
+        candidates = (
+            row.get("final_label"),
+            row.get("label"),
+            row.get("description"),
+            row.get("long_form_open_description"),
+        )
+    elif mode in {"long", "long_neighbors"}:
         candidates = (
             row.get("text_input_for_clip_long"),
             row.get("object_text_long"),
@@ -286,6 +293,19 @@ def _load_precomputed_object_embeddings(
     mode = _normalize_text_mode(text_mode)
     if mode == "long_neighbors":
         return {}
+    if mode == "dinov2":
+        loaded_dino = load_object_dinov2_db(db_dir)
+        if loaded_dino is None:
+            return {}
+        meta_rows, emb, object_id_to_sidecar_row = loaded_dino
+        out: Dict[int, np.ndarray] = {}
+        for row in meta_rows:
+            obj_id = _safe_int(row.get("object_global_id"), -1)
+            sidecar_row = object_id_to_sidecar_row.get(obj_id)
+            if obj_id < 0 or sidecar_row is None:
+                continue
+            out[obj_id] = _l2_normalize_vec(emb[int(sidecar_row)])
+        return out
     loaded = load_object_db(db_dir, text_mode=mode)
     if loaded is None:
         return {}
@@ -374,6 +394,9 @@ def _attach_object_embeddings(
         if precomputed is not None:
             row["embedding"] = precomputed.astype(np.float32)
             continue
+        if mode == "dinov2":
+            row["embedding"] = None
+            continue
         if _has_usable_text(embedding_text):
             missing_rows.append(index)
         else:
@@ -400,7 +423,7 @@ def load_object_observations(
     """Load object observations from an existing spatial DB.
 
     Each row is still an object observation, not a resolved physical instance.
-    v1 only attaches description-text embeddings. Later versions can fuse image or spatial similarity here.
+    Supports text embeddings and precomputed DINOv2 object embeddings from the builder sidecar.
     """
 
     observations = _build_place_observation_rows(db_dir=db_dir, graph_payload=graph_payload)
@@ -2958,8 +2981,8 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         "--text_mode",
         type=str,
         default=DEFAULT_TEXT_MODE,
-        choices=["short", "long", "long_neighbors"],
-        help="Which object text embedding variant to use",
+        choices=["short", "long", "long_neighbors", "dinov2"],
+        help="Which object representation variant to use",
     )
     parser.add_argument(
         "--cluster_count_mode",

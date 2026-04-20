@@ -14,6 +14,7 @@ import numpy as np
 from spatial_rag.config import (
     BBOX_CONF_THRESHOLD,
     DEPTH_PRO_MODEL_PATH,
+    ENABLE_DINOV2_EMBEDDING,
     FOV,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
@@ -605,10 +606,12 @@ class ObjectGeometryPipeline:
         detector: Optional[Any] = None,
         segmenter: Optional[Any] = None,
         depth_estimator: Optional[Any] = None,
+        dino_embedder: Optional[Any] = None,
         horizontal_fov_deg: float = float(FOV),
         image_width_px: int = int(IMAGE_WIDTH),
         image_height_px: int = int(IMAGE_HEIGHT),
         save_artifacts: bool = True,
+        enable_dinov2_embedding: bool = bool(ENABLE_DINOV2_EMBEDDING),
         bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
         occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
         occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
@@ -630,10 +633,12 @@ class ObjectGeometryPipeline:
         ) if detector is not None else None
         self.segmenter = segmenter
         self.depth_estimator = depth_estimator
+        self.dino_embedder = dino_embedder
         self.horizontal_fov_deg = float(horizontal_fov_deg)
         self.image_width_px = int(image_width_px)
         self.image_height_px = int(image_height_px)
         self.save_artifacts = bool(save_artifacts)
+        self.enable_dinov2_embedding = bool(enable_dinov2_embedding)
         self.bbox_conf_threshold = float(bbox_conf_threshold)
         self.occlusion_reweight_w1 = float(occlusion_reweight_w1)
         self.occlusion_reweight_w2 = float(occlusion_reweight_w2)
@@ -700,10 +705,12 @@ class ObjectGeometryPipeline:
             "mask_total_sec": 0.0,
             "angle_geometry_total_sec": 0.0,
             "crop_vlm_description_total_sec": 0.0,
+            "dinov2_total_sec": 0.0,
             "object_description_call_count": 0,
             "mask_per_object_sec": [],
             "angle_geometry_per_object_sec": [],
             "crop_vlm_description_per_object_sec": [],
+            "dinov2_per_object_sec": [],
             "selected_object_type_count": 0,
             "detection_count_raw": 0,
             "detection_count_class_matched": 0,
@@ -719,6 +726,10 @@ class ObjectGeometryPipeline:
             per_crop = list(finalized.get("crop_vlm_description_per_object_sec") or [])
             finalized["crop_vlm_description_avg_sec"] = (
                 float(sum(per_crop) / len(per_crop)) if per_crop else 0.0
+            )
+            per_dino = list(finalized.get("dinov2_per_object_sec") or [])
+            finalized["dinov2_avg_sec"] = (
+                float(sum(per_dino) / len(per_dino)) if per_dino else 0.0
             )
             return finalized
 
@@ -1068,6 +1079,35 @@ class ObjectGeometryPipeline:
                 _save_image_bgr(mask_rel, np.asarray(mask.astype(np.uint8) * 255, dtype=np.uint8))
                 _save_mask_overlay(image_rgb, mask, bbox_xyxy, overlay_rel)
 
+            dino_embedding = None
+            dino_status = "disabled"
+            dino_failure_reason = None
+            dino_model_name = None
+            dino_embedding_dim = None
+            dino_normalized = None
+            dino_sec = 0.0
+            if self.enable_dinov2_embedding:
+                if self.dino_embedder is None:
+                    dino_status = "missing"
+                    dino_failure_reason = "embedder_unavailable"
+                else:
+                    try:
+                        dino_t0 = time.perf_counter()
+                        dino_embedding = np.asarray(
+                            self.dino_embedder.encode_crop(crop_rgb),
+                            dtype=np.float32,
+                        ).reshape(-1)
+                        dino_sec = float(time.perf_counter() - dino_t0)
+                        timings["dinov2_total_sec"] = float(timings["dinov2_total_sec"] + dino_sec)
+                        timings["dinov2_per_object_sec"].append(dino_sec)
+                        dino_status = "success"
+                        dino_model_name = str(getattr(self.dino_embedder, "model_name", "") or "")
+                        dino_embedding_dim = int(dino_embedding.shape[0]) if dino_embedding.ndim == 1 else None
+                        dino_normalized = bool(getattr(self.dino_embedder, "normalize", True))
+                    except Exception as exc:
+                        dino_status = "failed"
+                        dino_failure_reason = f"{type(exc).__name__}: {exc}"
+
             object_local_id = f"det_{local_index:03d}"
             crop_sec = batch_description_per_object_sec
             if defer_object_descriptions:
@@ -1106,15 +1146,33 @@ class ObjectGeometryPipeline:
                     include_occlusion=include_vlm_occlusion,
                 )
             detector_confidence = float(det.get("confidence") or 0.0)
-            detector_label = str(det["label"])
-            crop_label = canonicalize_household_object_label(crop_description.get("label"), default=detector_label)
-            final_label = detector_label if crop_label != detector_label else crop_label
+            detector_label_raw = str(det["label"])
+            detector_label_norm = canonicalize_household_object_label(
+                detector_label_raw,
+                default=detector_label_raw,
+            )
+            vlm_label = canonicalize_household_object_label(
+                crop_description.get("label"),
+                default="unknown",
+            )
+            vlm_label_usable = bool(str(vlm_label or "").strip()) and str(vlm_label).strip().lower() != "unknown"
+            final_label = vlm_label if vlm_label_usable else detector_label_raw
+            label_source = "vlm" if vlm_label_usable else "detector"
+            label_conflict = bool(
+                vlm_label_usable
+                and str(vlm_label).strip().lower() != str(detector_label_norm).strip().lower()
+            )
             geometry_candidates.append(
                 {
                     "object_local_id": object_local_id,
                     "label": final_label,
-                    "detector_label": detector_label,
-                    "crop_vlm_label": crop_description.get("label"),
+                    "detector_label": detector_label_raw,
+                    "detector_label_raw": detector_label_raw,
+                    "vlm_label": vlm_label,
+                    "crop_vlm_label": vlm_label,
+                    "final_label": final_label,
+                    "label_source": label_source,
+                    "label_conflict": label_conflict,
                     "object_confidence": detector_confidence,
                     "occlusion_source": self.occlusion_source,
                     "vlm_occlusion_level": crop_description.get("occlusion_level"),
@@ -1142,10 +1200,10 @@ class ObjectGeometryPipeline:
                     "laterality": bins["laterality"],
                     "distance_bin": bins["distance_bin"],
                     "verticality": bins["verticality"],
-                    "description": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "description": str(crop_description.get("short_description") or detector_label_raw).strip() or detector_label_raw,
                     "long_form_open_description": (
-                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                        or detector_label
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label_raw).strip()
+                        or detector_label_raw
                     ),
                     "attributes": [str(v).strip() for v in list(crop_description.get("attributes") or []) if str(v).strip()],
                     "support_relation": "unknown",
@@ -1153,15 +1211,15 @@ class ObjectGeometryPipeline:
                     "location_relative_to_other_objects": "",
                     "surrounding_context": [],
                     "scene_attributes": list(_selector_attribute_payload(selector_payload)["scene_attributes"]),
-                    "object_text_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "object_text_short": str(crop_description.get("short_description") or detector_label_raw).strip() or detector_label_raw,
                     "object_text_long": (
-                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                        or detector_label
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label_raw).strip()
+                        or detector_label_raw
                     ),
-                    "text_input_for_clip_short": str(crop_description.get("short_description") or detector_label).strip() or detector_label,
+                    "text_input_for_clip_short": str(crop_description.get("short_description") or detector_label_raw).strip() or detector_label_raw,
                     "text_input_for_clip_long": (
-                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label).strip()
-                        or detector_label
+                        str(crop_description.get("long_description") or crop_description.get("short_description") or detector_label_raw).strip()
+                        or detector_label_raw
                     ),
                     "geometry_source": "mask_depth",
                     "geometry_fallback_reason": None,
@@ -1178,6 +1236,14 @@ class ObjectGeometryPipeline:
                     "timing_mask_sec": mask_sec,
                     "timing_angle_geometry_sec": angle_sec,
                     "timing_crop_vlm_description_sec": crop_sec,
+                    "timing_dinov2_sec": dino_sec,
+                    "dinov2_embedding": dino_embedding,
+                    "dinov2_model_name": dino_model_name,
+                    "dinov2_embedding_dim": dino_embedding_dim,
+                    "dinov2_input_type": "bbox_crop",
+                    "dinov2_normalized": dino_normalized,
+                    "dinov2_status": dino_status,
+                    "dinov2_failure_reason": dino_failure_reason,
                 }
             )
 
@@ -1233,7 +1299,12 @@ class ObjectGeometryPipeline:
                 "object_local_id": candidate["object_local_id"],
                 "label": candidate["label"],
                 "detector_label": candidate["detector_label"],
+                "detector_label_raw": candidate.get("detector_label_raw"),
+                "vlm_label": candidate.get("vlm_label"),
                 "crop_vlm_label": candidate["crop_vlm_label"],
+                "final_label": candidate.get("final_label", candidate["label"]),
+                "label_source": candidate.get("label_source"),
+                "label_conflict": candidate.get("label_conflict"),
                 "object_confidence": candidate["object_confidence"],
                 "occlusion_source": occlusion_source,
                 "occlusion_level": occlusion_level,
@@ -1251,6 +1322,12 @@ class ObjectGeometryPipeline:
                 "occluding_overlap_pixel_count": visible_occlusion.get("occluding_overlap_pixel_count"),
                 "foreground_occluder_count": visible_occlusion.get("foreground_occluder_count"),
                 "occlusion_target_overlap_threshold": visible_occlusion.get("occlusion_target_overlap_threshold"),
+                "dinov2_model_name": candidate.get("dinov2_model_name"),
+                "dinov2_embedding_dim": candidate.get("dinov2_embedding_dim"),
+                "dinov2_input_type": candidate.get("dinov2_input_type"),
+                "dinov2_normalized": candidate.get("dinov2_normalized"),
+                "dinov2_status": candidate.get("dinov2_status"),
+                "dinov2_failure_reason": candidate.get("dinov2_failure_reason"),
             }
             row.update({key: value for key, value in candidate.items() if key != "mask"})
             object_rows.append(row)

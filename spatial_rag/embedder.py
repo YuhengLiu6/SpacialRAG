@@ -1,10 +1,19 @@
 # ===== embedder.py =====
 import os
+import threading
 import time
+from typing import Any, Iterable, List, Optional, Sequence
 
+import numpy as np
 import torch
 from PIL import Image
-from spatial_rag.config import CLIP_MODEL_NAME, CLIP_PRETRAINED
+from spatial_rag.config import (
+    CLIP_MODEL_NAME,
+    CLIP_PRETRAINED,
+    DINOV2_BATCH_SIZE,
+    DINOV2_MODEL_NAME,
+    DINOV2_NORMALIZE,
+)
 
 try:
     import open_clip  # type: ignore
@@ -16,10 +25,24 @@ try:
 except Exception:
     openai_clip = None  # type: ignore
 
+try:
+    from transformers import AutoImageProcessor, AutoModel  # type: ignore
+except Exception:
+    AutoImageProcessor = None  # type: ignore
+    AutoModel = None  # type: ignore
+
 
 def _embedder_log(message: str) -> None:
     ts = time.strftime("%H:%M:%S")
     print(f"[Embedder][{ts}] {message}", flush=True)
+
+
+def _preferred_torch_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 def _normalize_openai_clip_model_name(model_name: str) -> str:
@@ -35,12 +58,7 @@ def _normalize_openai_clip_model_name(model_name: str) -> str:
 
 class Embedder:
     def __init__(self):
-        if torch.cuda.is_available():
-            self.device = 'cuda'
-        elif torch.backends.mps.is_available():
-            self.device = 'mps'
-        else:
-            self.device = 'cpu'
+        self.device = _preferred_torch_device()
         self.backend = ""
         _embedder_log(f"loading CLIP model={CLIP_MODEL_NAME} device={self.device}")
 
@@ -158,3 +176,109 @@ class Embedder:
 
         _embedder_log(f"embed_text done elapsed_sec={time.perf_counter() - t0:.2f}")
         return features.cpu().numpy().flatten()
+
+
+class DINOv2Embedder:
+    _MODEL_CACHE: dict[tuple[str, str], tuple[Any, Any]] = {}
+    _CACHE_LOCK = threading.Lock()
+
+    def __init__(
+        self,
+        model_name: str = DINOV2_MODEL_NAME,
+        batch_size: int = DINOV2_BATCH_SIZE,
+        normalize: bool = DINOV2_NORMALIZE,
+        device: Optional[str] = None,
+    ):
+        if AutoImageProcessor is None or AutoModel is None:
+            raise RuntimeError(
+                "transformers is required for DINOv2Embedder. Install `transformers` in the current environment."
+            )
+        self.model_name = str(model_name or DINOV2_MODEL_NAME).strip() or DINOV2_MODEL_NAME
+        self.batch_size = max(1, int(batch_size))
+        self.normalize = bool(normalize)
+        self.device = str(device or _preferred_torch_device())
+        self.model, self.processor = self._load_model_bundle(self.model_name, self.device)
+
+    @classmethod
+    def _load_model_bundle(cls, model_name: str, device: str) -> tuple[Any, Any]:
+        key = (str(model_name), str(device))
+        with cls._CACHE_LOCK:
+            cached = cls._MODEL_CACHE.get(key)
+            if cached is not None:
+                return cached
+            t0 = time.perf_counter()
+            processor = AutoImageProcessor.from_pretrained(model_name)
+            model = AutoModel.from_pretrained(model_name)
+            model.eval()
+            model.to(device)
+            cls._MODEL_CACHE[key] = (model, processor)
+            _embedder_log(
+                f"loading DINOv2 model={model_name} device={device} "
+                f"elapsed_sec={time.perf_counter() - t0:.2f}"
+            )
+            return model, processor
+
+    @staticmethod
+    def _to_pil_image(image: Any) -> Image.Image:
+        if isinstance(image, Image.Image):
+            return image.convert("RGB")
+        if isinstance(image, np.ndarray):
+            arr = np.asarray(image)
+            if arr.ndim != 3:
+                raise ValueError(f"Expected HWC image ndarray, got shape={arr.shape}")
+            if arr.shape[2] == 4:
+                arr = arr[:, :, :3]
+            if arr.dtype != np.uint8:
+                arr = np.clip(arr, 0, 255).astype(np.uint8)
+            return Image.fromarray(arr, mode="RGB")
+        if torch.is_tensor(image):
+            tensor = image.detach().cpu()
+            if tensor.ndim == 3 and tensor.shape[0] in {1, 3, 4}:
+                tensor = tensor[:3]
+                if tensor.dtype.is_floating_point:
+                    tensor = torch.clamp(tensor, 0.0, 1.0) * 255.0
+                tensor = tensor.to(torch.uint8).permute(1, 2, 0).contiguous().numpy()
+            elif tensor.ndim == 3 and tensor.shape[-1] in {1, 3, 4}:
+                if tensor.shape[-1] == 4:
+                    tensor = tensor[..., :3]
+                if tensor.dtype.is_floating_point:
+                    tensor = torch.clamp(tensor, 0.0, 1.0) * 255.0
+                tensor = tensor.to(torch.uint8).numpy()
+            else:
+                raise ValueError(f"Unsupported tensor image shape={tuple(tensor.shape)}")
+            return Image.fromarray(tensor, mode="RGB")
+        raise TypeError(f"Unsupported image input type: {type(image).__name__}")
+
+    def _postprocess_features(self, features: torch.Tensor) -> np.ndarray:
+        vec = features.detach().cpu().numpy().astype(np.float32)
+        if self.normalize:
+            norms = np.linalg.norm(vec, axis=1, keepdims=True)
+            vec = vec / np.maximum(norms, 1e-12)
+        return vec
+
+    def encode_batch(self, images: Sequence[Any]) -> np.ndarray:
+        pil_images: List[Image.Image] = []
+        for image in list(images or []):
+            pil = self._to_pil_image(image)
+            if pil.width <= 0 or pil.height <= 0:
+                raise ValueError("DINOv2 input image is empty.")
+            pil_images.append(pil)
+        if not pil_images:
+            return np.zeros((0, 0), dtype=np.float32)
+
+        outputs: List[np.ndarray] = []
+        for start in range(0, len(pil_images), self.batch_size):
+            chunk = pil_images[start:start + self.batch_size]
+            inputs = self.processor(images=chunk, return_tensors="pt")
+            pixel_values = inputs["pixel_values"].to(self.device)
+            with torch.no_grad():
+                model_out = self.model(pixel_values=pixel_values)
+            cls_features = model_out.last_hidden_state[:, 0, :]
+            outputs.append(self._postprocess_features(cls_features))
+        return np.vstack(outputs).astype(np.float32)
+
+    def encode_crop(self, image: Any) -> np.ndarray:
+        batch = self.encode_batch([image])
+        if batch.ndim != 2 or batch.shape[0] != 1:
+            raise ValueError(f"Unexpected DINOv2 embedding batch shape={batch.shape}")
+        return batch[0]

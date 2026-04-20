@@ -17,6 +17,12 @@ from tqdm import tqdm
 from spatial_rag.config import (
     BBOX_CONF_THRESHOLD,
     DEPTH_PRO_MODEL_PATH,
+    DINOV2_BATCH_SIZE,
+    DINOV2_MODEL_NAME,
+    DINOV2_NORMALIZE,
+    DISTANCE_PENALTY_DSQ0,
+    ENABLE_DINOV2_EMBEDDING,
+    ENABLE_DINOV2_SCORING,
     FOV,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
@@ -37,9 +43,12 @@ from spatial_rag.config import (
     OBJECT_VERTICAL_REL_EPS_M,
     SAVE_GEOMETRY_ARTIFACTS,
     SCAN_ANGLES,
+    SCORE_WEIGHT_M1,
+    SCORE_WEIGHT_M2,
     SCENE_PATH,
     SPATIAL_DB_DIR,
     SPATIAL_DB_VLM_MODEL,
+    STORE_DINOV2_EMBEDDING,
     VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS,
     VISIBLE_OCC_BOUNDARY_WIDTH,
     VISIBLE_OCC_DEPTH_MARGIN_DELTA,
@@ -48,12 +57,8 @@ from spatial_rag.config import (
     VLM_ANGLE_SPLIT_ENABLE,
     VLM_ANGLE_STEP,
 )
-from spatial_rag.object_canonicalizer import (
-    UNKNOWN_TEXT_TOKEN,
-    compose_frame_text,
-    select_object_text,
-    sorted_objects,
-)
+from spatial_rag.object_canonicalizer import UNKNOWN_TEXT_TOKEN, compose_frame_text, select_object_text, sorted_objects
+from spatial_rag.household_taxonomy import canonicalize_household_object_label
 from spatial_rag.object_geometry_pipeline import ObjectGeometryPipeline
 from spatial_rag.occlusion_scoring import (
     OCCLUSION_SCORE_FORMULA_VERSION,
@@ -63,6 +68,9 @@ from spatial_rag.occlusion_scoring import (
 )
 from spatial_rag.object_parser import ParseResult, parse_scene_objects
 from spatial_rag.vlm_captioner import VLMCaptioner
+
+
+ObjectGroupItem = Tuple[Dict[str, Any], np.ndarray, np.ndarray, Optional[np.ndarray]]
 
 
 def _now_iso() -> str:
@@ -731,6 +739,7 @@ def _load_resume_state(output_root: Path, emb_dim: int) -> Dict[str, Any]:
     text_arr_long = _load_npy_if_exists(output_root / "text_emb_long.npy")
     object_arr_short = _load_npy_if_exists(output_root / "object_text_emb_short.npy")
     object_arr_long = _load_npy_if_exists(output_root / "object_text_emb_long.npy")
+    object_arr_dinov2 = _load_npy_if_exists(output_root / "object_dinov2_emb.npy")
 
     if not meta_rows or image_arr is None or text_arr_short is None or text_arr_long is None:
         return {
@@ -763,7 +772,7 @@ def _load_resume_state(output_root: Path, emb_dim: int) -> Dict[str, Any]:
             "file_name_to_entry_id": {},
         }
 
-    object_groups_by_entry_id: Dict[int, List[Tuple[Dict, np.ndarray, np.ndarray]]] = {}
+    object_groups_by_entry_id: Dict[int, List[ObjectGroupItem]] = {}
     if object_rows and object_arr_short is not None and object_arr_long is not None:
         if (
             object_arr_short.ndim == 2
@@ -777,11 +786,25 @@ def _load_resume_state(output_root: Path, emb_dim: int) -> Dict[str, Any]:
                 entry_id = int(row.get("entry_id", -1))
                 if entry_id < 0:
                     continue
+                dinov2_embedding = None
+                dino_row_index = row.get("dinov2_embedding_row_index")
+                try:
+                    dino_row_index_int = int(dino_row_index) if dino_row_index is not None else None
+                except Exception:
+                    dino_row_index_int = None
+                if (
+                    object_arr_dinov2 is not None
+                    and dino_row_index_int is not None
+                    and object_arr_dinov2.ndim == 2
+                    and 0 <= int(dino_row_index_int) < int(object_arr_dinov2.shape[0])
+                ):
+                    dinov2_embedding = object_arr_dinov2[int(dino_row_index_int)].astype("float32")
                 object_groups_by_entry_id.setdefault(entry_id, []).append(
                     (
                         dict(row),
                         object_arr_short[idx].astype("float32"),
                         object_arr_long[idx].astype("float32"),
+                        dinov2_embedding,
                     )
                 )
 
@@ -842,7 +865,7 @@ def _should_reuse_existing_entry(
     existing_image_emb: Optional[np.ndarray],
     existing_text_emb_short: Optional[np.ndarray],
     existing_text_emb_long: Optional[np.ndarray],
-    existing_object_group: Optional[Sequence[Tuple[Dict, np.ndarray, np.ndarray]]],
+    existing_object_group: Optional[Sequence[ObjectGroupItem]],
     expected_file_name: str,
     require_geometry_fields: bool = False,
 ) -> bool:
@@ -940,7 +963,7 @@ def _make_thread_local_captioner_getter(
 
 
 def _summarize_geometry_outcomes_from_object_groups(
-    object_groups_by_entry_id: Mapping[int, Sequence[Tuple[Dict, np.ndarray, np.ndarray]]],
+    object_groups_by_entry_id: Mapping[int, Sequence[ObjectGroupItem]],
 ) -> Tuple[int, int]:
     geometry_ok_count = 0
     geometry_fallback_count = 0
@@ -1048,7 +1071,28 @@ def _apply_batched_description_result_to_geometry(
             str(payload.get("long_description") or payload.get("short_description") or label_hint).strip()
             or label_hint
         )
-        row["crop_vlm_label"] = payload.get("label")
+        detector_label_raw = str(row.get("detector_label_raw") or row.get("detector_label") or label_hint).strip() or "unknown"
+        detector_label_norm = canonicalize_household_object_label(
+            detector_label_raw,
+            default=detector_label_raw,
+        )
+        vlm_label = canonicalize_household_object_label(
+            payload.get("label"),
+            default="unknown",
+        )
+        vlm_label_usable = bool(str(vlm_label or "").strip()) and str(vlm_label).strip().lower() != "unknown"
+        final_label = vlm_label if vlm_label_usable else detector_label_raw
+        row["label"] = final_label
+        row["detector_label"] = detector_label_raw
+        row["detector_label_raw"] = detector_label_raw
+        row["vlm_label"] = vlm_label
+        row["crop_vlm_label"] = vlm_label
+        row["final_label"] = final_label
+        row["label_source"] = "vlm" if vlm_label_usable else "detector"
+        row["label_conflict"] = bool(
+            vlm_label_usable
+            and str(vlm_label).strip().lower() != str(detector_label_norm).strip().lower()
+        )
         row["description"] = short_description
         row["long_form_open_description"] = long_description
         row["attributes"] = [str(v).strip() for v in list(payload.get("attributes") or []) if str(v).strip()]
@@ -1544,7 +1588,12 @@ def _make_object_record(
     geometry_source: str = "vlm_fallback",
     geometry_fallback_reason: Optional[str] = None,
     detector_label: Optional[str] = None,
+    detector_label_raw: Optional[str] = None,
     detector_confidence: Optional[float] = None,
+    vlm_label: Optional[str] = None,
+    final_label: Optional[str] = None,
+    label_source: Optional[str] = None,
+    label_conflict: Optional[bool] = None,
     occlusion_source: Optional[str] = None,
     occlusion_level: Optional[str] = None,
     occlusion_penalty_p_o: Optional[float] = None,
@@ -1581,6 +1630,13 @@ def _make_object_record(
     mask_overlay_path: Optional[str] = None,
     depth_map_path: Optional[str] = None,
     crop_vlm_label: Optional[str] = None,
+    dinov2_embedding_row_index: Optional[int] = None,
+    dinov2_model_name: Optional[str] = None,
+    dinov2_embedding_dim: Optional[int] = None,
+    dinov2_input_type: Optional[str] = None,
+    dinov2_normalized: Optional[bool] = None,
+    dinov2_status: Optional[str] = None,
+    dinov2_failure_reason: Optional[str] = None,
 ) -> Dict:
     angle_bucket = _normalize_angle_bucket(laterality, angle_split_enable=angle_split_enable)
     if precise_orientation_from_bearing and relative_bearing_deg is not None:
@@ -1637,8 +1693,13 @@ def _make_object_record(
         "parse_status": parse_status,
         "geometry_source": str(geometry_source or "vlm_fallback"),
         "geometry_fallback_reason": geometry_fallback_reason,
-        "detector_label": detector_label,
+        "detector_label": detector_label_raw if detector_label_raw is not None else detector_label,
+        "detector_label_raw": detector_label_raw if detector_label_raw is not None else detector_label,
         "detector_confidence": detector_confidence,
+        "vlm_label": vlm_label if vlm_label is not None else crop_vlm_label,
+        "final_label": final_label if final_label is not None else label,
+        "label_source": label_source,
+        "label_conflict": None if label_conflict is None else bool(label_conflict),
         "occlusion_source": None if occlusion_source is None else str(occlusion_source),
         "occlusion_level": occlusion_level,
         "occlusion_penalty_p_o": occlusion_penalty_p_o,
@@ -1672,7 +1733,14 @@ def _make_object_record(
         "mask_path": mask_path,
         "mask_overlay_path": mask_overlay_path,
         "depth_map_path": depth_map_path,
-        "crop_vlm_label": crop_vlm_label,
+        "crop_vlm_label": crop_vlm_label if crop_vlm_label is not None else vlm_label,
+        "dinov2_embedding_row_index": dinov2_embedding_row_index,
+        "dinov2_model_name": dinov2_model_name,
+        "dinov2_embedding_dim": dinov2_embedding_dim,
+        "dinov2_input_type": dinov2_input_type,
+        "dinov2_normalized": dinov2_normalized,
+        "dinov2_status": dinov2_status,
+        "dinov2_failure_reason": dinov2_failure_reason,
     }
     if scene_objects is not None:
         record.update(
@@ -1723,11 +1791,16 @@ def _build_spatial_database_core(
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
     visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
+    enable_dinov2_embedding: bool = bool(ENABLE_DINOV2_EMBEDDING),
+    store_dinov2_embedding: bool = bool(STORE_DINOV2_EMBEDDING),
+    dinov2_model_name: str = str(DINOV2_MODEL_NAME),
+    dinov2_batch_size: int = int(DINOV2_BATCH_SIZE),
+    dinov2_normalize: bool = bool(DINOV2_NORMALIZE),
     r_threshold: Optional[float] = None,
     export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
     try:
-        from spatial_rag.embedder import Embedder
+        from spatial_rag.embedder import DINOv2Embedder, Embedder
     except ModuleNotFoundError as exc:
         raise RuntimeError(
             "Failed to import Embedder dependencies. "
@@ -1748,6 +1821,8 @@ def _build_spatial_database_core(
     selected_prompt_variant = str(object_prompt_variant or "standard").strip().lower()
     angle_split_active = bool(angle_split_enable and object_orientation_mode == "laterality_offset")
     selected_occlusion_source = str(occlusion_source or OCCLUSION_SOURCE).strip().lower()
+    dinov2_enabled = bool(enable_dinov2_embedding)
+    dinov2_store_enabled = bool(store_dinov2_embedding or dinov2_enabled)
     if selected_occlusion_source not in {"visible_mask", "vlm"}:
         raise ValueError(f"Unsupported occlusion_source: {occlusion_source!r}")
 
@@ -1790,6 +1865,7 @@ def _build_spatial_database_core(
             "max_per_frame": int(object_max_per_frame),
             "bbox_conf_threshold": float(bbox_conf_threshold),
             "stored_text_modes": ["short", "long"],
+            "stored_visual_modes": ["dinov2"] if bool(dinov2_store_enabled) else [],
             "parse_retries": int(object_parse_retries),
             "use_cache": bool(object_use_cache),
             "cache_dir": str(object_cache_root),
@@ -1809,6 +1885,13 @@ def _build_spatial_database_core(
                 "eps": float(OCCLUSION_REWEIGHT_EPS),
             },
             "occlusion_source": str(selected_occlusion_source),
+            "dinov2": {
+                "enabled": bool(dinov2_enabled),
+                "store_embedding": bool(dinov2_store_enabled),
+                "model_name": str(dinov2_model_name),
+                "batch_size": int(dinov2_batch_size),
+                "normalized": bool(dinov2_normalize),
+            },
         },
         "geometry_config": {
             "pipeline_enabled": bool(OBJECT_GEOMETRY_PIPELINE_ENABLE),
@@ -1848,6 +1931,7 @@ def _build_spatial_database_core(
         "text_index_ntotal_long": 0,
         "object_index_ntotal_short": 0,
         "object_index_ntotal_long": 0,
+        "object_dinov2_ntotal": 0,
         "total_objects": 0,
         "avg_objects_per_frame": 0.0,
         "parse_ok_count": 0,
@@ -1901,6 +1985,19 @@ def _build_spatial_database_core(
             "Failed to initialize CLIP embedder. "
             "See the nested error for network/cache checkpoint details."
         ) from exc
+    dino_embedder = None
+    if dinov2_enabled:
+        try:
+            dino_embedder = DINOv2Embedder(
+                model_name=str(dinov2_model_name),
+                batch_size=int(dinov2_batch_size),
+                normalize=bool(dinov2_normalize),
+            )
+        except Exception as exc:
+            raise RuntimeError(
+                "Failed to initialize DINOv2 embedder. "
+                "Check transformers/PyTorch availability and model checkpoint access."
+            ) from exc
     captioner = VLMCaptioner(
         model_name=vlm_model,
         use_cache=use_cache,
@@ -1927,6 +2024,8 @@ def _build_spatial_database_core(
             visible_occ_ring_radius=int(visible_occ_ring_radius),
             visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
             visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
+            dino_embedder=dino_embedder,
+            enable_dinov2_embedding=bool(dinov2_enabled),
         )
         if bool(OBJECT_GEOMETRY_PIPELINE_ENABLE)
         else None
@@ -1947,7 +2046,7 @@ def _build_spatial_database_core(
     text_embs_short: List[np.ndarray] = list(resume_state["text_embs_short"])
     text_embs_long: List[np.ndarray] = list(resume_state["text_embs_long"])
     raw_api_records: List[Dict] = list(resume_state["raw_api_records"])
-    object_groups_by_entry_id: Dict[int, List[Tuple[Dict, np.ndarray, np.ndarray]]] = {
+    object_groups_by_entry_id: Dict[int, List[ObjectGroupItem]] = {
         int(entry_id): list(groups)
         for entry_id, groups in dict(resume_state["object_groups_by_entry_id"]).items()
     }
@@ -2538,7 +2637,7 @@ def _build_spatial_database_core(
                     text_embs_short[entry_id] = text_emb_short
                     text_embs_long[entry_id] = text_emb_long
                 file_name_to_entry_id[file_name] = int(entry_id)
-                entry_object_records: List[Tuple[Dict, np.ndarray, np.ndarray]] = []
+                entry_object_records: List[ObjectGroupItem] = []
 
                 if geometry_all_objects_filtered_by_r_threshold:
                     entry_object_records = []
@@ -2590,8 +2689,13 @@ def _build_spatial_database_core(
                             precise_orientation_from_bearing=True,
                             geometry_source=str(geo_row.get("geometry_source") or "mask_depth"),
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
-                            detector_label=geo_row.get("detector_label"),
+                            detector_label=geo_row.get("detector_label_raw") or geo_row.get("detector_label"),
+                            detector_label_raw=geo_row.get("detector_label_raw"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            vlm_label=geo_row.get("vlm_label"),
+                            final_label=geo_row.get("final_label"),
+                            label_source=geo_row.get("label_source"),
+                            label_conflict=geo_row.get("label_conflict"),
                             occlusion_source=geo_row.get("occlusion_source"),
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
@@ -2628,12 +2732,28 @@ def _build_spatial_database_core(
                             mask_overlay_path=geo_row.get("mask_overlay_path"),
                             depth_map_path=geo_row.get("depth_map_path"),
                             crop_vlm_label=geo_row.get("crop_vlm_label"),
+                            dinov2_model_name=geo_row.get("dinov2_model_name"),
+                            dinov2_embedding_dim=geo_row.get("dinov2_embedding_dim"),
+                            dinov2_input_type=geo_row.get("dinov2_input_type"),
+                            dinov2_normalized=geo_row.get("dinov2_normalized"),
+                            dinov2_status=geo_row.get("dinov2_status"),
+                            dinov2_failure_reason=geo_row.get("dinov2_failure_reason"),
                         )
                         record["view_type"] = str(view_attribute.get("view_type") or "unknown")
                         record["room_function"] = str(view_attribute.get("room_function") or "unknown")
                         record["style_hint"] = str(view_attribute.get("style_hint") or "unknown")
                         record["clutter_level"] = str(view_attribute.get("clutter_level") or "unknown")
-                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        dino_embedding = geo_row.get("dinov2_embedding")
+                        entry_object_records.append(
+                            (
+                                record,
+                                obj_emb_short,
+                                obj_emb_long,
+                                None
+                                if dino_embedding is None
+                                else np.asarray(dino_embedding, dtype=np.float32).reshape(-1),
+                            )
+                        )
                         bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
                         report[bucket_key] = int(report.get(bucket_key, 0)) + 1
                         entry_object_count += 1
@@ -2697,7 +2817,12 @@ def _build_spatial_database_core(
                             if geometry_result is None
                             else geometry_result.failure_reason,
                             detector_label=None,
+                            detector_label_raw=None,
                             detector_confidence=None,
+                            vlm_label=obj.type,
+                            final_label=obj.type,
+                            label_source="vlm",
+                            label_conflict=False,
                             occlusion_source=selected_occlusion_source,
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
@@ -2713,8 +2838,9 @@ def _build_spatial_database_core(
                             depth_margin_delta=None,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
+                            dinov2_status="missing" if dinov2_enabled else "disabled",
                         )
-                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        entry_object_records.append((record, obj_emb_short, obj_emb_long, None))
                         pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                             _build_object_r_scores_pre_threshold_row(
                                 record,
@@ -2772,6 +2898,11 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        detector_label_raw=None,
+                        vlm_label="unknown",
+                        final_label="none",
+                        label_source="placeholder",
+                        label_conflict=False,
                         occlusion_source=selected_occlusion_source,
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
@@ -2785,8 +2916,9 @@ def _build_spatial_database_core(
                         ring_pixel_count=None,
                         nearer_ring_pixel_count=None,
                         depth_margin_delta=None,
+                        dinov2_status="missing" if dinov2_enabled else "disabled",
                     )
-                    entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                    entry_object_records.append((record, obj_emb_short, obj_emb_long, None))
                     pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                         _build_object_r_scores_pre_threshold_row(
                             record,
@@ -3360,7 +3492,7 @@ def _build_spatial_database_core(
                     text_embs_short[entry_id] = text_emb_short
                     text_embs_long[entry_id] = text_emb_long
                 file_name_to_entry_id[file_name] = int(entry_id)
-                entry_object_records: List[Tuple[Dict, np.ndarray, np.ndarray]] = []
+                entry_object_records: List[ObjectGroupItem] = []
 
                 if geometry_all_objects_filtered_by_r_threshold:
                     entry_object_records = []
@@ -3412,8 +3544,13 @@ def _build_spatial_database_core(
                             precise_orientation_from_bearing=True,
                             geometry_source=str(geo_row.get("geometry_source") or "mask_depth"),
                             geometry_fallback_reason=geo_row.get("geometry_fallback_reason"),
-                            detector_label=geo_row.get("detector_label"),
+                            detector_label=geo_row.get("detector_label_raw") or geo_row.get("detector_label"),
+                            detector_label_raw=geo_row.get("detector_label_raw"),
                             detector_confidence=geo_row.get("detector_confidence"),
+                            vlm_label=geo_row.get("vlm_label"),
+                            final_label=geo_row.get("final_label"),
+                            label_source=geo_row.get("label_source"),
+                            label_conflict=geo_row.get("label_conflict"),
                             occlusion_source=geo_row.get("occlusion_source"),
                             occlusion_level=geo_row.get("occlusion_level"),
                             occlusion_penalty_p_o=geo_row.get("occlusion_penalty_p_o"),
@@ -3450,12 +3587,28 @@ def _build_spatial_database_core(
                             mask_overlay_path=geo_row.get("mask_overlay_path"),
                             depth_map_path=geo_row.get("depth_map_path"),
                             crop_vlm_label=geo_row.get("crop_vlm_label"),
+                            dinov2_model_name=geo_row.get("dinov2_model_name"),
+                            dinov2_embedding_dim=geo_row.get("dinov2_embedding_dim"),
+                            dinov2_input_type=geo_row.get("dinov2_input_type"),
+                            dinov2_normalized=geo_row.get("dinov2_normalized"),
+                            dinov2_status=geo_row.get("dinov2_status"),
+                            dinov2_failure_reason=geo_row.get("dinov2_failure_reason"),
                         )
                         record["view_type"] = str(view_attribute.get("view_type") or "unknown")
                         record["room_function"] = str(view_attribute.get("room_function") or "unknown")
                         record["style_hint"] = str(view_attribute.get("style_hint") or "unknown")
                         record["clutter_level"] = str(view_attribute.get("clutter_level") or "unknown")
-                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        dino_embedding = geo_row.get("dinov2_embedding")
+                        entry_object_records.append(
+                            (
+                                record,
+                                obj_emb_short,
+                                obj_emb_long,
+                                None
+                                if dino_embedding is None
+                                else np.asarray(dino_embedding, dtype=np.float32).reshape(-1),
+                            )
+                        )
                         bucket_key = f"total_{record['angle_bucket']}_bucket_objects"
                         report[bucket_key] = int(report.get(bucket_key, 0)) + 1
                         entry_object_count += 1
@@ -3519,7 +3672,12 @@ def _build_spatial_database_core(
                             if geometry_result is None
                             else geometry_result.failure_reason,
                             detector_label=None,
+                            detector_label_raw=None,
                             detector_confidence=None,
+                            vlm_label=obj.type,
+                            final_label=obj.type,
+                            label_source="vlm",
+                            label_conflict=False,
                             occlusion_source=selected_occlusion_source,
                             occlusion_level=fallback_occlusion_level,
                             occlusion_penalty_p_o=fallback_occlusion_penalty,
@@ -3535,8 +3693,9 @@ def _build_spatial_database_core(
                             depth_margin_delta=None,
                             vlm_distance_from_camera_m=obj.distance_from_camera_m,
                             vlm_relative_bearing_deg=obj.relative_bearing_deg,
+                            dinov2_status="missing" if dinov2_enabled else "disabled",
                         )
-                        entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                        entry_object_records.append((record, obj_emb_short, obj_emb_long, None))
                         pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                             _build_object_r_scores_pre_threshold_row(
                                 record,
@@ -3594,6 +3753,11 @@ def _build_spatial_database_core(
                         object_text_long=line_long,
                         geometry_source="vlm_fallback",
                         geometry_fallback_reason=None if geometry_result is None else geometry_result.failure_reason,
+                        detector_label_raw=None,
+                        vlm_label="unknown",
+                        final_label="none",
+                        label_source="placeholder",
+                        label_conflict=False,
                         occlusion_source=selected_occlusion_source,
                         occlusion_level=fallback_occlusion_level,
                         occlusion_penalty_p_o=fallback_occlusion_penalty,
@@ -3607,8 +3771,9 @@ def _build_spatial_database_core(
                         ring_pixel_count=None,
                         nearer_ring_pixel_count=None,
                         depth_margin_delta=None,
+                        dinov2_status="missing" if dinov2_enabled else "disabled",
                     )
-                    entry_object_records.append((record, obj_emb_short, obj_emb_long))
+                    entry_object_records.append((record, obj_emb_short, obj_emb_long, None))
                     pre_threshold_r_score_rows_by_entry_id.setdefault(int(entry_id), []).append(
                         _build_object_r_scores_pre_threshold_row(
                             record,
@@ -3732,11 +3897,17 @@ def _build_spatial_database_core(
         object_metadata_records: List[Dict] = []
         object_text_embs_short: List[np.ndarray] = []
         object_text_embs_long: List[np.ndarray] = []
+        object_dinov2_embs: List[np.ndarray] = []
         for entry_id, _meta in enumerate(metadata_records):
-            for record, obj_emb_short, obj_emb_long in list(object_groups_by_entry_id.get(entry_id, [])):
+            for record, obj_emb_short, obj_emb_long, obj_emb_dinov2 in list(object_groups_by_entry_id.get(entry_id, [])):
                 out_record = dict(record)
                 out_record["entry_id"] = int(entry_id)
                 out_record["object_global_id"] = int(len(object_metadata_records))
+                if bool(dinov2_store_enabled) and obj_emb_dinov2 is not None:
+                    out_record["dinov2_embedding_row_index"] = int(len(object_dinov2_embs))
+                    object_dinov2_embs.append(np.asarray(obj_emb_dinov2, dtype=np.float32).reshape(-1))
+                else:
+                    out_record["dinov2_embedding_row_index"] = None
                 object_metadata_records.append(out_record)
                 object_text_embs_short.append(np.asarray(obj_emb_short, dtype=np.float32).reshape(-1))
                 object_text_embs_long.append(np.asarray(obj_emb_long, dtype=np.float32).reshape(-1))
@@ -3751,6 +3922,12 @@ def _build_spatial_database_core(
             if object_text_embs_long
             else np.zeros((0, emb_dim), dtype="float32")
         )
+        if object_dinov2_embs:
+            dino_dim = int(object_dinov2_embs[0].shape[0])
+            object_arr_dinov2 = np.vstack(object_dinov2_embs).astype("float32")
+        else:
+            dino_dim = int(getattr(dino_embedder, "embedding_dim", 0) or 0)
+            object_arr_dinov2 = np.zeros((0, dino_dim), dtype="float32")
         view_object_relations = _build_view_object_relations(
             metadata_records=metadata_records,
             object_metadata_records=object_metadata_records,
@@ -3773,6 +3950,7 @@ def _build_spatial_database_core(
         _write_jsonl(output_root / "object_object_relations.jsonl", object_object_relations)
         np.save(output_root / "object_text_emb_short.npy", object_arr_short)
         np.save(output_root / "object_text_emb_long.npy", object_arr_long)
+        np.save(output_root / "object_dinov2_emb.npy", object_arr_dinov2)
         pre_threshold_r_scores_path = output_root / "object_r_scores_pre_threshold.csv"
         final_r_scores_path = output_root / "object_r_scores.csv"
         final_pre_threshold_r_score_rows = _flatten_object_r_scores_pre_threshold_rows(
@@ -3811,6 +3989,7 @@ def _build_spatial_database_core(
             object_arr_long,
             output_root / "object_index_long.faiss",
         )
+        report["object_dinov2_ntotal"] = int(object_arr_dinov2.shape[0]) if object_arr_dinov2.ndim == 2 else 0
 
         overview_dir = output_root / "overview"
         overview_dir.mkdir(parents=True, exist_ok=True)
@@ -3966,6 +4145,11 @@ def build_spatial_database(
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
     visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
+    enable_dinov2_embedding: bool = bool(ENABLE_DINOV2_EMBEDDING),
+    store_dinov2_embedding: bool = bool(STORE_DINOV2_EMBEDDING),
+    dinov2_model_name: str = str(DINOV2_MODEL_NAME),
+    dinov2_batch_size: int = int(DINOV2_BATCH_SIZE),
+    dinov2_normalize: bool = bool(DINOV2_NORMALIZE),
     r_threshold: Optional[float] = None,
     export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
@@ -4006,6 +4190,11 @@ def build_spatial_database(
         visible_occ_ring_radius=int(visible_occ_ring_radius),
         visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
         visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
+        enable_dinov2_embedding=bool(enable_dinov2_embedding),
+        store_dinov2_embedding=bool(store_dinov2_embedding),
+        dinov2_model_name=str(dinov2_model_name),
+        dinov2_batch_size=int(dinov2_batch_size),
+        dinov2_normalize=bool(dinov2_normalize),
         r_threshold=None if r_threshold is None else float(r_threshold),
         export_object_crops_by_global_id_dir=export_object_crops_by_global_id_dir,
     )
@@ -4045,6 +4234,11 @@ def build_spatial_database_angle_split(
     visible_occ_ring_radius: int = int(VISIBLE_OCC_RING_RADIUS),
     visible_occ_depth_margin_delta: float = float(VISIBLE_OCC_DEPTH_MARGIN_DELTA),
     visible_occ_boundary_neighbor_radius: int = int(VISIBLE_OCC_BOUNDARY_NEIGHBOR_RADIUS),
+    enable_dinov2_embedding: bool = bool(ENABLE_DINOV2_EMBEDDING),
+    store_dinov2_embedding: bool = bool(STORE_DINOV2_EMBEDDING),
+    dinov2_model_name: str = str(DINOV2_MODEL_NAME),
+    dinov2_batch_size: int = int(DINOV2_BATCH_SIZE),
+    dinov2_normalize: bool = bool(DINOV2_NORMALIZE),
     r_threshold: Optional[float] = None,
     export_object_crops_by_global_id_dir: Optional[str] = None,
 ) -> Dict:
@@ -4085,6 +4279,11 @@ def build_spatial_database_angle_split(
         visible_occ_ring_radius=int(visible_occ_ring_radius),
         visible_occ_depth_margin_delta=float(visible_occ_depth_margin_delta),
         visible_occ_boundary_neighbor_radius=int(visible_occ_boundary_neighbor_radius),
+        enable_dinov2_embedding=bool(enable_dinov2_embedding),
+        store_dinov2_embedding=bool(store_dinov2_embedding),
+        dinov2_model_name=str(dinov2_model_name),
+        dinov2_batch_size=int(dinov2_batch_size),
+        dinov2_normalize=bool(dinov2_normalize),
         r_threshold=None if r_threshold is None else float(r_threshold),
         export_object_crops_by_global_id_dir=export_object_crops_by_global_id_dir,
     )
@@ -4233,6 +4432,36 @@ def main() -> None:
         help="Minimum YOLO bbox confidence required for a detection to enter the geometry pipeline.",
     )
     parser.add_argument(
+        "--enable_dinov2_embedding",
+        type=_str_to_bool,
+        default=ENABLE_DINOV2_EMBEDDING,
+        help="Whether to encode DINOv2 embeddings for YOLO-detected object crops.",
+    )
+    parser.add_argument(
+        "--store_dinov2_embedding",
+        type=_str_to_bool,
+        default=STORE_DINOV2_EMBEDDING,
+        help="Whether to persist DINOv2 embeddings into object_dinov2_emb.npy sidecar.",
+    )
+    parser.add_argument(
+        "--dinov2_model_name",
+        type=str,
+        default=DINOV2_MODEL_NAME,
+        help="Hugging Face model name for DINOv2 crop encoding.",
+    )
+    parser.add_argument(
+        "--dinov2_batch_size",
+        type=int,
+        default=DINOV2_BATCH_SIZE,
+        help="Batch size used by the DINOv2 crop encoder.",
+    )
+    parser.add_argument(
+        "--dinov2_normalize",
+        type=_str_to_bool,
+        default=DINOV2_NORMALIZE,
+        help="Whether to L2-normalize stored DINOv2 embeddings.",
+    )
+    parser.add_argument(
         "--occlusion_reweight_w1",
         type=float,
         default=OCCLUSION_REWEIGHT_W1,
@@ -4324,6 +4553,11 @@ def main() -> None:
         vlm_max_in_flight=args.vlm_max_in_flight,
         legacy_per_frame=args.legacy_per_frame,
         bbox_conf_threshold=args.bbox_conf_threshold,
+        enable_dinov2_embedding=args.enable_dinov2_embedding,
+        store_dinov2_embedding=args.store_dinov2_embedding,
+        dinov2_model_name=args.dinov2_model_name,
+        dinov2_batch_size=args.dinov2_batch_size,
+        dinov2_normalize=args.dinov2_normalize,
         occlusion_reweight_w1=args.occlusion_reweight_w1,
         occlusion_reweight_w2=args.occlusion_reweight_w2,
         occlusion_reweight_b=args.occlusion_reweight_b,

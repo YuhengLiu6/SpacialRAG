@@ -792,6 +792,7 @@ def _rebuild_build_report(
     text_arr_long: np.ndarray,
     object_arr_short: np.ndarray,
     object_arr_long: np.ndarray,
+    object_arr_dinov2: np.ndarray,
     per_entry_threshold_stats: Mapping[int, Mapping[str, Any]],
     summary: Mapping[str, Any],
 ) -> Dict[str, Any]:
@@ -825,6 +826,7 @@ def _rebuild_build_report(
     report["text_index_ntotal_long"] = int(text_arr_long.shape[0]) if text_arr_long.ndim == 2 else 0
     report["object_index_ntotal_short"] = int(object_arr_short.shape[0]) if object_arr_short.ndim == 2 else 0
     report["object_index_ntotal_long"] = int(object_arr_long.shape[0]) if object_arr_long.ndim == 2 else 0
+    report["object_dinov2_ntotal"] = int(object_arr_dinov2.shape[0]) if object_arr_dinov2.ndim == 2 else 0
     report["total_entries"] = int(len(meta_rows))
     report["total_objects"] = int(len(kept_object_rows))
     report["avg_objects_per_frame"] = float(len(kept_object_rows) / max(len(meta_rows), 1))
@@ -864,6 +866,7 @@ def _export_variant_db(
     base_text_long: np.ndarray,
     base_object_arr_short: np.ndarray,
     base_object_arr_long: np.ndarray,
+    base_object_arr_dinov2: Optional[np.ndarray],
     scored_rows: Sequence[Mapping[str, Any]],
     summary: Mapping[str, Any],
 ) -> Dict[str, Any]:
@@ -925,6 +928,29 @@ def _export_variant_db(
         dim = int(base_object_arr_short.shape[1]) if base_object_arr_short.ndim == 2 and base_object_arr_short.shape[1] > 0 else 0
         object_arr_short = np.zeros((0, dim), dtype=np.float32)
         object_arr_long = np.zeros((0, dim), dtype=np.float32)
+    kept_object_rows = [dict(row) for row in kept_object_rows]
+    object_dinov2_rows: List[np.ndarray] = []
+    for row in kept_object_rows:
+        source_row = row.get("dinov2_embedding_row_index")
+        try:
+            source_row_int = int(source_row) if source_row not in (None, "") else None
+        except Exception:
+            source_row_int = None
+        if (
+            base_object_arr_dinov2 is not None
+            and base_object_arr_dinov2.ndim == 2
+            and source_row_int is not None
+            and 0 <= int(source_row_int) < int(base_object_arr_dinov2.shape[0])
+        ):
+            row["dinov2_embedding_row_index"] = int(len(object_dinov2_rows))
+            object_dinov2_rows.append(np.asarray(base_object_arr_dinov2[int(source_row_int)], dtype=np.float32))
+        else:
+            row["dinov2_embedding_row_index"] = None
+    if object_dinov2_rows:
+        object_arr_dinov2 = np.vstack(object_dinov2_rows).astype(np.float32)
+    else:
+        dino_dim = int(base_object_arr_dinov2.shape[1]) if base_object_arr_dinov2 is not None and base_object_arr_dinov2.ndim == 2 else 0
+        object_arr_dinov2 = np.zeros((0, dino_dim), dtype=np.float32)
 
     view_object_relations = _build_view_object_relations(meta_rows, kept_object_rows)
     object_object_relations = _build_object_object_relations(meta_rows, kept_object_rows)
@@ -944,6 +970,7 @@ def _export_variant_db(
     np.save(output_root / "text_emb_long.npy", np.asarray(text_arr_long, dtype=np.float32))
     np.save(output_root / "object_text_emb_short.npy", np.asarray(object_arr_short, dtype=np.float32))
     np.save(output_root / "object_text_emb_long.npy", np.asarray(object_arr_long, dtype=np.float32))
+    np.save(output_root / "object_dinov2_emb.npy", np.asarray(object_arr_dinov2, dtype=np.float32))
 
     _write_csv_rows(output_root / "object_r_scores_pre_threshold.csv", _OBJECT_R_SCORES_PRE_THRESHOLD_COLUMNS, pre_threshold_debug_rows)
     _write_csv_rows(
@@ -984,6 +1011,7 @@ def _export_variant_db(
         text_arr_long=np.asarray(text_arr_long, dtype=np.float32),
         object_arr_short=np.asarray(object_arr_short, dtype=np.float32),
         object_arr_long=np.asarray(object_arr_long, dtype=np.float32),
+        object_arr_dinov2=np.asarray(object_arr_dinov2, dtype=np.float32),
         per_entry_threshold_stats=per_entry_threshold_stats,
         summary=summary,
     )
@@ -1034,6 +1062,10 @@ def run_reweight_sweep(
     text_arr_long = np.load(base_root / "text_emb_long.npy").astype("float32")
     object_arr_short = np.load(base_root / "object_text_emb_short.npy").astype("float32")
     object_arr_long = np.load(base_root / "object_text_emb_long.npy").astype("float32")
+    object_arr_dinov2 = None
+    object_dinov2_path = base_root / "object_dinov2_emb.npy"
+    if object_dinov2_path.exists():
+        object_arr_dinov2 = np.load(object_dinov2_path).astype("float32")
 
     if image_arr.ndim != 2 or image_arr.shape[0] != len(meta_rows):
         raise ValueError("image_emb.npy is misaligned with meta.jsonl")
@@ -1160,6 +1192,7 @@ def run_reweight_sweep(
             base_text_long=text_arr_long,
             base_object_arr_short=object_arr_short,
             base_object_arr_long=object_arr_long,
+            base_object_arr_dinov2=object_arr_dinov2,
             scored_rows=scored_rows,
             summary=summary,
         )

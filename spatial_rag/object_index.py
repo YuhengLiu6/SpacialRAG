@@ -48,6 +48,40 @@ def load_object_db(
     return meta, emb, entry_to_indices
 
 
+def load_object_dinov2_db(
+    db_dir: str,
+) -> Optional[Tuple[List[Dict], np.ndarray, Dict[int, int]]]:
+    root = Path(db_dir)
+    meta_path = root / "object_meta.jsonl"
+    emb_path = root / "object_dinov2_emb.npy"
+    if not meta_path.exists() or not emb_path.exists():
+        return None
+
+    meta = _load_jsonl(meta_path)
+    emb = np.load(emb_path).astype("float32")
+    if emb.ndim != 2:
+        raise ValueError(f"Invalid object_dinov2_emb shape: {emb.shape}")
+
+    object_id_to_sidecar_row: Dict[int, int] = {}
+    for row in meta:
+        object_id = int(row.get("object_global_id", -1))
+        sidecar_row = row.get("dinov2_embedding_row_index")
+        if object_id < 0 or sidecar_row in (None, ""):
+            continue
+        try:
+            sidecar_row_int = int(sidecar_row)
+        except Exception as exc:
+            raise ValueError(f"Invalid dinov2_embedding_row_index for object {object_id}: {sidecar_row!r}") from exc
+        if sidecar_row_int < 0 or sidecar_row_int >= emb.shape[0]:
+            raise ValueError(
+                f"DINOv2 sidecar row out of range for object {object_id}: "
+                f"{sidecar_row_int} not in [0, {emb.shape[0]})"
+            )
+        object_id_to_sidecar_row[object_id] = sidecar_row_int
+
+    return meta, emb, object_id_to_sidecar_row
+
+
 def load_object_faiss_index(db_dir: str, text_mode: str = "short"):
     mode = str(text_mode or "").strip().lower()
     if mode not in {"short", "long"}:

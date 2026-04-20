@@ -15,8 +15,15 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, laplacian
 
-from spatial_rag.config import DEFAULT_CROSS_AFFINITY_MIN, DEFAULT_DISTANCE_GATE_DSQ0
-from spatial_rag.object_index import load_object_db
+from spatial_rag.config import (
+    DEFAULT_CROSS_AFFINITY_MIN,
+    DEFAULT_DISTANCE_GATE_DSQ0,
+    DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+    ENABLE_DINOV2_SCORING,
+    SCORE_WEIGHT_M1,
+    SCORE_WEIGHT_M2,
+)
+from spatial_rag.object_index import load_object_db, load_object_dinov2_db
 from spatial_rag.object_instance_clustering import (
     _estimate_dbscan_eps,
     _alpha_blit,
@@ -38,7 +45,8 @@ from spatial_rag.object_instance_clustering import (
 
 DEFAULT_DB_DIR = "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd"
 DEFAULT_VIEW_IDS = ("view_00019", "view_00024", "view_00058", "view_00065")
-DEFAULT_WEIGHT_TEXT = 0.70
+DEFAULT_WEIGHT_TEXT = float(SCORE_WEIGHT_M1)
+DEFAULT_WEIGHT_DINOV2 = float(SCORE_WEIGHT_M2)
 DEFAULT_WEIGHT_GLOBAL_GEO = 0.20
 DEFAULT_WEIGHT_POLAR = 0.10
 DEFAULT_GLOBAL_SIGMA_M = 2.0
@@ -62,6 +70,8 @@ OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
     "estimated_global_y",
     "estimated_global_z",
     "term1_cosine",
+    "term2_dinov2",
+    "semantic_visual_similarity",
     "xy_distance_m",
     "dsq",
     "distance_gate_dsq0",
@@ -69,6 +79,7 @@ OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
     "distance_gate_exponent",
     "combined_similarity",
     "similarity_detail_status",
+    "same_view_split_applied",
 )
 SEQUENTIAL_PROGRESS_COLORS_BGR = (
     (32, 119, 238),
@@ -145,9 +156,15 @@ def _wrap_delta_angle_deg(delta_deg: float) -> float:
     return wrapped
 
 
-def _normalize_weight_triplet(weight_text: float, weight_global_geo: float, weight_polar: float) -> Dict[str, float]:
+def _normalize_weight_triplet(
+    weight_text: float,
+    weight_global_geo: float,
+    weight_polar: float,
+    weight_dinov2: float = 0.0,
+) -> Dict[str, float]:
     weights = {
         "text": max(0.0, float(weight_text)),
+        "dinov2": max(0.0, float(weight_dinov2)),
         "global_geo": max(0.0, float(weight_global_geo)),
         "polar": max(0.0, float(weight_polar)),
     }
@@ -212,6 +229,20 @@ def _proto_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np.ndarra
     return _l2_normalize_vec(np.asarray(mean_vec, dtype=np.float32))
 
 
+def _proto_dinov2_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np.ndarray]:
+    vectors: List[np.ndarray] = []
+    for row in members:
+        vec = row.get("dinov2_embedding")
+        if vec is None:
+            continue
+        vectors.append(np.asarray(vec, dtype=np.float32).reshape(-1))
+    if not vectors:
+        return None
+    stacked = np.vstack(vectors)
+    mean_vec = np.mean(stacked, axis=0)
+    return _l2_normalize_vec(np.asarray(mean_vec, dtype=np.float32))
+
+
 def _build_cluster(cluster_id: int, members: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
     member_rows = [dict(row) for row in members]
     histogram = Counter(_safe_text(row.get("label"), "unknown") for row in member_rows)
@@ -222,6 +253,7 @@ def _build_cluster(cluster_id: int, members: Sequence[Mapping[str, Any]]) -> Dic
         "member_view_ids": [_safe_text(row.get("view_id")) for row in member_rows],
         "label_histogram": dict(sorted(histogram.items())),
         "prototype_embedding": _proto_embedding(member_rows),
+        "prototype_dinov2_embedding": _proto_dinov2_embedding(member_rows),
         "prototype_xyz": _proto_xyz(member_rows),
         "prototype_polar": _proto_polar(member_rows),
     }
@@ -282,6 +314,63 @@ def _same_view_collision_pairs(
     return collisions
 
 
+def _cluster_existing_cluster_id(cluster: Mapping[str, Any]) -> Optional[int]:
+    cluster_id = _safe_int(cluster.get("cluster_id"), -1)
+    return None if cluster_id < 0 else int(cluster_id)
+
+
+def _synthetic_singleton_cluster(row: Mapping[str, Any]) -> Dict[str, Any]:
+    view_id = _safe_text(row.get("view_id"))
+    object_id = _safe_int(row.get("object_global_id"), -1)
+    return {
+        "cluster_id": None,
+        "member_rows": [dict(row)],
+        "member_view_ids": [view_id] if view_id else [],
+        "member_object_ids": [object_id] if object_id >= 0 else [],
+    }
+
+
+def _same_view_conflicting_view_ids(rows: Sequence[Mapping[str, Any]]) -> List[str]:
+    counts: Counter[str] = Counter()
+    for row in rows:
+        view_id = _safe_text(row.get("view_id"))
+        if view_id:
+            counts[view_id] += 1
+    return sorted(view_id for view_id, count in counts.items() if count > 1)
+
+
+def _apply_same_view_hard_mask_to_cross_affinity(
+    memory_clusters: Sequence[Mapping[str, Any]],
+    current_rows: Sequence[Mapping[str, Any]],
+    *,
+    cross_affinity: np.ndarray,
+    cross_details: Sequence[Sequence[Mapping[str, Any]]],
+) -> Tuple[np.ndarray, List[List[Dict[str, Any]]], int]:
+    masked_affinity = np.asarray(cross_affinity, dtype=np.float32).copy()
+    masked_details: List[List[Dict[str, Any]]] = [
+        [dict(detail) for detail in row_details]
+        for row_details in cross_details
+    ]
+    num_masked_edges = 0
+    for cur_idx, row in enumerate(current_rows):
+        row_view_id = _safe_text(row.get("view_id"))
+        if not row_view_id:
+            continue
+        for mem_idx, cluster in enumerate(memory_clusters):
+            if row_view_id not in _cluster_view_id_set(cluster):
+                continue
+            num_masked_edges += 1
+            masked_affinity[int(cur_idx), int(mem_idx)] = 0.0
+            if cur_idx < len(masked_details) and mem_idx < len(masked_details[cur_idx]):
+                detail = dict(masked_details[cur_idx][mem_idx])
+            else:
+                detail = {}
+            detail["same_view_masked"] = True
+            detail["same_view_mask_reason"] = "shared_view_id"
+            masked_details[cur_idx][mem_idx] = detail
+    return masked_affinity, masked_details, int(num_masked_edges)
+
+
 def _cross_detail_for_pair(
     cur_idx: int,
     mem_idx: int,
@@ -290,11 +379,13 @@ def _cross_detail_for_pair(
     current_rows: Sequence[Mapping[str, Any]],
     cluster: Mapping[str, Any],
     weight_text: float,
+    weight_dinov2: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
+    enable_dinov2_scoring: bool,
 ) -> Dict[str, Any]:
     if 0 <= int(cur_idx) < len(cross_details):
         row_details = cross_details[int(cur_idx)]
@@ -305,10 +396,11 @@ def _cross_detail_for_pair(
     return _pair_affinity_detail(
         current_rows[int(cur_idx)],
         cluster,
-        weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
+        weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2),
         global_sigma_m=global_sigma_m,
         similarity_mode=similarity_mode,
         distance_gate_dsq0=distance_gate_dsq0,
+        enable_dinov2_scoring=enable_dinov2_scoring,
     )
 
 
@@ -317,14 +409,16 @@ def _best_live_memory_match(
     slots: Sequence[Optional[Mapping[str, Any]]],
     *,
     weight_text: float,
+    weight_dinov2: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
+    enable_dinov2_scoring: bool,
 ) -> Optional[Tuple[float, int, Dict[str, Any]]]:
     best: Optional[Tuple[float, int, Dict[str, Any]]] = None
-    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar)
+    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2)
     for mem_idx, cluster in enumerate(slots):
         if cluster is None:
             continue
@@ -335,6 +429,7 @@ def _best_live_memory_match(
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
         score = float(detail.get("combined_similarity") or 0.0)
         candidate = (score, int(mem_idx), detail)
@@ -352,6 +447,7 @@ def _cluster_summary(cluster: Mapping[str, Any]) -> Dict[str, Any]:
         "member_view_ids": list(cluster.get("member_view_ids", [])),
         "label_histogram": dict(cluster.get("label_histogram", {})),
         "prototype_embedding": cluster.get("prototype_embedding"),
+        "prototype_dinov2_embedding": cluster.get("prototype_dinov2_embedding"),
         "prototype_xyz": cluster.get("prototype_xyz"),
         "prototype_polar": cluster.get("prototype_polar"),
     }
@@ -378,6 +474,8 @@ def _detail_summary(detail: Optional[Mapping[str, Any]]) -> Optional[Dict[str, A
         "similarity_mode": _safe_text(detail.get("similarity_mode")),
         "combined_similarity": _safe_float(detail.get("combined_similarity")),
         "text_similarity": _safe_float(detail.get("text_similarity")),
+        "dinov2_similarity": _safe_float(detail.get("dinov2_similarity")),
+        "semantic_visual_similarity": _safe_float(detail.get("semantic_visual_similarity")),
         "global_geo_similarity": _safe_float(detail.get("global_geo_similarity")),
         "polar_similarity": _safe_float(detail.get("polar_similarity")),
         "global_geo_distance_m": _safe_float(detail.get("global_geo_distance_m")),
@@ -412,9 +510,33 @@ def _merge_case_summary(case: Mapping[str, Any]) -> Dict[str, Any]:
 def _same_view_block_case_summary(case: Mapping[str, Any]) -> Dict[str, Any]:
     return {
         "step_index": _safe_int(case.get("step_index"), -1),
+        "raw_dbscan_label": _safe_int(case.get("raw_dbscan_label"), -1),
+        "connectivity_label": _safe_int(case.get("connectivity_label"), -1),
         "blocked_merge_cluster_ids": [_safe_int(value, -1) for value in case.get("blocked_merge_cluster_ids", [])],
         "competing_object_ids": [_safe_int(value, -1) for value in case.get("competing_object_ids", [])],
         "unassigned_object_ids": [_safe_int(value, -1) for value in case.get("unassigned_object_ids", [])],
+        "conflicting_view_ids": [_safe_text(value) for value in case.get("conflicting_view_ids", [])],
+        "original_group": {
+            "memory_cluster_ids": [
+                _safe_int(value, -1) for value in case.get("original_group", {}).get("memory_cluster_ids", [])
+            ],
+            "current_object_ids": [
+                _safe_int(value, -1) for value in case.get("original_group", {}).get("current_object_ids", [])
+            ],
+            "view_ids": [_safe_text(value) for value in case.get("original_group", {}).get("view_ids", [])],
+            "conflicting_view_ids": [
+                _safe_text(value) for value in case.get("original_group", {}).get("conflicting_view_ids", [])
+            ],
+        },
+        "resolved_subgroups": [
+            {
+                "cluster_id": _safe_int(item.get("cluster_id"), -1),
+                "memory_cluster_ids": [_safe_int(value, -1) for value in item.get("memory_cluster_ids", [])],
+                "current_object_ids": [_safe_int(value, -1) for value in item.get("current_object_ids", [])],
+                "view_ids": [_safe_text(value) for value in item.get("view_ids", [])],
+            }
+            for item in list(case.get("resolved_subgroups", []))
+        ],
         "collision_pairs": [
             {
                 "left_cluster_id": _safe_int(item.get("left_cluster_id"), -1),
@@ -470,9 +592,12 @@ def _object_assignment_record(
     similarity_reference_cluster_id: Optional[int],
     detail: Optional[Mapping[str, Any]],
     similarity_detail_status: Optional[str] = None,
+    same_view_split_applied: bool = False,
 ) -> Dict[str, Any]:
     status = similarity_detail_status or _assignment_detail_status(assignment_reason, detail)
     term1_cosine = _safe_float(detail.get("text_similarity")) if detail else None
+    term2_dinov2 = _safe_float(detail.get("dinov2_similarity")) if detail else None
+    semantic_visual_similarity = _safe_float(detail.get("semantic_visual_similarity")) if detail else None
     xy_distance_m = _safe_float(detail.get("xy_distance_m")) if detail else None
     dsq = _safe_float(detail.get("xy_distance_sq_m2")) if detail else None
     distance_gate_dsq0 = _safe_float(detail.get("distance_gate_dsq0")) if detail else None
@@ -496,6 +621,8 @@ def _object_assignment_record(
         "estimated_global_y": _safe_float(row.get("estimated_global_y")),
         "estimated_global_z": _safe_float(row.get("estimated_global_z")),
         "term1_cosine": term1_cosine,
+        "term2_dinov2": term2_dinov2,
+        "semantic_visual_similarity": semantic_visual_similarity,
         "xy_distance_m": xy_distance_m,
         "dsq": dsq,
         "distance_gate_dsq0": distance_gate_dsq0,
@@ -503,6 +630,7 @@ def _object_assignment_record(
         "distance_gate_exponent": exponent,
         "combined_similarity": _safe_float(detail.get("combined_similarity")) if detail else None,
         "similarity_detail_status": status,
+        "same_view_split_applied": bool(same_view_split_applied),
     }
 
 
@@ -619,11 +747,13 @@ def _step_report_summary(step_report: Mapping[str, Any]) -> Dict[str, Any]:
     return {
         "step_index": _safe_int(step_report.get("step_index"), -1),
         "view_id": _safe_text(step_report.get("view_id")),
+        "enforce_same_view_uniqueness": bool(step_report.get("enforce_same_view_uniqueness")),
         "num_current_objects": _safe_int(step_report.get("num_current_objects"), 0),
         "num_existing_clusters": _safe_int(step_report.get("num_existing_clusters"), 0),
         "num_appended": _safe_int(step_report.get("num_appended"), 0),
         "num_current_only_reattached": _safe_int(step_report.get("num_current_only_reattached"), 0),
         "num_merged_clusters": _safe_int(step_report.get("num_merged_clusters"), 0),
+        "num_same_view_masked_edges": _safe_int(step_report.get("num_same_view_masked_edges"), 0),
         "num_same_view_blocked_components": _safe_int(step_report.get("num_same_view_blocked_components"), 0),
         "num_new_tail_clusters": _safe_int(step_report.get("num_new_tail_clusters"), 0),
         "num_dbscan_clusters": _safe_int(step_report.get("num_dbscan_clusters"), 0),
@@ -835,11 +965,20 @@ def load_sequence_objects(
     object_rows, long_emb, _entry_to_indices = loaded
     if long_emb.shape[0] != len(object_rows):
         raise ValueError("Object long embeddings are misaligned with object_meta.jsonl")
+    dino_loaded = load_object_dinov2_db(str(root))
+    dino_embedding_by_object_id: Dict[int, np.ndarray] = {}
+    if dino_loaded is not None:
+        _dino_meta, dino_emb, object_id_to_sidecar_row = dino_loaded
+        for object_id, sidecar_row in object_id_to_sidecar_row.items():
+            dino_embedding_by_object_id[int(object_id)] = _l2_normalize_vec(
+                np.asarray(dino_emb[int(sidecar_row)], dtype=np.float32)
+            )
 
     by_view: Dict[str, List[Dict[str, Any]]] = {view_id: [] for view_id in selected_view_ids}
     for index, row in enumerate(object_rows):
         prepared = dict(row)
         entry_id = _safe_int(prepared.get("entry_id"), -1)
+        object_id = _safe_int(prepared.get("object_global_id"), -1)
         view_id = _safe_text(prepared.get("view_id")) or _view_id_for_entry(entry_id)
         if view_id not in selected_set:
             continue
@@ -848,6 +987,8 @@ def load_sequence_objects(
         prepared["view_id"] = view_id
         prepared["entry_id"] = entry_id
         prepared["embedding"] = _l2_normalize_vec(np.asarray(long_emb[index], dtype=np.float32))
+        prepared["text_embedding"] = prepared["embedding"]
+        prepared["dinov2_embedding"] = dino_embedding_by_object_id.get(int(object_id))
         meta_row = meta_by_view_id.get(view_id)
         if meta_row is not None:
             prepared["file_name"] = prepared.get("file_name") or meta_row.get("file_name")
@@ -893,6 +1034,20 @@ def _text_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Opti
     if row_vec is None or proto_vec is None:
         return None
     return float(np.clip(np.dot(np.asarray(row_vec, dtype=np.float32), np.asarray(proto_vec, dtype=np.float32)), -1.0, 1.0))
+
+
+def _dinov2_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Optional[float]:
+    row_vec = row.get("dinov2_embedding")
+    proto_vec = cluster.get("prototype_dinov2_embedding")
+    if row_vec is None or proto_vec is None:
+        return None
+    return float(
+        np.clip(
+            np.dot(np.asarray(row_vec, dtype=np.float32), np.asarray(proto_vec, dtype=np.float32)),
+            -1.0,
+            1.0,
+        )
+    )
 
 
 def _global_geo_similarity(
@@ -955,14 +1110,17 @@ def _pair_affinity_detail(
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
     similarity_mode: str = DEFAULT_SIMILARITY_MODE,
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
+    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
 ) -> Dict[str, Any]:
     text_sim = _text_similarity(row, cluster)
+    dinov2_sim = _dinov2_similarity(row, cluster) if enable_dinov2_scoring else None
     similarity_mode_clean = _safe_text(similarity_mode) or DEFAULT_SIMILARITY_MODE
     if similarity_mode_clean == "legacy_weighted_fusion":
         geo_sim, geo_distance, used_3d_geo = _global_geo_similarity(row, cluster, sigma_m=global_sigma_m)
         polar_sim = _polar_similarity(row, cluster)
         available_weights = {
             "text": weights["text"] if text_sim is not None else 0.0,
+            "dinov2": weights.get("dinov2", 0.0) if dinov2_sim is not None else 0.0,
             "global_geo": weights["global_geo"] if geo_sim is not None else 0.0,
             "polar": weights["polar"] if polar_sim is not None else 0.0,
         }
@@ -975,6 +1133,8 @@ def _pair_affinity_detail(
             combined = 0.0
             if text_sim is not None:
                 combined += normalized_weights["text"] * float(text_sim)
+            if dinov2_sim is not None:
+                combined += normalized_weights["dinov2"] * float(dinov2_sim)
             if geo_sim is not None:
                 combined += normalized_weights["global_geo"] * float(geo_sim)
             if polar_sim is not None:
@@ -983,6 +1143,8 @@ def _pair_affinity_detail(
             "similarity_mode": similarity_mode_clean,
             "combined_similarity": float(combined),
             "text_similarity": text_sim,
+            "dinov2_similarity": dinov2_sim,
+            "semantic_visual_similarity": None,
             "global_geo_similarity": geo_sim,
             "polar_similarity": polar_sim,
             "global_geo_distance_m": geo_distance,
@@ -998,25 +1160,49 @@ def _pair_affinity_detail(
     geo_sim = None
     polar_sim = None
     used_3d_geo = False
-    if text_sim is None:
+    semantic_weights = {
+        "text": weights["text"] if text_sim is not None else 0.0,
+        "dinov2": weights.get("dinov2", 0.0) if dinov2_sim is not None else 0.0,
+    }
+    semantic_weight_total = sum(semantic_weights.values())
+    semantic_visual_similarity = None
+    if semantic_weight_total > 0.0:
+        semantic_visual_similarity = 0.0
+        if text_sim is not None:
+            semantic_visual_similarity += (semantic_weights["text"] / semantic_weight_total) * float(text_sim)
+        if dinov2_sim is not None:
+            semantic_visual_similarity += (semantic_weights["dinov2"] / semantic_weight_total) * float(dinov2_sim)
+    if semantic_visual_similarity is None:
         combined = 0.0
         distance_gate = None
         geo_distance = xy_distance_m
-        normalized_weights = {"text": 0.0, "global_geo": 0.0, "polar": 0.0}
+        normalized_weights = {"text": 0.0, "dinov2": 0.0, "global_geo": 0.0, "polar": 0.0}
     elif xy_distance_sq_m2 is None:
         distance_gate = 1.0
-        combined = float(text_sim)
+        combined = float(semantic_visual_similarity)
         geo_distance = None
-        normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
+        normalized_weights = {
+            "text": float(semantic_weights["text"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "dinov2": float(semantic_weights["dinov2"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "global_geo": 0.0,
+            "polar": 0.0,
+        }
     else:
         distance_gate = _distance_gate_from_dsq(xy_distance_sq_m2, distance_gate_dsq0)
-        combined = float(text_sim) * float(distance_gate)
+        combined = float(semantic_visual_similarity) * float(distance_gate)
         geo_distance = xy_distance_m
-        normalized_weights = {"text": 1.0, "global_geo": 0.0, "polar": 0.0}
+        normalized_weights = {
+            "text": float(semantic_weights["text"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "dinov2": float(semantic_weights["dinov2"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "global_geo": 0.0,
+            "polar": 0.0,
+        }
     return {
         "similarity_mode": similarity_mode_clean,
         "combined_similarity": float(combined),
         "text_similarity": text_sim,
+        "dinov2_similarity": dinov2_sim,
+        "semantic_visual_similarity": semantic_visual_similarity,
         "global_geo_similarity": geo_sim,
         "polar_similarity": polar_sim,
         "global_geo_distance_m": geo_distance,
@@ -1034,13 +1220,15 @@ def build_cross_affinity_matrix(
     current_rows: Sequence[Mapping[str, Any]],
     *,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
+    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
     similarity_mode: str = DEFAULT_SIMILARITY_MODE,
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
+    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
 ) -> Tuple[np.ndarray, List[List[Dict[str, Any]]]]:
-    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar)
+    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2)
     matrix = np.zeros((len(current_rows), len(memory_clusters)), dtype=np.float32)
     details: List[List[Dict[str, Any]]] = []
     for row in current_rows:
@@ -1053,6 +1241,7 @@ def build_cross_affinity_matrix(
                 global_sigma_m=global_sigma_m,
                 similarity_mode=similarity_mode,
                 distance_gate_dsq0=distance_gate_dsq0,
+                enable_dinov2_scoring=enable_dinov2_scoring,
             )
             row_details.append(detail)
         details.append(row_details)
@@ -1786,6 +1975,265 @@ def _group_dbscan_nodes(
     return ordered
 
 
+def _subgroup_existing_cluster_id(
+    subgroup: Mapping[str, Any],
+    *,
+    slots: Sequence[Mapping[str, Any]],
+) -> Optional[int]:
+    candidate_ids: List[int] = []
+    for mem_idx in subgroup.get("memory_indices", []):
+        if not (0 <= int(mem_idx) < len(slots)):
+            continue
+        cluster_id = _cluster_existing_cluster_id(slots[int(mem_idx)])
+        if cluster_id is not None:
+            candidate_ids.append(int(cluster_id))
+    if not candidate_ids:
+        return None
+    return int(min(candidate_ids))
+
+
+def _current_best_score_to_memory_indices(
+    cur_idx: int,
+    mem_indices: Sequence[int],
+    *,
+    cross_affinity: np.ndarray,
+) -> Optional[float]:
+    if cross_affinity.ndim != 2 or not mem_indices:
+        return None
+    if not (0 <= int(cur_idx) < int(cross_affinity.shape[0])):
+        return None
+    values: List[float] = []
+    for mem_idx in mem_indices:
+        if 0 <= int(mem_idx) < int(cross_affinity.shape[1]):
+            values.append(float(cross_affinity[int(cur_idx), int(mem_idx)]))
+    if not values:
+        return None
+    return float(max(values))
+
+
+def _resolve_same_view_constrained_group(
+    group: Mapping[str, Any],
+    *,
+    slots: Sequence[Mapping[str, Any]],
+    current_rows: Sequence[Mapping[str, Any]],
+    cross_affinity: np.ndarray,
+) -> List[Dict[str, Any]]:
+    mem_indices_raw = [int(index) for index in group.get("memory_indices", [])]
+    cur_indices_raw = [int(index) for index in group.get("current_indices", [])]
+    resolved: List[Dict[str, Any]] = []
+    next_creation_order = 0
+
+    def _new_subgroup(
+        *,
+        memory_indices: Optional[Sequence[int]] = None,
+        current_indices: Optional[Sequence[int]] = None,
+        view_ids: Optional[Sequence[str]] = None,
+    ) -> Dict[str, Any]:
+        nonlocal next_creation_order
+        subgroup = {
+            "memory_indices": [int(index) for index in (memory_indices or [])],
+            "current_indices": [int(index) for index in (current_indices or [])],
+            "view_ids": {
+                _safe_text(view_id)
+                for view_id in list(view_ids or [])
+                if _safe_text(view_id)
+            },
+            "creation_order": int(next_creation_order),
+        }
+        next_creation_order += 1
+        resolved.append(subgroup)
+        return subgroup
+
+    ordered_mem_indices = sorted(
+        mem_indices_raw,
+        key=lambda mem_idx: (
+            -len(_cluster_view_id_set(slots[int(mem_idx)])),
+            _safe_int(slots[int(mem_idx)].get("cluster_id"), 10**9),
+        ),
+    )
+    for mem_idx in ordered_mem_indices:
+        cluster = slots[int(mem_idx)]
+        cluster_views = _cluster_view_id_set(cluster)
+        placed = False
+        for subgroup in resolved:
+            if subgroup["view_ids"] & cluster_views:
+                continue
+            subgroup["memory_indices"].append(int(mem_idx))
+            subgroup["view_ids"].update(cluster_views)
+            placed = True
+            break
+        if not placed:
+            _new_subgroup(memory_indices=[int(mem_idx)], view_ids=sorted(cluster_views))
+
+    if mem_indices_raw:
+        def _current_sort_key(cur_idx: int) -> Tuple[float, int]:
+            score = _current_best_score_to_memory_indices(
+                int(cur_idx),
+                mem_indices_raw,
+                cross_affinity=cross_affinity,
+            )
+            return (
+                -float(score if score is not None else float("-inf")),
+                _safe_int(current_rows[int(cur_idx)].get("object_global_id"), 10**9),
+            )
+
+        ordered_cur_indices = sorted(
+            cur_indices_raw,
+            key=_current_sort_key,
+        )
+    else:
+        ordered_cur_indices = sorted(
+            cur_indices_raw,
+            key=lambda cur_idx: _safe_int(current_rows[int(cur_idx)].get("object_global_id"), 10**9),
+        )
+
+    for cur_idx in ordered_cur_indices:
+        row = current_rows[int(cur_idx)]
+        row_view_id = _safe_text(row.get("view_id"))
+        compatible_subgroups = [
+            subgroup
+            for subgroup in resolved
+            if not row_view_id or row_view_id not in subgroup["view_ids"]
+        ]
+        chosen_subgroup: Optional[Dict[str, Any]] = None
+        chosen_score = float("-inf")
+        chosen_cluster_sort = 10**9
+        chosen_creation = 10**9
+        for subgroup in compatible_subgroups:
+            score = _current_best_score_to_memory_indices(
+                int(cur_idx),
+                subgroup.get("memory_indices", []),
+                cross_affinity=cross_affinity,
+            )
+            score_value = float(score) if score is not None else float("-inf")
+            reused_cluster_id = _subgroup_existing_cluster_id(subgroup, slots=slots)
+            cluster_sort = 10**9 if reused_cluster_id is None else int(reused_cluster_id)
+            creation_order = int(subgroup.get("creation_order", 10**9))
+            if (
+                chosen_subgroup is None
+                or score_value > chosen_score
+                or (
+                    math.isclose(score_value, chosen_score)
+                    and (
+                        cluster_sort < chosen_cluster_sort
+                        or (
+                            cluster_sort == chosen_cluster_sort
+                            and creation_order < chosen_creation
+                        )
+                    )
+                )
+            ):
+                chosen_subgroup = subgroup
+                chosen_score = float(score_value)
+                chosen_cluster_sort = int(cluster_sort)
+                chosen_creation = int(creation_order)
+        if chosen_subgroup is None:
+            chosen_subgroup = _new_subgroup(current_indices=[int(cur_idx)], view_ids=[row_view_id] if row_view_id else [])
+        else:
+            chosen_subgroup["current_indices"].append(int(cur_idx))
+            if row_view_id:
+                chosen_subgroup["view_ids"].add(row_view_id)
+
+    return resolved
+
+
+def _make_same_view_block_case(
+    *,
+    step_index: int,
+    group: Mapping[str, Any],
+    resolved_subgroups: Sequence[Mapping[str, Any]],
+    slots: Sequence[Mapping[str, Any]],
+    current_rows: Sequence[Mapping[str, Any]],
+    cross_affinity: np.ndarray,
+) -> Dict[str, Any]:
+    original_memory_cluster_ids = [
+        _safe_int(slots[int(mem_idx)].get("cluster_id"), -1)
+        for mem_idx in group.get("memory_indices", [])
+        if 0 <= int(mem_idx) < len(slots)
+    ]
+    original_current_object_ids = [
+        _safe_int(current_rows[int(cur_idx)].get("object_global_id"), -1)
+        for cur_idx in group.get("current_indices", [])
+        if 0 <= int(cur_idx) < len(current_rows)
+    ]
+    original_rows: List[Dict[str, Any]] = []
+    indexed_clusters: List[Tuple[int, Mapping[str, Any]]] = []
+    for mem_idx in group.get("memory_indices", []):
+        if not (0 <= int(mem_idx) < len(slots)):
+            continue
+        cluster = slots[int(mem_idx)]
+        original_rows.extend([dict(row) for row in cluster.get("member_rows", [])])
+        indexed_clusters.append((int(mem_idx), cluster))
+    for cur_idx in group.get("current_indices", []):
+        if not (0 <= int(cur_idx) < len(current_rows)):
+            continue
+        row = dict(current_rows[int(cur_idx)])
+        original_rows.append(row)
+        indexed_clusters.append((len(slots) + int(cur_idx), _synthetic_singleton_cluster(row)))
+    conflicting_view_ids = _same_view_conflicting_view_ids(original_rows)
+
+    resolved_subgroup_summaries: List[Dict[str, Any]] = []
+    assignment_summaries: List[Dict[str, Any]] = []
+    for subgroup in resolved_subgroups:
+        memory_cluster_ids = [
+            _safe_int(slots[int(mem_idx)].get("cluster_id"), -1)
+            for mem_idx in subgroup.get("memory_indices", [])
+            if 0 <= int(mem_idx) < len(slots)
+        ]
+        current_object_ids = [
+            _safe_int(current_rows[int(cur_idx)].get("object_global_id"), -1)
+            for cur_idx in subgroup.get("current_indices", [])
+            if 0 <= int(cur_idx) < len(current_rows)
+        ]
+        resolved_subgroup_summaries.append(
+            {
+                "cluster_id": _safe_int(subgroup.get("cluster_id"), -1),
+                "memory_cluster_ids": memory_cluster_ids,
+                "current_object_ids": current_object_ids,
+                "view_ids": sorted(
+                    {
+                        _safe_text(view_id)
+                        for view_id in subgroup.get("view_ids", [])
+                        if _safe_text(view_id)
+                    }
+                ),
+            }
+        )
+        for cur_idx in subgroup.get("current_indices", []):
+            if not (0 <= int(cur_idx) < len(current_rows)):
+                continue
+            assignment_summaries.append(
+                {
+                    "cluster_id": _safe_int(subgroup.get("cluster_id"), -1),
+                    "object_id": _safe_int(current_rows[int(cur_idx)].get("object_global_id"), -1),
+                    "score": _current_best_score_to_memory_indices(
+                        int(cur_idx),
+                        subgroup.get("memory_indices", []),
+                        cross_affinity=cross_affinity,
+                    ),
+                }
+            )
+
+    return {
+        "step_index": int(step_index),
+        "raw_dbscan_label": _safe_int(group.get("raw_dbscan_label"), -1),
+        "connectivity_label": _safe_int(group.get("connectivity_label"), -1),
+        "blocked_merge_cluster_ids": original_memory_cluster_ids,
+        "competing_object_ids": original_current_object_ids,
+        "unassigned_object_ids": [],
+        "conflicting_view_ids": conflicting_view_ids,
+        "collision_pairs": _same_view_collision_pairs(indexed_clusters),
+        "assignments": assignment_summaries,
+        "original_group": {
+            "memory_cluster_ids": original_memory_cluster_ids,
+            "current_object_ids": original_current_object_ids,
+            "view_ids": sorted({_safe_text(row.get("view_id")) for row in original_rows if _safe_text(row.get("view_id"))}),
+            "conflicting_view_ids": conflicting_view_ids,
+        },
+        "resolved_subgroups": resolved_subgroup_summaries,
+    }
+
+
 def _best_memory_detail_in_group(
     cur_idx: int,
     mem_indices: Sequence[int],
@@ -1795,11 +2243,13 @@ def _best_memory_detail_in_group(
     cross_details: Sequence[Sequence[Mapping[str, Any]]],
     current_rows: Sequence[Mapping[str, Any]],
     weight_text: float,
+    weight_dinov2: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
+    enable_dinov2_scoring: bool,
 ) -> Optional[Tuple[int, Dict[str, Any]]]:
     best: Optional[Tuple[float, int, int, Dict[str, Any]]] = None
     for mem_idx in mem_indices:
@@ -1811,11 +2261,13 @@ def _best_memory_detail_in_group(
             current_rows=current_rows,
             cluster=cluster,
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
         score = float(detail.get("combined_similarity") or 0.0)
         if 0 <= int(cur_idx) < int(cross_affinity.shape[0]) and 0 <= int(mem_idx) < int(cross_affinity.shape[1]):
@@ -1863,6 +2315,7 @@ def apply_incremental_step(
     step_index: int,
     next_cluster_id: int,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
+    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -1871,6 +2324,8 @@ def apply_incremental_step(
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
+    enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
 ) -> Dict[str, Any]:
     del current_only_reattach_min_affinity
 
@@ -1895,76 +2350,128 @@ def apply_incremental_step(
     )
 
     next_memory: List[Dict[str, Any]] = []
+    all_materialized_groups: List[Dict[str, Any]] = []
     num_noise_singletons = 0
     num_merged_memory_groups = 0
 
     for group in groups:
-        mem_indices = [int(index) for index in group.get("memory_indices", [])]
-        cur_indices = [int(index) for index in group.get("current_indices", [])]
         raw_dbscan_label = _safe_int(group.get("raw_dbscan_label"), -1)
 
         if raw_dbscan_label == -1:
             num_noise_singletons += 1
-        if len(mem_indices) > 1:
-            num_merged_memory_groups += 1
+        resolved_groups = (
+            _resolve_same_view_constrained_group(
+                group,
+                slots=slots,
+                current_rows=current_rows,
+                cross_affinity=cross_affinity,
+            )
+            if enforce_same_view_uniqueness
+            else [
+                {
+                    "memory_indices": [int(index) for index in group.get("memory_indices", [])],
+                    "current_indices": [int(index) for index in group.get("current_indices", [])],
+                    "view_ids": {
+                        _safe_text(view_id)
+                        for index in group.get("memory_indices", [])
+                        for view_id in _cluster_view_id_set(slots[int(index)])
+                        if _safe_text(view_id)
+                    }
+                    | {
+                        _safe_text(current_rows[int(index)].get("view_id"))
+                        for index in group.get("current_indices", [])
+                        if 0 <= int(index) < len(current_rows) and _safe_text(current_rows[int(index)].get("view_id"))
+                    },
+                    "creation_order": 0,
+                }
+            ]
+        )
+        split_applied = bool(enforce_same_view_uniqueness and len(resolved_groups) > 1)
+        materialized_subgroups: List[Dict[str, Any]] = []
 
-        if mem_indices:
-            cluster_id = min(_safe_int(slots[mem_idx].get("cluster_id"), 10**9) for mem_idx in mem_indices)
-        else:
-            cluster_id = int(running_cluster_id)
-            running_cluster_id += 1
+        for resolved_group in resolved_groups:
+            mem_indices = [int(index) for index in resolved_group.get("memory_indices", [])]
+            cur_indices = [int(index) for index in resolved_group.get("current_indices", [])]
+            if len(mem_indices) > 1:
+                num_merged_memory_groups += 1
 
-        member_rows: List[Dict[str, Any]] = []
-        for mem_idx in mem_indices:
-            member_rows.extend([dict(row) for row in list(slots[mem_idx].get("member_rows", []))])
-        for cur_idx in cur_indices:
-            member_rows.append(dict(current_rows[cur_idx]))
-
-        cluster = _build_cluster(int(cluster_id), member_rows)
-        next_memory.append(cluster)
-
-        for cur_idx in cur_indices:
             if mem_indices:
-                best_match = _best_memory_detail_in_group(
-                    int(cur_idx),
-                    mem_indices,
-                    memory_clusters=slots,
-                    cross_affinity=cross_affinity,
-                    cross_details=cross_details,
-                    current_rows=current_rows,
-                    weight_text=weight_text,
-                    weight_global_geo=weight_global_geo,
-                    weight_polar=weight_polar,
-                    global_sigma_m=global_sigma_m,
-                    similarity_mode=similarity_mode,
-                    distance_gate_dsq0=distance_gate_dsq0,
-                )
-                if best_match is None:
+                cluster_id = min(_safe_int(slots[mem_idx].get("cluster_id"), 10**9) for mem_idx in mem_indices)
+            else:
+                cluster_id = int(running_cluster_id)
+                running_cluster_id += 1
+
+            member_rows: List[Dict[str, Any]] = []
+            for mem_idx in mem_indices:
+                member_rows.extend([dict(row) for row in list(slots[mem_idx].get("member_rows", []))])
+            for cur_idx in cur_indices:
+                member_rows.append(dict(current_rows[cur_idx]))
+
+            cluster = _build_cluster(int(cluster_id), member_rows)
+            next_memory.append(cluster)
+
+            materialized_group = dict(resolved_group)
+            materialized_group["cluster_id"] = int(cluster_id)
+            materialized_subgroups.append(materialized_group)
+            all_materialized_groups.append(materialized_group)
+
+            for cur_idx in cur_indices:
+                if mem_indices:
+                    best_match = _best_memory_detail_in_group(
+                        int(cur_idx),
+                        mem_indices,
+                        memory_clusters=slots,
+                        cross_affinity=cross_affinity,
+                        cross_details=cross_details,
+                        current_rows=current_rows,
+                        weight_text=weight_text,
+                        weight_dinov2=weight_dinov2,
+                        weight_global_geo=weight_global_geo,
+                        weight_polar=weight_polar,
+                        global_sigma_m=global_sigma_m,
+                        similarity_mode=similarity_mode,
+                        distance_gate_dsq0=distance_gate_dsq0,
+                        enable_dinov2_scoring=enable_dinov2_scoring,
+                    )
+                    if best_match is None:
+                        similarity_reference_cluster_id = None
+                        detail = None
+                    else:
+                        best_mem_idx, detail = best_match
+                        similarity_reference_cluster_id = _safe_int(slots[best_mem_idx].get("cluster_id"), -1)
+                    assignment_reason = "dbscan_attach"
+                else:
                     similarity_reference_cluster_id = None
                     detail = None
-                else:
-                    best_mem_idx, detail = best_match
-                    similarity_reference_cluster_id = _safe_int(slots[best_mem_idx].get("cluster_id"), -1)
-                assignment_reason = "dbscan_attach"
-            else:
-                similarity_reference_cluster_id = None
-                detail = None
-                assignment_reason = "dbscan_new_cluster"
-            assignment_diagnostics.append(
-                _object_assignment_record(
-                    current_rows[cur_idx],
+                    assignment_reason = "dbscan_new_cluster"
+                assignment_diagnostics.append(
+                    _object_assignment_record(
+                        current_rows[cur_idx],
+                        step_index=int(step_index),
+                        assignment_reason=assignment_reason,
+                        cluster_id_at_assignment=int(cluster_id),
+                        similarity_reference_cluster_id=similarity_reference_cluster_id,
+                        detail=detail,
+                        same_view_split_applied=split_applied,
+                    )
+                )
+
+        if split_applied:
+            same_view_block_cases.append(
+                _make_same_view_block_case(
                     step_index=int(step_index),
-                    assignment_reason=assignment_reason,
-                    cluster_id_at_assignment=int(cluster_id),
-                    similarity_reference_cluster_id=similarity_reference_cluster_id,
-                    detail=detail,
+                    group=group,
+                    resolved_subgroups=materialized_subgroups,
+                    slots=slots,
+                    current_rows=current_rows,
+                    cross_affinity=cross_affinity,
                 )
             )
 
     next_memory = sorted(next_memory, key=lambda item: int(item.get("cluster_id", 10**9)))
     dbscan_summary = _dbscan_summary(
         dbscan_result=dbscan_result,
-        materialized_groups=groups,
+        materialized_groups=all_materialized_groups,
         num_noise_singletons=num_noise_singletons,
     )
 
@@ -2014,6 +2521,7 @@ def _run_single_sequential_spectral_experiment(
     entry_ids: Optional[Sequence[Any]] = None,
     view_ids: Optional[Sequence[str]] = None,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
+    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -2023,6 +2531,8 @@ def _run_single_sequential_spectral_experiment(
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
+    enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
 ) -> Dict[str, Any]:
     sequence = load_sequence_objects(db_dir, entry_ids=entry_ids, view_ids=view_ids)
     selected_views = sequence["views"]
@@ -2079,18 +2589,30 @@ def _run_single_sequential_spectral_experiment(
     all_append_cases: List[Dict[str, Any]] = []
     all_same_view_block_cases: List[Dict[str, Any]] = []
     all_tail_spawn_cases: List[Dict[str, Any]] = []
+    total_same_view_masked_edges = 0
 
     for step_offset, current_view in enumerate(selected_views[1:], start=1):
         cross_affinity, cross_details = build_cross_affinity_matrix(
             memory_clusters,
             current_view["objects"],
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
+        num_same_view_masked_edges = 0
+        if enforce_same_view_uniqueness:
+            cross_affinity, cross_details, num_same_view_masked_edges = _apply_same_view_hard_mask_to_cross_affinity(
+                memory_clusters,
+                current_view["objects"],
+                cross_affinity=cross_affinity,
+                cross_details=cross_details,
+            )
+            total_same_view_masked_edges += int(num_same_view_masked_edges)
         full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=min_cross_affinity)
         axis_labels = _node_labels(memory_clusters, current_view["objects"])
         memory_labels = [f"mem:c{int(cluster.get('cluster_id', -1))}" for cluster in memory_clusters]
@@ -2179,6 +2701,7 @@ def _run_single_sequential_spectral_experiment(
             step_index=step_offset,
             next_cluster_id=next_cluster_id,
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2187,6 +2710,8 @@ def _run_single_sequential_spectral_experiment(
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
+            enforce_same_view_uniqueness=enforce_same_view_uniqueness,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
         memory_clusters = update["memory_clusters"]
         next_cluster_id = int(update["next_cluster_id"])
@@ -2198,11 +2723,13 @@ def _run_single_sequential_spectral_experiment(
         step_report = {
             "step_index": int(step_offset),
             "view_id": current_view["view_id"],
+            "enforce_same_view_uniqueness": bool(enforce_same_view_uniqueness),
             "num_current_objects": len(current_view["objects"]),
             "num_existing_clusters": full_affinity.shape[0] - len(current_view["objects"]),
             "num_appended": int(update["num_appended"]),
             "num_current_only_reattached": int(update["num_current_only_reattached"]),
             "num_merged_clusters": int(update["num_merged_clusters"]),
+            "num_same_view_masked_edges": int(num_same_view_masked_edges),
             "num_same_view_blocked_components": int(update["num_same_view_blocked_components"]),
             "num_new_tail_clusters": int(update["num_new_tail_clusters"]),
             "num_dbscan_clusters": int(update["num_dbscan_clusters"]),
@@ -2246,15 +2773,18 @@ def _run_single_sequential_spectral_experiment(
         "view_object_counts": {view["view_id"]: len(view["objects"]) for view in selected_views},
         "weights": {
             "text": float(weight_text),
+            "dinov2": float(weight_dinov2),
             "global_geo": float(weight_global_geo),
             "polar": float(weight_polar),
-            "normalized": _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar),
+            "normalized": _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2),
         },
+        "enable_dinov2_scoring": bool(enable_dinov2_scoring),
         "global_sigma_m": float(global_sigma_m),
         "similarity_mode": str(similarity_mode),
         "distance_gate_dsq0": float(distance_gate_dsq0),
         "min_cross_affinity": float(min_cross_affinity),
         "current_only_reattach_min_affinity": float(current_only_reattach_min_affinity),
+        "enforce_same_view_uniqueness": bool(enforce_same_view_uniqueness),
         "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
         "dbscan_min_samples": int(dbscan_min_samples),
         "step_summaries": [_step_report_summary(step_report) for step_report in step_reports],
@@ -2268,6 +2798,7 @@ def _run_single_sequential_spectral_experiment(
         ),
         "total_new_tail_clusters": len(all_tail_spawn_cases),
         "total_merged_clusters": int(sum(_safe_int(step.get("num_merged_clusters"), 0) for step in step_reports)),
+        "total_same_view_masked_edges": int(total_same_view_masked_edges),
         "total_same_view_blocked_components": int(
             sum(_safe_int(step.get("num_same_view_blocked_components"), 0) for step in step_reports)
         ),
@@ -2297,6 +2828,7 @@ def run_sequential_spectral_experiment(
     entry_ids: Optional[Sequence[Any]] = None,
     view_ids: Optional[Sequence[str]] = None,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
+    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -2307,6 +2839,8 @@ def run_sequential_spectral_experiment(
     current_only_reattach_min_affinity: float = DEFAULT_CURRENT_ONLY_REATTACH_MIN_AFFINITY,
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
+    enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
 ) -> Dict[str, Any]:
     normalized_dsq0_values = _normalize_float_list(distance_gate_dsq0_values)
     if distance_gate_dsq0_values is not None and not normalized_dsq0_values:
@@ -2318,6 +2852,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2327,6 +2862,8 @@ def run_sequential_spectral_experiment(
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
+            enforce_same_view_uniqueness=enforce_same_view_uniqueness,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
     if len(normalized_dsq0_values) == 1:
         return _run_single_sequential_spectral_experiment(
@@ -2335,6 +2872,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2344,6 +2882,8 @@ def run_sequential_spectral_experiment(
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
+            enforce_same_view_uniqueness=enforce_same_view_uniqueness,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
 
     base_root = Path(output_dir) if output_dir else Path(db_dir) / "sequential_spectral_experiment_sweep"
@@ -2356,6 +2896,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
+            weight_dinov2=weight_dinov2,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2365,18 +2906,22 @@ def run_sequential_spectral_experiment(
             current_only_reattach_min_affinity=current_only_reattach_min_affinity,
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
+            enforce_same_view_uniqueness=enforce_same_view_uniqueness,
+            enable_dinov2_scoring=enable_dinov2_scoring,
         )
         sweep_runs.append(
             {
                 "dsq0": float(dsq0),
                 "output_dir": str(run_report.get("output_dir") or ""),
                 "final_cluster_count": int(run_report.get("final_cluster_count") or 0),
+                "enforce_same_view_uniqueness": bool(run_report.get("enforce_same_view_uniqueness")),
                 "dbscan_eps": run_report.get("dbscan_eps"),
                 "dbscan_min_samples": int(run_report.get("dbscan_min_samples") or 0),
                 "total_appended": int(run_report.get("total_appended") or 0),
                 "total_current_only_reattached": int(run_report.get("total_current_only_reattached") or 0),
                 "total_new_tail_clusters": int(run_report.get("total_new_tail_clusters") or 0),
                 "total_merged_clusters": int(run_report.get("total_merged_clusters") or 0),
+                "total_same_view_masked_edges": int(run_report.get("total_same_view_masked_edges") or 0),
                 "total_same_view_blocked_components": int(
                     run_report.get("total_same_view_blocked_components") or 0
                 ),
@@ -2387,7 +2932,9 @@ def run_sequential_spectral_experiment(
         "db_dir": str(db_dir),
         "output_dir": str(sweep_root),
         "similarity_mode": str(similarity_mode),
+        "enable_dinov2_scoring": bool(enable_dinov2_scoring),
         "distance_gate_dsq0_values": [float(v) for v in normalized_dsq0_values],
+        "enforce_same_view_uniqueness": bool(enforce_same_view_uniqueness),
         "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
         "dbscan_min_samples": int(dbscan_min_samples),
         "runs": sweep_runs,
@@ -2411,8 +2958,15 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Comma-separated ordered entry ids to include; overrides --view_ids when provided",
     )
     parser.add_argument("--weight_text", type=float, default=DEFAULT_WEIGHT_TEXT, help="Text branch weight")
+    parser.add_argument("--weight_dinov2", type=float, default=DEFAULT_WEIGHT_DINOV2, help="DINOv2 branch weight")
     parser.add_argument("--weight_global_geo", type=float, default=DEFAULT_WEIGHT_GLOBAL_GEO, help="Global xyz branch weight")
     parser.add_argument("--weight_polar", type=float, default=DEFAULT_WEIGHT_POLAR, help="Polar branch weight")
+    parser.add_argument(
+        "--enable_dinov2_scoring",
+        action=argparse.BooleanOptionalAction,
+        default=ENABLE_DINOV2_SCORING,
+        help="Whether to fuse DINOv2 visual consistency into the sequential affinity score.",
+    )
     parser.add_argument("--global_sigma_m", type=float, default=DEFAULT_GLOBAL_SIGMA_M, help="Global xyz gaussian sigma")
     parser.add_argument(
         "--similarity_mode",
@@ -2455,6 +3009,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=DEFAULT_DBSCAN_MIN_SAMPLES,
         help="DBSCAN min_samples on the step spectral embedding",
     )
+    parser.add_argument(
+        "--enforce_same_view_uniqueness",
+        action=argparse.BooleanOptionalAction,
+        default=DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+        help="Whether final materialized clusters may contain at most one object from each view_id",
+    )
     return parser.parse_args(argv)
 
 
@@ -2466,8 +3026,10 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         entry_ids=_normalize_entry_ids([args.entry_ids]) if args.entry_ids else None,
         view_ids=_normalize_view_ids([str(args.view_ids)]) if args.view_ids else None,
         weight_text=float(args.weight_text),
+        weight_dinov2=float(args.weight_dinov2),
         weight_global_geo=float(args.weight_global_geo),
         weight_polar=float(args.weight_polar),
+        enable_dinov2_scoring=bool(args.enable_dinov2_scoring),
         global_sigma_m=float(args.global_sigma_m),
         similarity_mode=str(args.similarity_mode),
         distance_gate_dsq0=float(args.distance_gate_dsq0),
@@ -2478,6 +3040,7 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         current_only_reattach_min_affinity=float(args.current_only_reattach_min_affinity),
         dbscan_eps=None if args.dbscan_eps is None else float(args.dbscan_eps),
         dbscan_min_samples=int(args.dbscan_min_samples),
+        enforce_same_view_uniqueness=bool(args.enforce_same_view_uniqueness),
     )
     print(json.dumps(_to_serializable(report), ensure_ascii=True))
     return report

@@ -256,6 +256,13 @@ def run_spectral_threshold_ablation(
     batch_cluster_count_mode: str = DEFAULT_BATCH_CLUSTER_COUNT_MODE,
     batch_same_view_policy: str = DEFAULT_BATCH_SAME_VIEW_POLICY,
     batch_same_view_penalty: float = DEFAULT_BATCH_SAME_VIEW_PENALTY,
+    weight_text: Optional[float] = None,
+    weight_dinov2: Optional[float] = None,
+    enable_dinov2_scoring: Optional[bool] = None,
+    distance_gate_dsq0: Optional[float] = None,
+    dbscan_eps: Optional[float] = None,
+    dbscan_min_samples: Optional[int] = None,
+    enforce_same_view_uniqueness: Optional[bool] = None,
 ) -> Dict[str, Any]:
     base_root = Path(db_dir).expanduser().resolve()
     if not base_root.exists():
@@ -314,11 +321,26 @@ def run_spectral_threshold_ablation(
         )
 
         sequential_parent = threshold_root / "sequential"
-        sequential_report = run_sequential_spectral_experiment(
-            db_dir=str(db_variant_link),
-            output_dir=str(sequential_parent),
-            entry_ids=ordered_entry_ids,
-        )
+        sequential_kwargs: Dict[str, Any] = {
+            "db_dir": str(db_variant_link),
+            "output_dir": str(sequential_parent),
+            "entry_ids": ordered_entry_ids,
+        }
+        if weight_text is not None:
+            sequential_kwargs["weight_text"] = float(weight_text)
+        if weight_dinov2 is not None:
+            sequential_kwargs["weight_dinov2"] = float(weight_dinov2)
+        if enable_dinov2_scoring is not None:
+            sequential_kwargs["enable_dinov2_scoring"] = bool(enable_dinov2_scoring)
+        if distance_gate_dsq0 is not None:
+            sequential_kwargs["distance_gate_dsq0"] = float(distance_gate_dsq0)
+        if dbscan_eps is not None:
+            sequential_kwargs["dbscan_eps"] = float(dbscan_eps)
+        if dbscan_min_samples is not None:
+            sequential_kwargs["dbscan_min_samples"] = int(dbscan_min_samples)
+        if enforce_same_view_uniqueness is not None:
+            sequential_kwargs["enforce_same_view_uniqueness"] = bool(enforce_same_view_uniqueness)
+        sequential_report = run_sequential_spectral_experiment(**sequential_kwargs)
 
         batch_metrics = _extract_batch_metrics(object_instance_root)
         sequential_metrics = _extract_sequential_metrics(sequential_report)
@@ -349,6 +371,13 @@ def run_spectral_threshold_ablation(
             "sequential_report": {
                 "output_dir": str(sequential_output_root),
                 "final_cluster_count": int(sequential_report.get("final_cluster_count") or 0),
+                "weight_text": _safe_float((sequential_report.get("weights") or {}).get("text")),
+                "weight_dinov2": _safe_float((sequential_report.get("weights") or {}).get("dinov2")),
+                "enable_dinov2_scoring": bool(sequential_report.get("enable_dinov2_scoring")),
+                "distance_gate_dsq0": _safe_float(sequential_report.get("distance_gate_dsq0")),
+                "dbscan_eps": sequential_report.get("dbscan_eps"),
+                "dbscan_min_samples": int(sequential_report.get("dbscan_min_samples") or 0),
+                "enforce_same_view_uniqueness": bool(sequential_report.get("enforce_same_view_uniqueness")),
             },
         }
         threshold_runs.append(threshold_summary)
@@ -384,6 +413,13 @@ def run_spectral_threshold_ablation(
             "sequential_total_new_tail_clusters": sequential_metrics["total_new_tail_clusters"],
             "sequential_total_merged_clusters": sequential_metrics["total_merged_clusters"],
             "sequential_total_same_view_blocked_components": sequential_metrics["total_same_view_blocked_components"],
+            "sequential_weight_text": _safe_float((sequential_report.get("weights") or {}).get("text")),
+            "sequential_weight_dinov2": _safe_float((sequential_report.get("weights") or {}).get("dinov2")),
+            "sequential_enable_dinov2_scoring": bool(sequential_report.get("enable_dinov2_scoring")),
+            "sequential_distance_gate_dsq0": _safe_float(sequential_report.get("distance_gate_dsq0")),
+            "sequential_dbscan_eps": sequential_report.get("dbscan_eps"),
+            "sequential_dbscan_min_samples": int(sequential_report.get("dbscan_min_samples") or 0),
+            "sequential_enforce_same_view_uniqueness": bool(sequential_report.get("enforce_same_view_uniqueness")),
         }
         result_rows.append(flat_row)
 
@@ -403,6 +439,17 @@ def run_spectral_threshold_ablation(
             "cluster_count_mode": batch_cluster_count_mode,
             "same_view_policy": batch_same_view_policy,
             "same_view_penalty": float(batch_same_view_penalty),
+        },
+        "sequential_overrides": {
+            "weight_text": None if weight_text is None else float(weight_text),
+            "weight_dinov2": None if weight_dinov2 is None else float(weight_dinov2),
+            "enable_dinov2_scoring": None if enable_dinov2_scoring is None else bool(enable_dinov2_scoring),
+            "distance_gate_dsq0": None if distance_gate_dsq0 is None else float(distance_gate_dsq0),
+            "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
+            "dbscan_min_samples": None if dbscan_min_samples is None else int(dbscan_min_samples),
+            "enforce_same_view_uniqueness": (
+                None if enforce_same_view_uniqueness is None else bool(enforce_same_view_uniqueness)
+            ),
         },
         "reweight_sweep_output_dir": str(sweep_report.get("output_dir") or ""),
         "threshold_runs": threshold_runs,
@@ -441,6 +488,13 @@ def run_spectral_threshold_ablation(
             "sequential_total_new_tail_clusters",
             "sequential_total_merged_clusters",
             "sequential_total_same_view_blocked_components",
+            "sequential_weight_text",
+            "sequential_weight_dinov2",
+            "sequential_enable_dinov2_scoring",
+            "sequential_distance_gate_dsq0",
+            "sequential_dbscan_eps",
+            "sequential_dbscan_min_samples",
+            "sequential_enforce_same_view_uniqueness",
         ],
         result_rows,
     )
@@ -474,6 +528,48 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default="filtered_obj",
         help="Directory name used under each threshold root for filtered object crops.",
     )
+    parser.add_argument(
+        "--weight_text",
+        type=float,
+        default=None,
+        help="Optional text weight override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--weight_dinov2",
+        type=float,
+        default=None,
+        help="Optional DINOv2 weight override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--enable_dinov2_scoring",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Optional DINOv2 scoring override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--distance_gate_dsq0",
+        type=float,
+        default=None,
+        help="Optional distance-gate dsq0 override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--dbscan_eps",
+        type=float,
+        default=None,
+        help="Optional DBSCAN eps override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--dbscan_min_samples",
+        type=int,
+        default=None,
+        help="Optional DBSCAN min_samples override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--enforce_same_view_uniqueness",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Optional same-view uniqueness override passed through to sequential_spectral_experiment.",
+    )
     return parser
 
 
@@ -490,6 +586,13 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         b=args.b,
         export_filtered_objects=bool(args.export_filtered_objects),
         filtered_object_dirname=args.filtered_object_dirname,
+        weight_text=args.weight_text,
+        weight_dinov2=args.weight_dinov2,
+        enable_dinov2_scoring=args.enable_dinov2_scoring,
+        distance_gate_dsq0=args.distance_gate_dsq0,
+        dbscan_eps=args.dbscan_eps,
+        dbscan_min_samples=args.dbscan_min_samples,
+        enforce_same_view_uniqueness=args.enforce_same_view_uniqueness,
     )
     print(json.dumps(report, ensure_ascii=True))
     return report

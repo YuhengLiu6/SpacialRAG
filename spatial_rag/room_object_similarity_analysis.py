@@ -15,7 +15,7 @@ from spatial_rag.object_instance_clustering import (
     _normalize_same_view_policy,
     _same_view_mask,
 )
-from spatial_rag.object_index import load_object_db
+from spatial_rag.object_index import load_object_db, load_object_dinov2_db
 from spatial_rag.object_instance_eval import build_graph_context_strings, embed_graph_contexts
 
 
@@ -112,6 +112,16 @@ def _load_representation_embeddings(
             raise FileNotFoundError(f"Missing {mode} object DB artifacts in {db_dir}")
         meta_rows, emb, _entry_map = loaded
         embeddings[mode] = _dense_embeddings_by_object_id(meta_rows, emb.astype(np.float32))
+    dino_loaded = load_object_dinov2_db(db_dir)
+    if dino_loaded is not None:
+        meta_rows, emb, object_id_to_sidecar_row = dino_loaded
+        if meta_rows:
+            max_obj_id = max(_safe_int(row.get("object_global_id"), -1) for row in meta_rows)
+            if max_obj_id >= 0:
+                dense = np.zeros((max_obj_id + 1, emb.shape[1]), dtype=np.float32)
+                for object_id, sidecar_row in object_id_to_sidecar_row.items():
+                    dense[int(object_id)] = emb[int(sidecar_row)]
+                embeddings["dinov2"] = _l2_normalize_rows(dense)
 
     graph_context_by_obj_id = build_graph_context_strings(db_dir=db_dir, graph_payload=graph_payload)
     embeddings["graph"] = embed_graph_contexts(graph_context_by_obj_id)
@@ -414,7 +424,7 @@ def _parse_fused_text_modes(value: Any) -> List[str]:
         mode = str(item or "").strip().lower()
         if not mode:
             continue
-        if mode not in {"short", "long"}:
+        if mode not in {"short", "long", "dinov2"}:
             raise ValueError(f"Unsupported fused_text_mode: {mode}")
         if mode not in modes:
             modes.append(mode)
@@ -825,7 +835,8 @@ def analyze_rooms(
         labels = [_label_for_axis(row) for row in selected_rows]
         matrices = {
             mode: compute_similarity_matrix(embeddings[mode], object_ids)
-            for mode in ("short", "long", "graph")
+            for mode in ("short", "long", "graph", "dinov2")
+            if mode in embeddings
         }
         geometry_details = _geometry_details(selected_rows)
         matrices["geometry"] = geometry_details["similarity"]
@@ -927,7 +938,7 @@ def _parse_args() -> argparse.Namespace:
         "--fused_text_modes",
         type=str,
         default="short,long",
-        help="Comma-separated fused text modes to generate: short, long, or short,long",
+        help="Comma-separated fused modes to generate: short, long, dinov2, or combinations like short,long,dinov2",
     )
     parser.add_argument("--weight_text", type=float, default=0.7, help="Weight for the text similarity branch")
     parser.add_argument("--weight_geo", type=float, default=0.3, help="Weight for the geometry similarity branch")
