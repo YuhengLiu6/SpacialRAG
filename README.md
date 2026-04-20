@@ -638,30 +638,33 @@ Then:
 ---
 
 ### 2. Sequential Pipeline
-**text embedding (no neighbor) + geo distance gate -> spectral graph -> DBSCAN materialization**
+**text embedding + DINOv2 embedding + geo distance gate -> spectral graph -> DBSCAN materialization**
 
 ```mermaid
 flowchart TD
     A["Selected views<br/>from built spatial DB"]
 
     subgraph S1["Load sequence"]
-        B["Load object observations<br/>text embedding + global xyz + polar metadata"]
+        B["Load object observations<br/>text embedding + DINOv2 embedding + global xyz + polar metadata"]
         C["Order views sequentially"]
     end
 
     subgraph S2["Initialize memory"]
         D["Initial view"]
         E["Create singleton memory clusters<br/>one object -> one cluster"]
-        E2["Build cluster prototypes<br/>prototype_embedding + prototype_xyz + prototype_polar"]
+        E2["Build cluster prototypes<br/>prototype_embedding + prototype_dinov2_embedding + prototype_xyz + prototype_polar"]
     end
 
     subgraph S3["For each new view"]
         F["Current view objects"]
 
         G["Cross-affinity<br/>current objects vs memory clusters"]
-        G1["Cosine similarity<br/>row embedding vs prototype_embedding"]
-        G2["Distance gate<br/>exp(-dsq / (2*dsq0))"]
-        G3["dsq = planar x-y distance squared<br/>row xy vs prototype_xyz.xy"]
+        G1["CLIP text cosine<br/>row embedding vs prototype_embedding"]
+        G2["DINOv2 cosine<br/>row dino vs prototype_dinov2_embedding"]
+        G3["Semantic-visual fusion<br/>weighted average over available text/DINO terms"]
+        G4["Distance gate<br/>exp(-dsq / (2*dsq0))"]
+        G5["dsq = planar x-y distance squared<br/>row xy vs prototype_xyz.xy"]
+        G6["Final cross-affinity<br/>semantic_visual_similarity * distance_gate"]
 
         H["Bipartite affinity graph"]
         I["Capped spectral clustering<br/>eigengap then cc+2 cap"]
@@ -685,9 +688,15 @@ flowchart TD
     G --> G1
     G --> G2
     G --> G3
-    G1 --> H
-    G2 --> H
-    G3 --> H
+    G --> G4
+    G --> G5
+    G --> G6
+    G1 --> G3
+    G2 --> G3
+    G5 --> G4
+    G3 --> G6
+    G4 --> G6
+    G6 --> H
 
     H --> I --> J
     J --> J1
@@ -708,13 +717,30 @@ flowchart TD
 
 This pipeline differs from the one above:
 - the text embedding does not include neighbors
-- the default similarity is no longer a weighted fusion of text/geo/polar
-- instead, it uses **cosine similarity gated by global planar distance**
+- the default similarity is no longer the old text/geo/polar weighted fusion
+- instead, it first builds a **semantic-visual score from text cosine and optional DINOv2 cosine**, then gates that score by global planar distance
 - after the spectral stage, the next-step memory registry is materialized by **DBSCAN on the step spectral embedding**
 - when initializing memory clusters, each object is its own cluster, and the initial clusters are not merged with one another
 
-#### 2.1 Text embedding
-Here, the object’s own text is used, without concatenating neighbor information.
+The active default mode is `cosine_geo_gate`.
+In this mode:
+
+`semantic_visual_similarity = weighted_average(text_similarity, dinov2_similarity)`
+
+`combined_similarity = semantic_visual_similarity * exp(-dsq / (2 * distance_gate_dsq0))`
+
+where:
+- `text_similarity` is the cosine between the current row text embedding and the cluster `prototype_embedding`
+- `dinov2_similarity` is the cosine between the current row DINOv2 embedding and the cluster `prototype_dinov2_embedding`
+- `dsq` is the squared planar distance on the global `x-y` plane
+- `distance_gate_dsq0` controls how quickly the geo gate decays
+- if DINOv2 is disabled or unavailable for a pair, the semantic-visual term falls back to text-only
+- if `x-y` geometry is missing for a pair, the distance gate falls back to `1.0`
+
+The old additive text/geo/polar fusion path is still available as `legacy_weighted_fusion` for compatibility runs, but it is no longer the active default.
+
+#### 2.1 Semantic / visual branch
+Here, the object’s own text is used, without concatenating neighbor information, and the object crop can additionally contribute a DINOv2 embedding.
 For example:
 ```json
 {
@@ -725,7 +751,13 @@ For example:
 The text sent for embedding is:
 > a wooden dining table with a dark surface in the kitchen
 
-This term mainly compares whether the semantic description of this object resembles the objects in a historical cluster.
+This branch mainly compares whether the semantic description and crop appearance of this object resemble the historical cluster prototype.
+
+In the current implementation:
+- text similarity is computed against `prototype_embedding`
+- DINOv2 similarity is computed against `prototype_dinov2_embedding`
+- the two are fused using normalized `weight_text` and `weight_dinov2`
+- only the available terms are renormalized, so missing DINOv2 does not automatically force the score toward zero
 
 #### 2.2 Geo
 Geo means whether the position of this object and the memory cluster are close in world coordinates.
@@ -739,17 +771,17 @@ It uses the global coordinates of the object, for example:
 ```
 A historical memory cluster also has a representative prototype/global position.
 
-In the latest logic, geo is used as a **distance gate** rather than as an additive similarity term:
+In the latest default logic, geo is used as a **distance gate** rather than as an additive similarity term:
 
-`similarity = cosine_sim * exp(-dsq / (2 * dsq0))`
+`combined_similarity = semantic_visual_similarity * exp(-dsq / (2 * dsq0))`
 
 where:
-- `cosine_sim` is the cosine similarity between the current row embedding and the cluster `prototype_embedding`
+- `semantic_visual_similarity` is the fused text/DINOv2 score
 - `dsq` is the squared planar distance on the global `x-y` plane
 - `dsq0` controls how quickly similarity decays with distance
 
 So you can think of it as:
-- **text** asks whether they look semantically similar
+- **semantic + visual** asks whether they describe and look like the same object family
 - **geo gate** asks whether they are close enough in the world to remain a plausible match
 
 Important implementation note:
@@ -799,14 +831,14 @@ The `prototype_polar` of the historical cluster is:
 ```
 Note: the cluster_distance / cluster_bearing / cluster_height here do not come from a single old object, but from the `prototype_polar` of the memory cluster, which is the representative value of these polar fields among historical members.
 
-In the current default implementation, **polar metadata is still loaded and maintained in the cluster prototype, but it no longer contributes to the default similarity score**. It remains useful for:
+In the current default implementation, **polar metadata is still loaded and maintained in the cluster prototype, but it no longer contributes to the default `cosine_geo_gate` score**. It remains useful for:
 - diagnostics
 - cluster summaries
 - possible legacy comparisons
 - optional compatibility runs using `legacy_weighted_fusion`
 
 So the current sequential matching logic is:
-1. **Text** provides the semantic similarity
+1. **Text + optional DINOv2** provide the semantic-visual similarity
 2. **Global planar geo** provides the distance gate
 3. **Polar** is retained as metadata, but not used in the default affinity computation
 
@@ -827,6 +859,19 @@ Represents the textual semantic center of this cluster
 to represent the “semantic appearance” of this cluster
 
 When a new object arrives later, its embedding is compared with this `prototype_embedding` to compute text similarity.
+
+**1.5 `prototype_dinov2_embedding`**
+Represents the crop-level visual center of this cluster
+
+**It is:**
+- the DINOv2 embeddings of all members in the cluster
+- averaged first
+- then L2-normalized
+
+**Its role is:**
+to represent the crop-level visual consistency of this cluster
+
+When a new object arrives later, its DINOv2 embedding is compared with this `prototype_dinov2_embedding` to compute visual similarity.
 
 **2. `prototype_xyz`**
 Represents the global spatial position prototype of this cluster
@@ -857,7 +902,7 @@ These are aggregated, and the current implementation also uses the median.
 **Its role is:**
 to represent the typical relative positional pattern of this cluster in view coordinates
 
-When a new object arrives later, it is compared with this `prototype_polar` to compute polar similarity.
+When a new object arrives later, it can be compared with this `prototype_polar` to compute polar similarity in compatibility runs, but not in the active default `cosine_geo_gate` path.
 
 
 #### 2.5
@@ -867,8 +912,9 @@ When a new object arrives later, it is compared with this `prototype_polar` to c
 This step happens after the `cross-affinity` between `current objects` and `memory clusters` has been computed.
 
 In the current default mode:
-- the score is **not** a text/geo/polar weighted fusion
-- it is `cosine_sim * exp(-dsq / (2 * dsq0))`
+- the score is **not** the old text/geo/polar weighted fusion
+- it is `semantic_visual_similarity * exp(-dsq / (2 * dsq0))`
+- `semantic_visual_similarity` is the normalized weighted average of available text and DINOv2 similarities
 - `polar` stays in metadata, but does not contribute to the default score
 
 All `cross edges` with values `< 0.25` are set to 0 before graph construction.
@@ -971,17 +1017,19 @@ For a current object assigned by `dbscan_new_cluster`:
 - it does not consider geo or polar
 
 #### Sequential pipeline
-**text + geo gate + spectral embedding DBSCAN**
+**text + optional DINOv2 + geo gate + spectral embedding DBSCAN**
 - text embedding does not use neighbors
-- affinity uses `cosine_sim * exp(-dsq / (2*dsq0))`
+- affinity uses `semantic_visual_similarity * exp(-dsq / (2*dsq0))`
+- `semantic_visual_similarity` is the weighted combination of text cosine and DINOv2 cosine over available terms
 - `dsq` is the squared planar `x-y` distance to the cluster prototype
-- polar metadata is retained, but not used in the default similarity
+- DINOv2 is fused directly into the sequential affinity score when `enable_dinov2_scoring=true`
+- polar metadata is retained, but not used in the default `cosine_geo_gate` similarity
 - the final per-step cluster materialization comes from DBSCAN on the step spectral embedding
 - same-view collisions are no longer hard-blocked in the active default path
 
 **Summary:**
 - **batch multi-view dedup** is more focused on deduplication after text-context enhancement
-- **sequential pipeline** is more focused on geo-gated semantic matching followed by graph-structure-based DBSCAN materialization
+- **sequential pipeline** is more focused on geo-gated semantic-visual matching followed by graph-structure-based DBSCAN materialization
 
 | Item | Value |
 |---|---:|
@@ -1086,7 +1134,7 @@ Each record represents the final object-level metadata of one object.
     "builder_variant": "angle_split", // database construction variant; here it indicates the angle-split version
 
     "object_local_id": "det_000", // local id of this object within the current view
-    "label": "picture frame", // final canonical label of the object
+    "label": "picture frame", // compatibility alias; equals final_label in the current builder
     "object_confidence": 0.9086, // main confidence of the object, usually from the detector
 
     "bbox_xywh_norm": [0.5778, 0.0603, 0.1407, 0.2266], // normalized bbox, format [x, y, w, h]
@@ -1131,8 +1179,13 @@ Each record represents the final object-level metadata of one object.
     "geometry_source": "mask_depth", // geometry source; indicates it was obtained from the mask + depth pipeline
     "geometry_fallback_reason": null, // if fallback was used, the reason is recorded here; otherwise null
 
-    "detector_label": "picture frame", // original YOLO-World label
+    "detector_label": "picture frame", // compatibility alias for the detector label
+    "detector_label_raw": "picture frame", // original YOLO-World label
     "detector_confidence": 0.9086, // original YOLO-World detection confidence
+    "vlm_label": "picture frame", // normalized label returned by VLM
+    "final_label": "picture frame", // final downstream label; VLM preferred, detector fallback
+    "label_source": "vlm", // source of final_label: vlm or detector
+    "label_conflict": false, // whether a usable VLM label disagreed with the normalized detector label
 
     "occlusion_level": "fully visible", // compatibility bucket derived from bbox-overlap+depth deterministic occlusion
     "occlusion_penalty_p_o": 0.0, // occlusion penalty derived from visible_occlusion_ratio
@@ -1171,10 +1224,20 @@ Each record represents the final object-level metadata of one object.
     "mask_overlay_path": "spatial_db_nd/geometry/view_00000/objects/obj_000_mask_overlay.jpg", // mask overlay visualization path
     "depth_map_path": "spatial_db_nd/geometry/view_00000/depth_map.npy", // depth map path of this view
 
-    "crop_vlm_label": "picture frame", // object label returned by crop VLM
+    "crop_vlm_label": "picture frame", // compatibility alias for vlm_label
+    "dinov2_embedding_row_index": 0, // row index into object_dinov2_emb.npy; null if DINO is unavailable
+    "dinov2_model_name": "facebook/dinov2-base", // DINOv2 checkpoint used during build
+    "dinov2_embedding_dim": 768, // DINOv2 embedding dimension
+    "dinov2_input_type": "bbox_crop", // crop contract used for DINOv2 encoding
+    "dinov2_normalized": true, // whether the stored DINOv2 vector is L2-normalized
+    "dinov2_status": "success", // success | failed | disabled | missing
+    "dinov2_failure_reason": null, // populated only when DINOv2 extraction fails
     "view_id": "view_00000" // view id to which this object belongs
 }
 ```
+The full DINOv2 vectors are stored in `object_dinov2_emb.npy`.
+`object_meta.jsonl` keeps only the row index and model metadata so the main table stays debuggable.
+
 **The `surrounding_context` structure is as follows:**
 ```json
 {
