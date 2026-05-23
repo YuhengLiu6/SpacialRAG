@@ -43,6 +43,7 @@ def _object_row(object_global_id, entry_id, label, description, orientation, dis
         "object_orientation_deg": orientation,
         "location_relative_to_other_objects": "",
         "parse_status": "ok",
+        "dinov3_embedding_row_index": None,
     }
 
 
@@ -70,6 +71,9 @@ def _make_eval_db(tmp_path):
         _object_row(40, 0, "table", "small wooden table", 20.0, 1.2),
         _object_row(50, 2, "lamp", "floor lamp by bed", 200.0, 2.0),
     ]
+    for idx, row in enumerate(object_rows):
+        if idx < 4:
+            row["dinov3_embedding_row_index"] = idx
     _write_jsonl(db_dir / "meta.jsonl", meta_rows)
     _write_jsonl(db_dir / "object_meta.jsonl", object_rows)
     (db_dir / "build_report.json").write_text(
@@ -99,6 +103,18 @@ def _make_eval_db(tmp_path):
     )
     np.save(db_dir / "object_text_emb_short.npy", short_emb)
     np.save(db_dir / "object_text_emb_long.npy", long_emb)
+    np.save(
+        db_dir / "object_dinov3_emb.npy",
+        np.asarray(
+            [
+                [1.0, 0.0],
+                [0.98, 0.02],
+                [-1.0, 0.0],
+                [0.0, 1.0],
+            ],
+            dtype=np.float32,
+        ),
+    )
     return db_dir
 
 
@@ -155,6 +171,42 @@ def test_prepare_pair_scores_maps_row_embeddings_by_object_global_id(tmp_path, m
     assert scores_by_id["pair_pos"].long_cosine > 0.99
     assert scores_by_id["pair_neg"].short_cosine < -0.99
     assert scores_by_id["pair_neg"].graph_cosine < -0.99
+    assert np.isnan(scores_by_id["pair_pos"].dinov3_cosine)
+
+
+def test_prepare_pair_scores_can_include_dinov3(tmp_path, monkeypatch):
+    db_dir = _make_eval_db(tmp_path)
+    gt_path = tmp_path / "pairs.jsonl"
+    _write_jsonl(
+        gt_path,
+        [
+            {"pair_id": "pair_pos", "db_dir": db_dir.name, "obj_a_id": 20, "obj_b_id": 10, "is_same_instance": True, "split": "dev"},
+            {"pair_id": "pair_neg", "db_dir": db_dir.name, "obj_a_id": 10, "obj_b_id": 30, "is_same_instance": False, "split": "dev"},
+        ],
+    )
+
+    def _fake_embed(context_by_obj_id, embedder=None):
+        out = np.zeros((max(context_by_obj_id) + 1, 2), dtype=np.float32)
+        out[10] = [1.0, 0.0]
+        out[20] = [0.9, 0.1]
+        out[30] = [-1.0, 0.0]
+        out[40] = [0.0, 1.0]
+        out[50] = [0.0, 0.8]
+        return out
+
+    monkeypatch.setattr("spatial_rag.object_instance_eval.embed_graph_contexts", _fake_embed)
+
+    _pair_gt, pair_scores, _graph_context = _prepare_pair_scores(
+        db_dir=str(db_dir),
+        gt_pairs_path=str(gt_path),
+        split="dev",
+        text_modes=("short", "long", "graph", "dinov3"),
+        use_long_descriptions=True,
+    )
+
+    scores_by_id = {row.pair_id: row for row in pair_scores}
+    assert scores_by_id["pair_pos"].dinov3_cosine > 0.99
+    assert scores_by_id["pair_neg"].dinov3_cosine < -0.99
 
 
 def test_build_graph_context_strings_is_deterministic_and_includes_same_node_and_direction(tmp_path):
@@ -168,7 +220,7 @@ def test_build_graph_context_strings_is_deterministic_and_includes_same_node_and
     assert "place=place_00000" in context
     assert "same_node:" in context
     assert "table: small wooden table long" in context
-    assert "north: chair: chair in mirror reflection" in context
+    assert "north: none" in context
     assert "room_function=resting" in context
 
 
@@ -217,9 +269,9 @@ def test_export_pair_artifacts_writes_pair_manifests_and_copies_images(tmp_path)
 
 def test_summarize_similarity_metrics_reports_all_representations():
     pair_scores = [
-        PairScoreRecord("p1", "toy_db", 10, 20, True, "dev", 0.9, 0.95, 0.92),
-        PairScoreRecord("p2", "toy_db", 10, 30, False, "dev", -0.8, -0.7, -0.85),
-        PairScoreRecord("p3", "toy_db", 20, 30, False, "dev", -0.7, -0.6, -0.8),
+        PairScoreRecord("p1", "toy_db", 10, 20, True, "dev", 0.9, 0.95, 0.92, 0.93),
+        PairScoreRecord("p2", "toy_db", 10, 30, False, "dev", -0.8, -0.7, -0.85, -0.82),
+        PairScoreRecord("p3", "toy_db", 20, 30, False, "dev", -0.7, -0.6, -0.8, -0.78),
     ]
 
     metrics = summarize_similarity_metrics(pair_scores)
@@ -228,3 +280,4 @@ def test_summarize_similarity_metrics_reports_all_representations():
     assert metrics["short"]["positive_mean_cosine"] == 0.9
     assert metrics["graph"]["roc_auc"] == 1.0
     assert metrics["long"]["retrieval"]["num_anchors"] == 2
+    assert metrics["dinov3"]["positive_mean_cosine"] == 0.93

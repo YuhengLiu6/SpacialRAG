@@ -151,6 +151,8 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
             "angle_bucket": "center",
             "bbox_xyxy": [0.0, 0.0, 1.0, 1.0],
             "bbox_xywh_norm": [0.1, 0.1, 0.1, 0.1],
+            "dinov3_embedding_row_index": 0,
+            "dinov3_status": "success",
             "crop_path": "canonical_db/geometry/view_00000/objects/obj_000_crop.jpg",
             "mask_path": "canonical_db/geometry/view_00000/objects/obj_000_mask.png",
             "mask_overlay_path": "canonical_db/geometry/view_00000/objects/obj_000_mask_overlay.jpg",
@@ -179,6 +181,8 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
             "angle_bucket": "center",
             "bbox_xyxy": [1.0, 1.0, 2.0, 2.0],
             "bbox_xywh_norm": [0.2, 0.2, 0.2, 0.2],
+            "dinov3_embedding_row_index": 1,
+            "dinov3_status": "success",
             "crop_path": None,
             "mask_path": "canonical_db/geometry/view_00001/objects/obj_001_mask.png",
             "mask_overlay_path": "canonical_db/geometry/view_00001/objects/obj_001_mask_overlay.jpg",
@@ -207,6 +211,8 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
             "angle_bucket": "center",
             "bbox_xyxy": [],
             "bbox_xywh_norm": [],
+            "dinov3_embedding_row_index": None,
+            "dinov3_status": "missing",
             "crop_path": None,
             "mask_path": None,
             "mask_overlay_path": None,
@@ -237,6 +243,14 @@ def _make_base_db(tmp_path: Path, *, filtered: bool) -> Path:
     np.save(db_dir / "text_emb_long.npy", text_emb_long)
     np.save(db_dir / "object_text_emb_short.npy", object_emb_short)
     np.save(db_dir / "object_text_emb_long.npy", object_emb_long)
+    object_dinov3_all = np.asarray(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+        ],
+        dtype=np.float32,
+    )
+    np.save(db_dir / "object_dinov3_emb.npy", object_dinov3_all)
 
     pre_threshold_rows = []
     for row in all_object_rows:
@@ -392,6 +406,10 @@ def test_run_reweight_sweep_exports_variant_from_canonical_db(tmp_path, monkeypa
     base_short = np.load(db_dir / "object_text_emb_short.npy")
     assert exported_short.shape == (2, 4)
     np.testing.assert_allclose(exported_short, base_short[[1, 2]])
+    exported_dino = np.load(config_dir / "object_dinov3_emb.npy")
+    assert exported_dino.shape == (1, 3)
+    assert exported_objects[0]["dinov3_embedding_row_index"] == 0
+    assert exported_objects[1]["dinov3_embedding_row_index"] is None
 
     assert (config_dir / "object_index_short.faiss").exists()
     assert (config_dir / "object_index_long.faiss").exists()

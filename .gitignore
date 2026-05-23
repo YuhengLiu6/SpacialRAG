@@ -13,23 +13,15 @@ env/
 venv/
 ENV/
 
-# Project specific
+# Project specific data & media (large / generated)
 memory_store/
 captured_images/
 retrieval_results/
 data/
+data_local/
 *.pt
 *.log
 *.jpg
-
-
-spatial_db_nd/
-spatial_db_nd2/
-README copy.md
-test_openai.py
-
-
-
 *.png
 *.npy
 *.json
@@ -37,3 +29,27 @@ test_openai.py
 *.faiss
 *.jsonl
 *.csv
+*.glb
+*.engine
+*.onnx
+*.svg
+
+# Local documentation outputs
+README copy.md
+README.html
+GEMINI.md
+test_openai.py
+report.md
+
+# Legacy / Backups / Deprecated code
+spatial_rag_prev/
+archive/
+test/
+
+# Local model training / candidates generation
+semantic_pair_candidates/
+semantic_pair_candidates_true100/
+semantic_pair_candidates_true100_no_cabinet/
+
+# Specific local sweep evaluation runs (to prevent pushing heavy debug logs/matrices)
+evaluation/

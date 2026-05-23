@@ -8,7 +8,7 @@ os.environ["MKL_NUM_THREADS"] = "1"
 # API Keys
 # SCENE_PATH = "data/scene_datasets/habitat-test-scenes/apartment_1.glb"  # Modern apartment scene (Stable)
 # SCENE_PATH = "data/scene_datasets/habitat-test-scenes/van-gogh-room.glb"  # Modern apartment scene (Stable)
-SCENE_PATH = "data/scene_datasets/habitat-test-scenes/skokloster-castle.glb"  # Modern apartment scene (Stable)
+SCENE_PATH = "data/scene_datasets/scene_datasets/hm3d/minival/00800-TEEsavR23oF/TEEsavR23oF.basis.glb"  # Modern apartment scene (Stable)
 
 
 YOLO_MODEL_PATH = "yolov8m.pt" # Upgraded to Medium version for better accuracy
@@ -38,9 +38,9 @@ SCAN_ANGLES = (0, 90, 180, 270)
 # Models
 CLIP_MODEL_NAME = "ViT-B-16" 
 CLIP_PRETRAINED = "laion2b_s34b_b88k"
-DINOV2_MODEL_NAME = "facebook/dinov2-base"
-DINOV2_BATCH_SIZE = 16
-DINOV2_NORMALIZE = True
+DINOV3_MODEL_NAME = "facebook/dinov3-vit7b16-pretrain-lvd1689m"
+DINOV3_BATCH_SIZE = 1
+DINOV3_NORMALIZE = True
 
 # Retrieval
 RETRIEVAL_METHOD = "cosine" # Options: "hybrid", "cosine"
@@ -71,9 +71,11 @@ OBJECT_USE_CACHE = True
 OBJECT_CACHE_DIR = "vlm_object_cache"
 OBJECT_RERANK_CANDIDATES = 30
 BBOX_CONF_THRESHOLD = 0.3
-ENABLE_DINOV2_EMBEDDING = True
-STORE_DINOV2_EMBEDDING = True
-ENABLE_DINOV2_SCORING = True
+ENABLE_DINOV3_EMBEDDING = True
+STORE_DINOV3_EMBEDDING = True
+ENABLE_DINOV3_SCORING = True
+ENABLE_VLM_COMPRESS = True
+ENABLE_VLM_MEMBER_SPATIAL = True
 SCORE_WEIGHT_M1 = 1.0
 SCORE_WEIGHT_M2 = 1.0
 DISTANCE_PENALTY_DSQ0 = 4.0

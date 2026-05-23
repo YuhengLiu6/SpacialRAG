@@ -10,9 +10,13 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from spatial_rag.graph_builder import build_graph_payload
+from spatial_rag.household_taxonomy import canonicalize_household_object_label
 
 
 TRICKY_KEYWORDS = ("reflection", "background", "doorway", "adjacent", "visible through", "mirror", "tv reflection")
+SAME_INSTANCE_LABEL_FAMILY_OVERRIDES = {
+    "dining table": "table",
+}
 
 
 @dataclass(frozen=True)
@@ -89,6 +93,12 @@ def _normalized_pair_key(obj_a_id: int, obj_b_id: int) -> Tuple[int, int]:
     if a == b:
         raise ValueError("candidate pair cannot reference the same object twice")
     return (a, b) if a < b else (b, a)
+
+
+def _same_instance_label_key(row: Mapping[str, Any]) -> str:
+    raw_label = _safe_text(row.get("label"))
+    canonical = canonicalize_household_object_label(raw_label, default=raw_label.lower() or "other")
+    return SAME_INSTANCE_LABEL_FAMILY_OVERRIDES.get(canonical, canonical or "other")
 
 
 def _adjacent_place_map(direction_edges: Sequence[Mapping[str, Any]]) -> Dict[str, set]:
@@ -189,6 +199,7 @@ def mine_candidate_pairs(
     for row in payload.get("objects", []):
         object_row = dict(row)
         object_row.update(raw_by_id.get(int(object_row["object_global_id"]), {}))
+        object_row["same_instance_label_key"] = _same_instance_label_key(object_row)
         objects.append(object_row)
     objects.sort(key=lambda row: int(row["object_global_id"]))
     object_by_id = {int(row["object_global_id"]): row for row in objects}
@@ -196,7 +207,7 @@ def mine_candidate_pairs(
     label_to_objects: Dict[str, List[Dict[str, Any]]] = {}
     for row in objects:
         place_to_objects.setdefault(str(row["place_id"]), []).append(row)
-        label_to_objects.setdefault(str(row["label"]), []).append(row)
+        label_to_objects.setdefault(str(row["same_instance_label_key"]), []).append(row)
     for rows in place_to_objects.values():
         rows.sort(key=lambda row: (str(row.get("view_id") or ""), int(row["object_global_id"])))
     adjacency = _adjacent_place_map(payload.get("direction_edges", []))
@@ -245,7 +256,7 @@ def mine_candidate_pairs(
     for place_id, rows in place_to_objects.items():
         by_label: Dict[str, List[Dict[str, Any]]] = {}
         for row in rows:
-            by_label.setdefault(str(row["label"]), []).append(row)
+            by_label.setdefault(str(row["same_instance_label_key"]), []).append(row)
         for label, label_rows in by_label.items():
             for row_a, row_b in itertools.combinations(label_rows, 2):
                 add_candidate(
@@ -254,10 +265,10 @@ def mine_candidate_pairs(
                     row_b=row_b,
                     score=_candidate_score_same_place(row_a, row_b),
                     suggested_is_same_instance=True,
-                    notes=f"same label '{label}' in same place {place_id}",
+                    notes=f"same label family '{label}' in same place {place_id}",
                 )
         for row_a, row_b in itertools.combinations(rows, 2):
-            if str(row_a.get("label")) == str(row_b.get("label")):
+            if str(row_a.get("same_instance_label_key")) == str(row_b.get("same_instance_label_key")):
                 continue
             add_candidate(
                 bucket="different_label_same_place",
@@ -281,7 +292,7 @@ def mine_candidate_pairs(
                     row_b=row_b,
                     score=_candidate_score_adjacent(row_a, row_b),
                     suggested_is_same_instance=True,
-                    notes=f"same label '{label}' across adjacent places",
+                    notes=f"same label family '{label}' across adjacent places",
                 )
             else:
                 add_candidate(
@@ -290,12 +301,12 @@ def mine_candidate_pairs(
                     row_b=row_b,
                     score=_candidate_score_same_label_distant(row_a, row_b),
                     suggested_is_same_instance=False,
-                    notes=f"same label '{label}' across non-adjacent places",
+                    notes=f"same label family '{label}' across non-adjacent places",
                 )
 
     tricky_rows = [row for row in objects if _is_tricky(row)]
     for row_a in tricky_rows:
-        for row_b in label_to_objects.get(str(row_a["label"]), []):
+        for row_b in label_to_objects.get(str(row_a["same_instance_label_key"]), []):
             if int(row_a["object_global_id"]) == int(row_b["object_global_id"]):
                 continue
             add_candidate(

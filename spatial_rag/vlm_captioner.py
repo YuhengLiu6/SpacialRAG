@@ -103,6 +103,18 @@ class VLMCaptioner:
         file_name = f"{file_stem}__{cache_key}{suffix}"
         return self.object_cache_dir / cache_kind / model_token / prompt_token / group_token / file_name
 
+    def _structured_text_cache_path(
+        self,
+        *,
+        cache_kind: str,
+        prompt_version: str,
+        cache_key: str,
+        suffix: str,
+    ) -> Path:
+        model_token = self._sanitize_cache_component(self.model_name)
+        prompt_token = self._sanitize_cache_component(prompt_version)
+        return self.object_cache_dir / cache_kind / model_token / prompt_token / f"{cache_key}{suffix}"
+
     @staticmethod
     def _promote_legacy_cache_file(legacy_path: Path, target_path: Path) -> Path:
         if target_path.exists() or not legacy_path.exists():
@@ -295,6 +307,119 @@ class VLMCaptioner:
     @staticmethod
     def _selector_prompt_version() -> str:
         return "household_selector_scene_summary_v1"
+
+    @staticmethod
+    def _cluster_text_compression_prompt_version() -> str:
+        return "sequential_cluster_text_compress_v2_member_spatial"
+
+    @staticmethod
+    def _cluster_text_compression_system_prompt() -> str:
+        return (
+            "You are compressing multiple object observations that are already assumed to belong to the same real-world object. "
+            "Return one short factual cluster description for downstream CLIP text embedding. "
+            "Preserve the object's stable identity cues such as category, material, color, shape, texture, and distinctive condition. "
+            "If member-internal spatial relations are provided, only use them as compact internal consistency cues for the same object. "
+            "Do not describe multiple separate objects, external anchors, or invented relations. "
+            "Remove repeated wording, viewpoint-specific clutter, and uncertain one-off details. "
+            "Do not produce a generic scene summary, markdown, bullets, or extra commentary."
+        )
+
+    @staticmethod
+    def _cluster_text_compression_user_prompt(
+        member_texts: Sequence[str],
+        *,
+        label_histogram: Optional[Mapping[str, Any]] = None,
+        member_count: Optional[int] = None,
+        member_spatial_relations: Optional[Sequence[Mapping[str, Any]]] = None,
+    ) -> str:
+        cleaned_texts = [str(text).strip() for text in list(member_texts or []) if str(text).strip()]
+        histogram = dict(label_histogram or {})
+        member_lines = [f"{idx + 1}. {text}" for idx, text in enumerate(cleaned_texts)]
+        spatial_relation_lines: List[str] = []
+        for item in list(member_spatial_relations or []):
+            member_index = item.get("member_index")
+            label = str(item.get("label") or "unknown").strip() or "unknown"
+            object_id = item.get("object_global_id")
+            direction_text = str(item.get("direction_text") or item.get("direction_8") or "unknown").strip() or "unknown"
+            distance_value = item.get("distance_m")
+            distance_text = "unknown"
+            if distance_value is not None:
+                try:
+                    distance_text = f"{float(distance_value):.2f}m"
+                except Exception:
+                    distance_text = str(distance_value)
+            member_prefix = f"member {int(member_index)}" if member_index is not None else "member"
+            object_suffix = f", object_id={int(object_id)}" if object_id is not None else ""
+            spatial_relation_lines.append(
+                f"- {member_prefix}{object_suffix}, label={label}: {direction_text}, {distance_text} from cluster prototype on the global x-z plane"
+            )
+        prompt_lines = [
+            "Compress the following object descriptions into one stable object-centric description.",
+            f"Member count: {int(member_count if member_count is not None else len(cleaned_texts))}",
+        ]
+        if histogram:
+            prompt_lines.append(
+                f"Label histogram: {json.dumps(histogram, ensure_ascii=True, sort_keys=True)}"
+            )
+        prompt_lines.extend(
+            [
+                "Requirements:",
+                "- Keep only visually stable identity cues that should survive across viewpoints.",
+                "- Prefer one concise sentence or noun phrase under 30 words.",
+                "- If member spatial relations are provided, you may compress them into a short internal spatial cue, but keep the output about one object.",
+                "- Avoid mentioning the camera, viewpoint ordering, or uncertainty unless every description indicates it.",
+                "- Do not mention any object outside the provided member descriptions.",
+                "- Return plain text only.",
+                "Descriptions:",
+                "\n".join(member_lines),
+            ]
+        )
+        if spatial_relation_lines:
+            prompt_lines.extend(
+                [
+                    "Member spatial relations:",
+                    "\n".join(spatial_relation_lines),
+                ]
+            )
+        return "\n".join(prompt_lines)
+
+    def _cluster_text_compression_cache_path(
+        self,
+        member_texts: Sequence[str],
+        *,
+        member_spatial_relations: Optional[Sequence[Mapping[str, Any]]] = None,
+    ) -> Path:
+        prompt_version = self._cluster_text_compression_prompt_version()
+        normalized_texts = [str(text).strip() for text in list(member_texts or []) if str(text).strip()]
+        normalized_relations = [
+            {
+                "member_index": item.get("member_index"),
+                "object_global_id": item.get("object_global_id"),
+                "label": str(item.get("label") or "").strip(),
+                "direction_8": str(item.get("direction_8") or "").strip(),
+                "direction_text": str(item.get("direction_text") or "").strip(),
+                "distance_m": item.get("distance_m"),
+            }
+            for item in list(member_spatial_relations or [])
+        ]
+        cache_key_src = json.dumps(
+            {
+                "model": self.model_name,
+                "prompt_version": prompt_version,
+                "member_texts": normalized_texts,
+                "member_spatial_relations": normalized_relations,
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        cache_key = hashlib.md5(cache_key_src.encode("utf-8")).hexdigest()
+        return self._structured_text_cache_path(
+            cache_kind="cluster_text_compress",
+            prompt_version=prompt_version,
+            cache_key=cache_key,
+            suffix=".json",
+        )
 
     @staticmethod
     def _camera_context_cache_token(camera_context: Optional[Dict[str, Any]] = None) -> str:
@@ -1217,6 +1342,125 @@ class VLMCaptioner:
             self._log_exception("caption_image", image_path, exc)
             self._log("caption request_failed -> return default caption")
             return self.default_caption
+
+    def compress_cluster_member_texts(
+        self,
+        member_texts: Sequence[str],
+        *,
+        label_histogram: Optional[Mapping[str, Any]] = None,
+        member_count: Optional[int] = None,
+        member_spatial_relations: Optional[Sequence[Mapping[str, Any]]] = None,
+        force_refresh: bool = False,
+    ) -> Optional[str]:
+        normalized_texts = [str(text).strip() for text in list(member_texts or []) if str(text).strip()]
+        normalized_relations = [
+            {
+                "member_index": item.get("member_index"),
+                "object_global_id": item.get("object_global_id"),
+                "label": str(item.get("label") or "").strip(),
+                "direction_8": str(item.get("direction_8") or "").strip(),
+                "direction_text": str(item.get("direction_text") or "").strip(),
+                "distance_m": item.get("distance_m"),
+            }
+            for item in list(member_spatial_relations or [])
+        ]
+        if not normalized_texts:
+            return None
+
+        cache_path = (
+            self._cluster_text_compression_cache_path(
+                normalized_texts,
+                member_spatial_relations=normalized_relations,
+            )
+            if self.object_use_cache
+            else None
+        )
+        if cache_path and cache_path.exists() and not force_refresh:
+            self._log(f"cluster_text_compress cache_hit cache={cache_path}")
+            try:
+                loaded = json.loads(cache_path.read_text(encoding="utf-8"))
+            except Exception:
+                loaded = None
+            if isinstance(loaded, dict):
+                cached_text = str(loaded.get("cluster_text_description") or "").strip()
+                if cached_text:
+                    return cached_text
+
+        if self.client is None:
+            self._log("cluster_text_compress client_unavailable")
+            return None
+
+        prompt_version = self._cluster_text_compression_prompt_version()
+        self._log(
+            f"cluster_text_compress request_start model={self.model_name} "
+            f"members={len(normalized_texts)} prompt_version={prompt_version}"
+        )
+        t0 = time.perf_counter()
+        
+        max_retries = 3
+        cluster_text = None
+        raw_api_response = None
+        
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    time.sleep(2 ** attempt)  # Exponential backoff (2s, 4s, ...)
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": self._cluster_text_compression_system_prompt(),
+                        },
+                        {
+                            "role": "user",
+                            "content": self._cluster_text_compression_user_prompt(
+                                normalized_texts,
+                                label_histogram=label_histogram,
+                                member_count=member_count,
+                                member_spatial_relations=normalized_relations,
+                            ),
+                        },
+                    ],
+                    max_completion_tokens=8000,
+                )
+                cluster_text = str(response.choices[0].message.content or "").strip()
+                if not cluster_text:
+                    raise ValueError(f"Silent empty response from API. finish_reason={getattr(response.choices[0], 'finish_reason', 'N/A')}")
+                
+                raw_api_response = self._serialize_api_response(response)
+                break
+            except Exception as exc:
+                self._log_exception("compress_cluster_member_texts", f"cluster_text attempt={attempt}", exc)
+                if attempt == max_retries - 1:
+                    self._log("cluster_text_compress request_failed")
+                    return None
+
+        if not cluster_text:
+            return None
+
+        self._log(
+            f"cluster_text_compress request_done chars={len(cluster_text)} "
+            f"elapsed_sec={time.perf_counter() - t0:.2f}"
+        )
+        if cache_path:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(
+                json.dumps(
+                    {
+                        "cluster_text_description": cluster_text,
+                        "raw_api_response": raw_api_response,
+                        "member_count": int(member_count if member_count is not None else len(normalized_texts)),
+                        "label_histogram": dict(label_histogram or {}),
+                        "member_spatial_relations": normalized_relations,
+                    },
+                    ensure_ascii=True,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            self._log(f"cluster_text_compress cache_write cache={cache_path}")
+        return cluster_text
 
     def select_object_types_with_meta(
         self,

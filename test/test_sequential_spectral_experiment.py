@@ -8,6 +8,9 @@ import numpy as np
 from spatial_rag.config import (
     DEFAULT_CROSS_AFFINITY_MIN as CONFIG_DEFAULT_CROSS_AFFINITY_MIN,
     DEFAULT_DISTANCE_GATE_DSQ0 as CONFIG_DEFAULT_DISTANCE_GATE_DSQ0,
+    DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS as CONFIG_DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
+    ENABLE_VLM_COMPRESS as CONFIG_ENABLE_VLM_COMPRESS,
+    ENABLE_VLM_MEMBER_SPATIAL as CONFIG_ENABLE_VLM_MEMBER_SPATIAL,
 )
 import spatial_rag.sequential_spectral_experiment as sequential_spectral_experiment
 from spatial_rag.sequential_spectral_experiment import (
@@ -16,14 +19,68 @@ from spatial_rag.sequential_spectral_experiment import (
     DEFAULT_DISTANCE_GATE_DSQ0_SWEEP,
     DEFAULT_SPECTRAL_MAX_EXTRA_CLUSTERS,
     DEFAULT_VIEW_IDS,
+    _apply_same_view_hard_mask_to_cross_affinity,
     _build_cluster,
     _full_bipartite_affinity,
+    _member_spatial_relations,
     _run_capped_sequential_spectral_clustering,
     apply_incremental_step,
     build_cross_affinity_matrix,
     load_sequence_objects,
     run_sequential_spectral_experiment,
 )
+
+
+def _fake_text_embedding(text: str) -> np.ndarray:
+    chars = [ord(ch) for ch in str(text)]
+    base = np.asarray(
+        [
+            float(sum(chars) % 17 + 1),
+            float(len(chars) % 13 + 1),
+            float((sum(chars[::2]) if chars else 0) % 19 + 1),
+        ],
+        dtype=np.float32,
+    )
+    base /= np.linalg.norm(base)
+    return base.astype(np.float32)
+
+
+class _FakeClusterCaptioner:
+    def __init__(self, compressed_text: str = "compressed cluster text", raise_on_call: bool = False):
+        self.compressed_text = compressed_text
+        self.raise_on_call = bool(raise_on_call)
+        self.calls = []
+
+    def compress_cluster_member_texts(
+        self,
+        member_texts,
+        *,
+        label_histogram=None,
+        member_count=None,
+        member_spatial_relations=None,
+        force_refresh=False,
+    ):
+        self.calls.append(
+            {
+                "member_texts": list(member_texts),
+                "label_histogram": dict(label_histogram or {}),
+                "member_count": member_count,
+                "member_spatial_relations": list(member_spatial_relations or []),
+                "force_refresh": bool(force_refresh),
+            }
+        )
+        if self.raise_on_call:
+            raise RuntimeError("fake compression failure")
+        return self.compressed_text
+
+
+class _FakeClusterEmbedder:
+    def __init__(self):
+        self.calls = []
+
+    def embed_text(self, text):
+        self.calls.append(str(text))
+        return _fake_text_embedding(text)
 
 
 def _write_jsonl(path, rows):
@@ -47,6 +104,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00019",
             "object_global_id": 1,
             "label": "chair",
+            "dinov3_embedding_row_index": 0,
+            "dinov3_status": "success",
             "bbox_xyxy": [12.0, 16.0, 96.0, 120.0],
             "estimated_global_x": 0.0,
             "estimated_global_y": 0.0,
@@ -60,6 +119,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00019",
             "object_global_id": 2,
             "label": "table",
+            "dinov3_embedding_row_index": 1,
+            "dinov3_status": "success",
             "bbox_xyxy": [120.0, 24.0, 228.0, 132.0],
             "estimated_global_x": 5.0,
             "estimated_global_y": 0.0,
@@ -73,6 +134,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00024",
             "object_global_id": 3,
             "label": "wooden seat",
+            "dinov3_embedding_row_index": 2,
+            "dinov3_status": "success",
             "bbox_xyxy": [18.0, 110.0, 98.0, 210.0],
             "estimated_global_x": 0.1,
             "estimated_global_y": 0.0,
@@ -86,6 +149,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00024",
             "object_global_id": 4,
             "label": "plant",
+            "dinov3_embedding_row_index": 3,
+            "dinov3_status": "success",
             "bbox_xyxy": [170.0, 32.0, 250.0, 152.0],
             "estimated_global_x": 8.0,
             "estimated_global_y": 0.0,
@@ -99,6 +164,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00058",
             "object_global_id": 5,
             "label": "table",
+            "dinov3_embedding_row_index": 4,
+            "dinov3_status": "success",
             "bbox_xyxy": [108.0, 72.0, 220.0, 164.0],
             "estimated_global_x": 5.1,
             "estimated_global_y": 0.0,
@@ -112,6 +179,8 @@ def _make_sequence_db(tmp_path):
             "view_id": "view_00065",
             "object_global_id": 6,
             "label": "chair",
+            "dinov3_embedding_row_index": 5,
+            "dinov3_status": "success",
             "bbox_xyxy": [40.0, 54.0, 126.0, 180.0],
             "estimated_global_x": 0.2,
             "estimated_global_y": 0.0,
@@ -137,6 +206,88 @@ def _make_sequence_db(tmp_path):
             [0.0, 0.0, 1.0],     # plant
             [0.02, 0.97, 0.01],  # table near table
             [0.96, 0.04, 0.0],   # chair near chair
+        ],
+        dtype=np.float32,
+    )
+    np.save(db_dir / "object_text_emb_long.npy", emb)
+    dino_emb = np.asarray(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.99, 0.01, 0.0],
+            [0.0, 0.0, 1.0],
+            [0.02, 0.98, 0.0],
+            [0.97, 0.03, 0.0],
+        ],
+        dtype=np.float32,
+    )
+    np.save(db_dir / "object_dinov3_emb.npy", dino_emb)
+    return db_dir
+
+
+def _make_same_view_conflict_sequence_db(tmp_path):
+    db_dir = tmp_path / "seq_db_same_view_conflict"
+    db_dir.mkdir(parents=True)
+    image_dir = db_dir / "images"
+    image_dir.mkdir(parents=True, exist_ok=True)
+    meta_rows = [
+        {"id": 19, "orientation": 270, "file_name": "images/pose_00004_o270_000019.jpg"},
+        {"id": 24, "orientation": 0, "file_name": "images/pose_00006_o000_000024.jpg"},
+    ]
+    object_rows = [
+        {
+            "entry_id": 19,
+            "view_id": "view_00019",
+            "object_global_id": 1,
+            "label": "chair",
+            "bbox_xyxy": [12.0, 16.0, 96.0, 120.0],
+            "estimated_global_x": 0.0,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.0,
+            "relative_bearing_deg": 0.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+        {
+            "entry_id": 24,
+            "view_id": "view_00024",
+            "object_global_id": 2,
+            "label": "chair",
+            "bbox_xyxy": [18.0, 24.0, 98.0, 126.0],
+            "estimated_global_x": 0.1,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.0,
+            "relative_bearing_deg": 2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+        {
+            "entry_id": 24,
+            "view_id": "view_00024",
+            "object_global_id": 3,
+            "label": "wooden seat",
+            "bbox_xyxy": [118.0, 24.0, 206.0, 126.0],
+            "estimated_global_x": 0.2,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.1,
+            "relative_bearing_deg": -2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+    ]
+    _write_jsonl(db_dir / "meta.jsonl", meta_rows)
+    _write_jsonl(db_dir / "object_meta.jsonl", object_rows)
+    for index, row in enumerate(meta_rows):
+        image_path = db_dir / row["file_name"]
+        image_path.parent.mkdir(parents=True, exist_ok=True)
+        image_rgb = np.full((240, 320, 3), 230 - index * 20, dtype=np.uint8)
+        ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+        assert ok
+    emb = np.asarray(
+        [
+            [1.0, 0.0, 0.0],
+            [0.99, 0.01, 0.0],
+            [0.98, 0.02, 0.0],
         ],
         dtype=np.float32,
     )
@@ -168,6 +319,16 @@ def test_load_sequence_objects_accepts_manual_entry_ids_in_order(tmp_path):
 
     assert sequence["selected_view_ids"] == ["view_00024", "view_00019", "view_00065"]
     assert [view["view_id"] for view in sequence["views"]] == ["view_00024", "view_00019", "view_00065"]
+
+
+def test_load_sequence_objects_attaches_dinov3_embeddings(tmp_path):
+    db_dir = _make_sequence_db(tmp_path)
+
+    sequence = load_sequence_objects(str(db_dir), view_ids=["view_00019"])
+
+    row = sequence["views"][0]["objects"][0]
+    assert row["dinov3_embedding"] is not None
+    assert row["dinov3_status"] == "success"
 
 
 def test_store_selected_view_images_renders_overlay_with_object_ids(tmp_path):
@@ -340,13 +501,82 @@ def test_apply_incremental_step_dbscan_merges_memory_clusters_under_smallest_id(
     assert merged_cluster["member_object_ids"] == [10, 11]
 
 
-def test_full_bipartite_affinity_uses_lower_default_cross_affinity_threshold():
+def test_apply_same_view_hard_mask_zeros_conflicting_edges_and_marks_details():
+    memory_clusters = [
+        _build_cluster(
+            0,
+            [
+                {
+                    "object_global_id": 1,
+                    "view_id": "view_00019",
+                    "label": "chair",
+                    "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+                    "estimated_global_x": 0.0,
+                    "estimated_global_y": 0.0,
+                    "estimated_global_z": 0.0,
+                    "distance_from_camera_m": 1.0,
+                    "relative_bearing_deg": 0.0,
+                    "relative_height_from_camera_m": 0.0,
+                }
+            ],
+        ),
+        _build_cluster(
+            1,
+            [
+                {
+                    "object_global_id": 2,
+                    "view_id": "view_00024",
+                    "label": "table",
+                    "embedding": np.asarray([0.0, 1.0], dtype=np.float32),
+                    "estimated_global_x": 5.0,
+                    "estimated_global_y": 0.0,
+                    "estimated_global_z": 0.0,
+                    "distance_from_camera_m": 2.0,
+                    "relative_bearing_deg": 10.0,
+                    "relative_height_from_camera_m": 0.0,
+                }
+            ],
+        ),
+    ]
+    current_rows = [
+        {
+            "object_global_id": 3,
+            "view_id": "view_00019",
+            "label": "chair",
+            "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
+            "estimated_global_x": 0.1,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.1,
+            "relative_bearing_deg": 1.0,
+            "relative_height_from_camera_m": 0.0,
+        }
+    ]
+    cross_affinity = np.asarray([[0.92, 0.41]], dtype=np.float32)
+    cross_details = [[_affinity_detail(0.92), _affinity_detail(0.41)]]
+
+    masked_affinity, masked_details, masked_count = _apply_same_view_hard_mask_to_cross_affinity(
+        memory_clusters,
+        current_rows,
+        cross_affinity=cross_affinity,
+        cross_details=cross_details,
+    )
+
+    assert masked_count == 1
+    assert np.isclose(masked_affinity[0, 0], 0.0)
+    assert np.isclose(masked_affinity[0, 1], 0.41)
+    assert masked_details[0][0]["same_view_masked"] is True
+    assert masked_details[0][0]["same_view_mask_reason"] == "shared_view_id"
+    assert masked_details[0][1].get("same_view_masked") is None
+
+
+def test_full_bipartite_affinity_uses_configured_default_cross_affinity_threshold():
     cross_affinity = np.asarray([[0.30, 0.20]], dtype=np.float32)
 
     full_affinity = _full_bipartite_affinity(cross_affinity)
 
     assert np.isclose(DEFAULT_CROSS_AFFINITY_MIN, CONFIG_DEFAULT_CROSS_AFFINITY_MIN)
-    assert np.isclose(full_affinity[2, 0], 0.30)
+    assert np.isclose(full_affinity[2, 0], 0.0)
     assert np.isclose(full_affinity[2, 1], 0.0)
 
 
@@ -357,6 +587,233 @@ def test_parse_args_uses_config_defaults_for_cross_affinity_and_distance_gate():
     assert np.isclose(sequential_spectral_experiment.DEFAULT_DISTANCE_GATE_DSQ0, CONFIG_DEFAULT_DISTANCE_GATE_DSQ0)
     assert np.isclose(args.min_cross_affinity, CONFIG_DEFAULT_CROSS_AFFINITY_MIN)
     assert np.isclose(args.distance_gate_dsq0, CONFIG_DEFAULT_DISTANCE_GATE_DSQ0)
+    assert args.enforce_same_view_uniqueness is CONFIG_DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS
+    assert args.enable_vlm_compress is CONFIG_ENABLE_VLM_COMPRESS
+    assert args.enable_vlm_member_spatial is CONFIG_ENABLE_VLM_MEMBER_SPATIAL
+
+
+def test_parse_args_accepts_enable_vlm_compress_toggle():
+    args = sequential_spectral_experiment._parse_args(["--enable_vlm_compress"])
+
+    assert args.enable_vlm_compress is True
+
+
+def test_parse_args_accepts_enable_vlm_member_spatial_toggle():
+    args = sequential_spectral_experiment._parse_args(["--no-enable_vlm_member_spatial"])
+
+    assert args.enable_vlm_member_spatial is False
+
+
+def test_member_spatial_relations_use_global_xz_plane_and_stable_order():
+    relations = _member_spatial_relations(
+        [
+            {
+                "object_global_id": 10,
+                "label": "chair",
+                "estimated_global_x": 1.0,
+                "estimated_global_y": 9.0,
+                "estimated_global_z": 0.0,
+            },
+            {
+                "object_global_id": 11,
+                "label": "chair",
+                "estimated_global_x": 0.0,
+                "estimated_global_y": -4.0,
+                "estimated_global_z": 2.0,
+            },
+        ],
+        {"x": 0.0, "y": 100.0, "z": 0.0},
+    )
+
+    assert [item["member_index"] for item in relations] == [1, 2]
+    assert [item["object_global_id"] for item in relations] == [10, 11]
+    assert relations[0]["direction_8"] == "E"
+    assert np.isclose(relations[0]["distance_m"], 1.0)
+    assert relations[1]["direction_8"] == "N"
+    assert np.isclose(relations[1]["distance_m"], 2.0)
+
+
+def test_member_spatial_relations_skip_members_missing_global_xz():
+    relations = _member_spatial_relations(
+        [
+            {
+                "object_global_id": 10,
+                "label": "chair",
+                "estimated_global_x": None,
+                "estimated_global_z": 0.0,
+            },
+            {
+                "object_global_id": 11,
+                "label": "chair",
+                "estimated_global_x": 0.0,
+                "estimated_global_z": 2.0,
+            },
+        ],
+        {"x": 0.0, "z": 0.0},
+    )
+
+    assert len(relations) == 1
+    assert relations[0]["object_global_id"] == 11
+    assert relations[0]["direction_8"] == "N"
+
+
+def test_build_cluster_uses_vlm_compressed_text_embedding_for_multi_member_cluster():
+    captioner = _FakeClusterCaptioner(compressed_text="compressed oak chair")
+    embedder = _FakeClusterEmbedder()
+    cluster = _build_cluster(
+        7,
+        [
+            {
+                "object_global_id": 1,
+                "view_id": "view_00019",
+                "label": "chair",
+                "description": "brown chair",
+                "long_form_open_description": "a brown wooden chair with carved back",
+                "embedding": np.asarray([1.0, 0.0, 0.0], dtype=np.float32),
+                "estimated_global_x": -1.0,
+                "estimated_global_z": 0.0,
+            },
+            {
+                "object_global_id": 2,
+                "view_id": "view_00024",
+                "label": "chair",
+                "description": "chair side view",
+                "long_form_open_description": "partial side view of the same brown carved wooden chair",
+                "embedding": np.asarray([0.8, 0.2, 0.0], dtype=np.float32),
+                "estimated_global_x": 1.0,
+                "estimated_global_z": 0.0,
+            },
+        ],
+        cluster_text_compression_context={
+            "captioner": captioner,
+            "embedder": embedder,
+            "enable_member_spatial": True,
+        },
+    )
+
+    assert cluster["cluster_text_status"] == "vlm_compressed"
+    assert cluster["cluster_text_description"] == "compressed oak chair"
+    assert embedder.calls == ["compressed oak chair"]
+    assert captioner.calls[0]["member_count"] == 2
+    assert captioner.calls[0]["member_texts"] == [
+        "a brown wooden chair with carved back",
+        "partial side view of the same brown carved wooden chair",
+    ]
+    assert captioner.calls[0]["member_spatial_relations"] == [
+        {
+            "member_index": 1,
+            "object_global_id": 1,
+            "label": "chair",
+            "direction_8": "W",
+            "direction_text": "west",
+            "distance_m": 1.0,
+        },
+        {
+            "member_index": 2,
+            "object_global_id": 2,
+            "label": "chair",
+            "direction_8": "E",
+            "direction_text": "east",
+            "distance_m": 1.0,
+        },
+    ]
+    assert cluster["cluster_text_member_spatial_relations"] == captioner.calls[0]["member_spatial_relations"]
+    assert np.allclose(cluster["prototype_embedding"], _fake_text_embedding("compressed oak chair"))
+
+
+def test_build_cluster_keeps_singleton_passthrough_when_vlm_compress_enabled():
+    captioner = _FakeClusterCaptioner()
+    embedder = _FakeClusterEmbedder()
+    cluster = _build_cluster(
+        3,
+        [
+            {
+                "object_global_id": 11,
+                "view_id": "view_00019",
+                "label": "table",
+                "description": "small table",
+                "long_form_open_description": "a small round wooden table",
+                "embedding": np.asarray([0.0, 1.0, 0.0], dtype=np.float32),
+            }
+        ],
+        cluster_text_compression_context={"captioner": captioner, "embedder": embedder},
+    )
+
+    assert cluster["cluster_text_status"] == "singleton_passthrough"
+    assert cluster["cluster_text_description"] == "a small round wooden table"
+    assert cluster["cluster_text_member_spatial_relations"] == []
+    assert captioner.calls == []
+    assert embedder.calls == []
+    assert np.allclose(cluster["prototype_embedding"], np.asarray([0.0, 1.0, 0.0], dtype=np.float32))
+
+
+def test_build_cluster_falls_back_to_member_mean_when_vlm_compress_fails():
+    captioner = _FakeClusterCaptioner(raise_on_call=True)
+    embedder = _FakeClusterEmbedder()
+    expected_mean = np.asarray([0.70710677, 0.70710677, 0.0], dtype=np.float32)
+    cluster = _build_cluster(
+        8,
+        [
+            {
+                "object_global_id": 21,
+                "view_id": "view_00019",
+                "label": "lamp",
+                "long_form_open_description": "a brass floor lamp",
+                "embedding": np.asarray([1.0, 0.0, 0.0], dtype=np.float32),
+            },
+            {
+                "object_global_id": 22,
+                "view_id": "view_00024",
+                "label": "lamp",
+                "long_form_open_description": "the same brass standing lamp from another angle",
+                "embedding": np.asarray([0.0, 1.0, 0.0], dtype=np.float32),
+            },
+        ],
+        cluster_text_compression_context={"captioner": captioner, "embedder": embedder},
+    )
+
+    assert cluster["cluster_text_status"] == "fallback_member_mean"
+    assert cluster["cluster_text_description"] is None
+    assert cluster["cluster_text_member_spatial_relations"] == []
+    assert embedder.calls == []
+    assert np.allclose(cluster["prototype_embedding"], expected_mean, atol=1e-6)
+
+
+def test_build_cluster_can_disable_member_spatial_relations_while_vlm_compress_is_enabled():
+    captioner = _FakeClusterCaptioner(compressed_text="compressed lamp")
+    embedder = _FakeClusterEmbedder()
+    cluster = _build_cluster(
+        9,
+        [
+            {
+                "object_global_id": 31,
+                "view_id": "view_00019",
+                "label": "lamp",
+                "long_form_open_description": "a brass floor lamp",
+                "embedding": np.asarray([1.0, 0.0, 0.0], dtype=np.float32),
+                "estimated_global_x": -1.0,
+                "estimated_global_z": 0.0,
+            },
+            {
+                "object_global_id": 32,
+                "view_id": "view_00024",
+                "label": "lamp",
+                "long_form_open_description": "the same brass standing lamp from another angle",
+                "embedding": np.asarray([0.0, 1.0, 0.0], dtype=np.float32),
+                "estimated_global_x": 1.0,
+                "estimated_global_z": 0.0,
+            },
+        ],
+        cluster_text_compression_context={
+            "captioner": captioner,
+            "embedder": embedder,
+            "enable_member_spatial": False,
+        },
+    )
+
+    assert cluster["cluster_text_status"] == "vlm_compressed"
+    assert cluster["cluster_text_member_spatial_relations"] == []
+    assert captioner.calls[0]["member_spatial_relations"] == []
 
 
 def test_run_capped_sequential_spectral_clustering_caps_eigengap_to_cc_plus_two(monkeypatch):
@@ -428,6 +885,61 @@ def test_build_cross_affinity_matrix_uses_cosine_geo_gate_on_xy_distance():
     assert detail["xy_distance_m"] == 5.0
     assert detail["xy_distance_sq_m2"] == expected_dsq
     assert detail["polar_similarity"] is None
+
+
+def test_build_cross_affinity_matrix_fuses_dinov3_inside_cosine_geo_gate():
+    memory_clusters = [
+        _build_cluster(
+            0,
+            [
+                {
+                    "object_global_id": 1,
+                    "view_id": "view_00019",
+                    "label": "chair",
+                    "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+                    "dinov3_embedding": np.asarray([0.0, 1.0], dtype=np.float32),
+                    "estimated_global_x": 0.0,
+                    "estimated_global_y": 0.0,
+                    "estimated_global_z": 0.0,
+                    "distance_from_camera_m": 1.0,
+                    "relative_bearing_deg": 0.0,
+                    "relative_height_from_camera_m": 0.0,
+                }
+            ],
+        )
+    ]
+    current_rows = [
+        {
+            "object_global_id": 2,
+            "view_id": "view_00024",
+            "label": "chair",
+            "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+            "dinov3_embedding": np.asarray([0.0, 1.0], dtype=np.float32),
+            "estimated_global_x": 0.0,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.0,
+            "relative_bearing_deg": 0.0,
+            "relative_height_from_camera_m": 0.0,
+        }
+    ]
+
+    matrix, details = build_cross_affinity_matrix(
+        memory_clusters,
+        current_rows,
+        weight_text=1.0,
+        weight_dinov3=3.0,
+        similarity_mode="cosine_geo_gate",
+        distance_gate_dsq0=2.0,
+        enable_dinov3_scoring=True,
+    )
+
+    detail = details[0][0]
+    assert np.isclose(matrix[0, 0], 1.0)
+    assert np.isclose(detail["text_similarity"], 1.0)
+    assert np.isclose(detail["dinov3_similarity"], 1.0)
+    assert np.isclose(detail["semantic_visual_similarity"], 1.0)
+    assert np.isclose(detail["distance_gate"], 1.0)
 
 
 def test_build_cross_affinity_matrix_legacy_mode_keeps_weighted_similarity():
@@ -537,6 +1049,278 @@ def test_apply_incremental_step_dbscan_creates_singleton_for_current_noise():
     assert diagnostic["assignment_reason"] == "dbscan_new_cluster"
     assert diagnostic["similarity_detail_status"] == "no_candidate_detail"
     assert diagnostic["similarity_reference_cluster_id"] is None
+
+
+def test_apply_incremental_step_same_view_constraint_forces_new_cluster_when_current_conflicts_with_memory():
+    memory_row = {
+        "object_global_id": 80,
+        "view_id": "view_00019",
+        "label": "chair",
+        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+        "estimated_global_x": 0.0,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 0.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    current = {
+        "object_global_id": 81,
+        "view_id": "view_00019",
+        "label": "wooden seat",
+        "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
+        "estimated_global_x": 0.1,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 1.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_clusters = [_build_cluster(0, [memory_row])]
+    cross_affinity = np.asarray([[0.96]], dtype=np.float32)
+    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
+
+    result = apply_incremental_step(
+        memory_clusters,
+        [current],
+        cross_affinity=cross_affinity,
+        cross_details=[[_affinity_detail(0.96)]],
+        full_affinity=full_affinity,
+        spectral_result=_spectral_result([0, 0], [[0.0], [0.02]]),
+        step_index=1,
+        next_cluster_id=1,
+        dbscan_eps=0.05,
+        enforce_same_view_uniqueness=True,
+    )
+
+    assert [cluster["member_object_ids"] for cluster in result["memory_clusters"]] == [[80], [81]]
+    assert result["num_same_view_blocked_components"] == 1
+    diagnostic = result["assignment_diagnostics"][0]
+    assert diagnostic["assignment_reason"] == "dbscan_new_cluster"
+    assert diagnostic["same_view_split_applied"] is True
+    assert result["same_view_block_cases"][0]["conflicting_view_ids"] == ["view_00019"]
+
+
+def test_apply_incremental_step_same_view_constraint_allows_non_conflicting_memory_merge():
+    memory_a = {
+        "object_global_id": 90,
+        "view_id": "view_00019",
+        "label": "chair",
+        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+        "estimated_global_x": 0.0,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 0.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_b = {
+        "object_global_id": 91,
+        "view_id": "view_00024",
+        "label": "wooden seat",
+        "embedding": np.asarray([0.98, 0.02], dtype=np.float32),
+        "estimated_global_x": 0.1,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 2.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
+    full_affinity = np.asarray([[1.0, 0.9], [0.9, 1.0]], dtype=np.float32)
+
+    result = apply_incremental_step(
+        memory_clusters,
+        [],
+        cross_affinity=np.zeros((0, 2), dtype=np.float32),
+        cross_details=[],
+        full_affinity=full_affinity,
+        spectral_result=_spectral_result([0, 0], [[0.0], [0.02]]),
+        step_index=1,
+        next_cluster_id=2,
+        dbscan_eps=0.05,
+        enforce_same_view_uniqueness=True,
+    )
+
+    assert len(result["memory_clusters"]) == 1
+    assert result["memory_clusters"][0]["cluster_id"] == 0
+    assert result["memory_clusters"][0]["member_object_ids"] == [90, 91]
+    assert result["num_same_view_blocked_components"] == 0
+    assert result["same_view_block_cases"] == []
+
+
+def test_apply_incremental_step_same_view_constraint_splits_conflicting_memory_clusters():
+    memory_a = {
+        "object_global_id": 100,
+        "view_id": "view_00019",
+        "label": "chair",
+        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+        "estimated_global_x": 0.0,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 0.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_b = {
+        "object_global_id": 101,
+        "view_id": "view_00019",
+        "label": "wooden seat",
+        "embedding": np.asarray([0.98, 0.02], dtype=np.float32),
+        "estimated_global_x": 0.1,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 1.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    memory_clusters = [_build_cluster(0, [memory_a]), _build_cluster(1, [memory_b])]
+    full_affinity = np.asarray([[1.0, 0.9], [0.9, 1.0]], dtype=np.float32)
+
+    result = apply_incremental_step(
+        memory_clusters,
+        [],
+        cross_affinity=np.zeros((0, 2), dtype=np.float32),
+        cross_details=[],
+        full_affinity=full_affinity,
+        spectral_result=_spectral_result([0, 0], [[0.0], [0.02]]),
+        step_index=1,
+        next_cluster_id=2,
+        dbscan_eps=0.05,
+        enforce_same_view_uniqueness=True,
+    )
+
+    assert [cluster["member_object_ids"] for cluster in result["memory_clusters"]] == [[100], [101]]
+    assert result["num_same_view_blocked_components"] == 1
+    assert result["same_view_block_cases"][0]["conflicting_view_ids"] == ["view_00019"]
+
+
+def test_apply_incremental_step_same_view_constraint_splits_same_view_current_rows():
+    memory = {
+        "object_global_id": 110,
+        "view_id": "view_00019",
+        "label": "chair",
+        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+        "estimated_global_x": 0.0,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 0.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    current_rows = [
+        {
+            "object_global_id": 111,
+            "view_id": "view_00024",
+            "label": "chair",
+            "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
+            "estimated_global_x": 0.1,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.0,
+            "relative_bearing_deg": 2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+        {
+            "object_global_id": 112,
+            "view_id": "view_00024",
+            "label": "wooden seat",
+            "embedding": np.asarray([0.98, 0.02], dtype=np.float32),
+            "estimated_global_x": 0.2,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.1,
+            "relative_bearing_deg": -2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+    ]
+    memory_clusters = [_build_cluster(0, [memory])]
+    cross_affinity = np.asarray([[0.95], [0.94]], dtype=np.float32)
+    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
+
+    result = apply_incremental_step(
+        memory_clusters,
+        current_rows,
+        cross_affinity=cross_affinity,
+        cross_details=[[_affinity_detail(0.95)], [_affinity_detail(0.94)]],
+        full_affinity=full_affinity,
+        spectral_result=_spectral_result([0, 0, 0], [[0.0], [0.02], [0.03]]),
+        step_index=1,
+        next_cluster_id=1,
+        dbscan_eps=0.05,
+        enforce_same_view_uniqueness=True,
+    )
+
+    assert [cluster["member_object_ids"] for cluster in result["memory_clusters"]] == [[110, 111], [112]]
+    diagnostics_by_object = {item["object_global_id"]: item for item in result["assignment_diagnostics"]}
+    assert diagnostics_by_object[111]["assignment_reason"] == "dbscan_attach"
+    assert diagnostics_by_object[112]["assignment_reason"] == "dbscan_new_cluster"
+    assert diagnostics_by_object[111]["same_view_split_applied"] is True
+    assert diagnostics_by_object[112]["same_view_split_applied"] is True
+    assert result["num_same_view_blocked_components"] == 1
+    assert result["same_view_block_cases"][0]["conflicting_view_ids"] == ["view_00024"]
+
+
+def test_apply_incremental_step_without_same_view_constraint_preserves_direct_materialization():
+    memory = {
+        "object_global_id": 120,
+        "view_id": "view_00019",
+        "label": "chair",
+        "embedding": np.asarray([1.0, 0.0], dtype=np.float32),
+        "estimated_global_x": 0.0,
+        "estimated_global_y": 0.0,
+        "estimated_global_z": 0.0,
+        "distance_from_camera_m": 1.0,
+        "relative_bearing_deg": 0.0,
+        "relative_height_from_camera_m": 0.0,
+    }
+    current_rows = [
+        {
+            "object_global_id": 121,
+            "view_id": "view_00024",
+            "label": "chair",
+            "embedding": np.asarray([0.99, 0.01], dtype=np.float32),
+            "estimated_global_x": 0.1,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.0,
+            "relative_bearing_deg": 2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+        {
+            "object_global_id": 122,
+            "view_id": "view_00024",
+            "label": "wooden seat",
+            "embedding": np.asarray([0.98, 0.02], dtype=np.float32),
+            "estimated_global_x": 0.2,
+            "estimated_global_y": 0.0,
+            "estimated_global_z": 0.0,
+            "distance_from_camera_m": 1.1,
+            "relative_bearing_deg": -2.0,
+            "relative_height_from_camera_m": 0.0,
+        },
+    ]
+    memory_clusters = [_build_cluster(0, [memory])]
+    cross_affinity = np.asarray([[0.95], [0.94]], dtype=np.float32)
+    full_affinity = _full_bipartite_affinity(cross_affinity, min_cross_affinity=0.25)
+
+    result = apply_incremental_step(
+        memory_clusters,
+        current_rows,
+        cross_affinity=cross_affinity,
+        cross_details=[[_affinity_detail(0.95)], [_affinity_detail(0.94)]],
+        full_affinity=full_affinity,
+        spectral_result=_spectral_result([0, 0, 0], [[0.0], [0.02], [0.03]]),
+        step_index=1,
+        next_cluster_id=1,
+        dbscan_eps=0.05,
+        enforce_same_view_uniqueness=False,
+    )
+
+    assert len(result["memory_clusters"]) == 1
+    assert result["memory_clusters"][0]["member_object_ids"] == [120, 121, 122]
+    assert result["num_same_view_blocked_components"] == 0
+    assert result["same_view_block_cases"] == []
 
 
 def test_apply_incremental_step_dbscan_honors_explicit_eps_override_vs_auto_estimate():
@@ -659,7 +1443,13 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
         "members",
         "member_view_ids",
         "label_histogram",
+        "cluster_text_description",
+        "cluster_text_status",
+        "cluster_text_member_spatial_relations",
     }
+    assert step_report["clusters_after_step"][0]["cluster_text_description"] is None
+    assert step_report["clusters_after_step"][0]["cluster_text_status"] == "disabled"
+    assert step_report["clusters_after_step"][0]["cluster_text_member_spatial_relations"] == []
     assert isinstance(step_report["clusters_after_step"][0]["members"][0], str)
     assert "(" in step_report["clusters_after_step"][0]["members"][0]
     final_registry = json.loads((run_dir / "global_object_list_final.json").read_text(encoding="utf-8"))
@@ -669,7 +1459,13 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
         "members",
         "member_view_ids",
         "label_histogram",
+        "cluster_text_description",
+        "cluster_text_status",
+        "cluster_text_member_spatial_relations",
     }
+    assert final_registry[0]["cluster_text_description"] is None
+    assert final_registry[0]["cluster_text_status"] == "disabled"
+    assert final_registry[0]["cluster_text_member_spatial_relations"] == []
     assert isinstance(final_registry[0]["members"][0], str)
     assert "(" in final_registry[0]["members"][0]
     experiment_report = json.loads((run_dir / "experiment_report.json").read_text(encoding="utf-8"))
@@ -693,9 +1489,14 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
     assert experiment_report["step_summaries"][0]["num_dbscan_clusters"] >= 1
     assert experiment_report["step_summaries"][0]["num_noise_singletons"] >= 0
     assert experiment_report["dbscan_min_samples"] == DEFAULT_DBSCAN_MIN_SAMPLES
+    assert experiment_report["enforce_same_view_uniqueness"] is CONFIG_DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS
+    assert experiment_report["enable_vlm_compress"] is CONFIG_ENABLE_VLM_COMPRESS
+    assert experiment_report["enable_vlm_member_spatial"] is CONFIG_ENABLE_VLM_MEMBER_SPATIAL
     assert step_report["current_only_reattach_cases"] == []
+    assert step_report["num_same_view_masked_edges"] == 0
     assert step_report["same_view_block_cases"] == []
     assert experiment_report["total_current_only_reattached"] == 0
+    assert experiment_report["total_same_view_masked_edges"] == 0
     assert experiment_report["total_same_view_blocked_components"] == 0
     first_progression_step = json.loads(
         (run_dir / "cumulative_cluster_matrix_step_00.json").read_text(encoding="utf-8")
@@ -716,19 +1517,20 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
     seed_rows = [row for row in rows if row["assignment_reason"] == "initial_seed"]
     assert len(seed_rows) == 2
     assert seed_rows[0]["similarity_detail_status"] == "initial_seed"
+    assert seed_rows[0]["same_view_split_applied"] == "False"
     assert seed_rows[0]["term1_cosine"] == ""
     matched_rows = [
         row for row in rows if row["similarity_detail_status"] == "assigned_match" and row["term1_cosine"]
     ]
     assert matched_rows
     sample = matched_rows[0]
-    cosine = float(sample["term1_cosine"])
+    semantic_visual = float(sample["semantic_visual_similarity"])
     gate = float(sample["distance_gate"])
     combined = float(sample["combined_similarity"])
     dsq = float(sample["dsq"])
     dsq0 = float(sample["distance_gate_dsq0"])
     exponent = float(sample["distance_gate_exponent"])
-    assert np.isclose(combined, cosine * gate)
+    assert np.isclose(combined, semantic_visual * gate)
     assert np.isclose(exponent, -(dsq / (2.0 * dsq0)))
     with (run_dir / "step_00_object_assignment_table.csv").open("r", encoding="utf-8", newline="") as handle:
         step0_rows = list(csv.DictReader(handle))
@@ -740,6 +1542,51 @@ def test_run_sequential_spectral_experiment_writes_artifacts(tmp_path):
         step3_rows = list(csv.DictReader(handle))
     assert [len(step0_rows), len(step1_rows), len(step2_rows), len(step3_rows)] == [2, 2, 1, 1]
     assert report["final_cluster_count"] >= 2
+
+
+def test_run_sequential_spectral_experiment_can_enable_vlm_cluster_text_compression(tmp_path, monkeypatch):
+    db_dir = _make_sequence_db(tmp_path)
+    output_dir = tmp_path / "seq_vlm_out"
+    captioner = _FakeClusterCaptioner(compressed_text="stable compressed cluster")
+    embedder = _FakeClusterEmbedder()
+    monkeypatch.setattr(
+        sequential_spectral_experiment,
+        "_make_cluster_text_compression_context",
+        lambda *_args, **_kwargs: {
+            "captioner": captioner,
+            "embedder": embedder,
+            "enable_member_spatial": True,
+        },
+    )
+
+    report = run_sequential_spectral_experiment(
+        str(db_dir),
+        output_dir=str(output_dir),
+        enable_vlm_compress=True,
+        enable_vlm_member_spatial=True,
+    )
+    run_dir = output_dir / Path(report["output_dir"]).name
+
+    assert report["enable_vlm_compress"] is True
+    assert report["enable_vlm_member_spatial"] is True
+    assert len(captioner.calls) == 3
+    assert [call["member_count"] for call in captioner.calls] == [2, 2, 3]
+    assert len(embedder.calls) == 3
+    assert any(call["member_spatial_relations"] for call in captioner.calls)
+
+    step1 = json.loads((run_dir / "step_01_cluster_update.json").read_text(encoding="utf-8"))
+    step2 = json.loads((run_dir / "step_02_cluster_update.json").read_text(encoding="utf-8"))
+    final_registry = json.loads((run_dir / "global_object_list_final.json").read_text(encoding="utf-8"))
+    experiment_report = json.loads((run_dir / "experiment_report.json").read_text(encoding="utf-8"))
+
+    assert step1["enable_vlm_compress"] is True
+    assert step1["enable_vlm_member_spatial"] is True
+    assert any(cluster["cluster_text_status"] == "vlm_compressed" for cluster in step1["clusters_after_step"])
+    assert any(cluster["cluster_text_description"] == "stable compressed cluster" for cluster in step2["clusters_after_step"])
+    assert any(cluster["cluster_text_member_spatial_relations"] for cluster in step2["clusters_after_step"])
+    assert any(cluster["cluster_text_status"] == "vlm_compressed" for cluster in final_registry)
+    assert experiment_report["enable_vlm_compress"] is True
+    assert experiment_report["enable_vlm_member_spatial"] is True
 
 
 def test_run_sequential_spectral_experiment_supports_dsq0_sweep(tmp_path):
@@ -756,6 +1603,7 @@ def test_run_sequential_spectral_experiment_supports_dsq0_sweep(tmp_path):
 
     sweep_dir = output_dir / Path(report["output_dir"]).name
     assert report["distance_gate_dsq0_values"] == [0.5, 1.0]
+    assert report["enforce_same_view_uniqueness"] is CONFIG_DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS
     assert np.isclose(report["dbscan_eps"], 0.15)
     assert report["dbscan_min_samples"] == 1
     assert len(report["runs"]) == 2
@@ -763,6 +1611,40 @@ def test_run_sequential_spectral_experiment_supports_dsq0_sweep(tmp_path):
     for run in report["runs"]:
         assert Path(run["output_dir"]).exists()
         assert run["dsq0"] in {0.5, 1.0}
+        assert run["enforce_same_view_uniqueness"] is CONFIG_DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS
         assert np.isclose(run["dbscan_eps"], 0.15)
         assert run["dbscan_min_samples"] == 1
         assert Path(run["object_cluster_similarity_table"]).exists()
+
+
+def test_run_sequential_spectral_experiment_enforces_same_view_uniqueness_end_to_end(tmp_path):
+    db_dir = _make_same_view_conflict_sequence_db(tmp_path)
+    output_dir = tmp_path / "seq_out_same_view"
+
+    report = run_sequential_spectral_experiment(
+        str(db_dir),
+        output_dir=str(output_dir),
+        view_ids=["view_00019", "view_00024"],
+        dbscan_eps=1.0,
+        enforce_same_view_uniqueness=True,
+    )
+
+    run_dir = output_dir / Path(report["output_dir"]).name
+    assert report["enforce_same_view_uniqueness"] is True
+    assert report["total_same_view_blocked_components"] == 1
+    assert report["total_same_view_masked_edges"] == 0
+    for cluster in report["final_clusters"]:
+        member_view_ids = list(cluster["member_view_ids"])
+        assert len(member_view_ids) == len(set(member_view_ids))
+
+    step_report = json.loads((run_dir / "step_01_cluster_update.json").read_text(encoding="utf-8"))
+    assert step_report["enforce_same_view_uniqueness"] is True
+    assert step_report["num_same_view_blocked_components"] == 1
+    assert step_report["num_same_view_masked_edges"] == 0
+    assert step_report["same_view_block_cases"]
+
+    with (run_dir / "object_cluster_similarity_table.csv").open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    step1_rows = [row for row in rows if row["step_index"] == "1"]
+    assert len(step1_rows) == 2
+    assert {row["same_view_split_applied"] for row in step1_rows} == {"True"}

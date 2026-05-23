@@ -10,9 +10,9 @@ from PIL import Image
 from spatial_rag.config import (
     CLIP_MODEL_NAME,
     CLIP_PRETRAINED,
-    DINOV2_BATCH_SIZE,
-    DINOV2_MODEL_NAME,
-    DINOV2_NORMALIZE,
+    DINOV3_BATCH_SIZE,
+    DINOV3_MODEL_NAME,
+    DINOV3_NORMALIZE,
 )
 
 try:
@@ -178,22 +178,22 @@ class Embedder:
         return features.cpu().numpy().flatten()
 
 
-class DINOv2Embedder:
+class DINOv3Embedder:
     _MODEL_CACHE: dict[tuple[str, str], tuple[Any, Any]] = {}
     _CACHE_LOCK = threading.Lock()
 
     def __init__(
         self,
-        model_name: str = DINOV2_MODEL_NAME,
-        batch_size: int = DINOV2_BATCH_SIZE,
-        normalize: bool = DINOV2_NORMALIZE,
+        model_name: str = DINOV3_MODEL_NAME,
+        batch_size: int = DINOV3_BATCH_SIZE,
+        normalize: bool = DINOV3_NORMALIZE,
         device: Optional[str] = None,
     ):
         if AutoImageProcessor is None or AutoModel is None:
             raise RuntimeError(
-                "transformers is required for DINOv2Embedder. Install `transformers` in the current environment."
+                "transformers is required for DINOv3Embedder. Install `transformers` in the current environment."
             )
-        self.model_name = str(model_name or DINOV2_MODEL_NAME).strip() or DINOV2_MODEL_NAME
+        self.model_name = str(model_name or DINOV3_MODEL_NAME).strip() or DINOV3_MODEL_NAME
         self.batch_size = max(1, int(batch_size))
         self.normalize = bool(normalize)
         self.device = str(device or _preferred_torch_device())
@@ -213,7 +213,7 @@ class DINOv2Embedder:
             model.to(device)
             cls._MODEL_CACHE[key] = (model, processor)
             _embedder_log(
-                f"loading DINOv2 model={model_name} device={device} "
+                f"loading DINOv3 model={model_name} device={device} "
                 f"elapsed_sec={time.perf_counter() - t0:.2f}"
             )
             return model, processor
@@ -261,7 +261,7 @@ class DINOv2Embedder:
         for image in list(images or []):
             pil = self._to_pil_image(image)
             if pil.width <= 0 or pil.height <= 0:
-                raise ValueError("DINOv2 input image is empty.")
+                raise ValueError("DINOv3 input image is empty.")
             pil_images.append(pil)
         if not pil_images:
             return np.zeros((0, 0), dtype=np.float32)
@@ -280,5 +280,5 @@ class DINOv2Embedder:
     def encode_crop(self, image: Any) -> np.ndarray:
         batch = self.encode_batch([image])
         if batch.ndim != 2 or batch.shape[0] != 1:
-            raise ValueError(f"Unexpected DINOv2 embedding batch shape={batch.shape}")
+            raise ValueError(f"Unexpected DINOv3 embedding batch shape={batch.shape}")
         return batch[0]

@@ -128,6 +128,14 @@ class _FakeDepthEstimator:
         return depth
 
 
+class _FakeDINOEmbedder:
+    model_name = "fake-dinov3"
+    normalize = True
+
+    def encode_crop(self, image):
+        return np.asarray([0.1, 0.2, 0.3], dtype=np.float32)
+
+
 class _FilteredConfidenceDetector:
     def __init__(self):
         self.class_names = []
@@ -383,6 +391,11 @@ def test_object_geometry_pipeline_success_writes_expected_artifacts(tmp_path):
     row = result.object_rows[0]
     assert row["geometry_source"] == "mask_depth"
     assert row["label"] == "chair"
+    assert row["detector_label_raw"] == "chair"
+    assert row["vlm_label"] == "chair"
+    assert row["final_label"] == "chair"
+    assert row["label_source"] == "vlm"
+    assert row["label_conflict"] is False
     assert row["bbox_xywh_norm"][2] > 0.0
     assert row["distance_from_camera_m"] == 2.0
     assert row["projected_planar_distance_m"] >= 2.0
@@ -453,6 +466,9 @@ def test_object_geometry_pipeline_uses_default_description_when_batched_item_mis
     assert result.ok is True
     row = result.object_rows[0]
     assert row["label"] == "chair"
+    assert row["vlm_label"] == "unknown"
+    assert row["final_label"] == "chair"
+    assert row["label_source"] == "detector"
     assert row["description"] == "chair"
     assert row["long_form_open_description"] == "chair"
     assert row["attributes"] == []
@@ -492,6 +508,8 @@ def test_object_geometry_pipeline_defer_object_descriptions_skips_vlm_calls(tmp_
     assert result.ok is True
     assert result.description_requests[0]["object_local_id"] == "det_000"
     assert result.object_rows[0]["description"] == "chair"
+    assert result.object_rows[0]["vlm_label"] == "unknown"
+    assert result.object_rows[0]["final_label"] == "chair"
     assert result.object_rows[0]["visible_occlusion_ratio"] == 0.0
     assert result.object_rows[0]["occlusion_level"] == "fully visible"
     assert result.timings["object_description_call_count"] == 0
@@ -769,6 +787,85 @@ def test_object_geometry_pipeline_returns_failure_when_selector_subset_empty(tmp
 
     assert result.ok is False
     assert result.failure_reason == "empty_selected_object_types"
+
+
+def test_object_geometry_pipeline_falls_back_to_detector_for_out_of_prelist_vlm_label(tmp_path):
+    class _OutOfPrelistRelabelCaptioner(_FakeCaptioner):
+        def describe_detected_objects_with_meta(self, image_path: str, detections, force_refresh: bool = False):
+            payload = super().describe_detected_objects_with_meta(image_path, detections, force_refresh)
+            payload["objects"][0]["label"] = "sofa"
+            payload["objects"][0]["short_description"] = "gray sofa"
+            payload["objects"][0]["long_description"] = "gray sofa near the center of the room"
+            return payload
+
+    image_path = tmp_path / "view.jpg"
+    image_rgb = np.full((1080, 1920, 3), 220, dtype=np.uint8)
+    ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+    assert ok
+
+    pipeline = ObjectGeometryPipeline(
+        captioner=_OutOfPrelistRelabelCaptioner(),
+        output_root=str(tmp_path),
+        detector=_FakeDetector(),
+        segmenter=_FakeSegmenter(),
+        depth_estimator=_FakeDepthEstimator(),
+        save_artifacts=False,
+    )
+
+    result = pipeline.run_for_view(
+        entry_id=13,
+        image_path=str(image_path),
+        image_rgb=image_rgb,
+        camera_x=0.0,
+        camera_y=1.6,
+        camera_z=0.0,
+        camera_orientation_deg=0.0,
+        max_objects=4,
+    )
+
+    row = result.object_rows[0]
+    assert row["label"] == "chair"
+    assert row["vlm_label"] == "unknown"
+    assert row["final_label"] == "chair"
+    assert row["label_source"] == "detector"
+    assert row["label_conflict"] is False
+
+
+def test_object_geometry_pipeline_stores_dinov3_status_and_embedding(tmp_path):
+    image_path = tmp_path / "view.jpg"
+    image_rgb = np.full((1080, 1920, 3), 220, dtype=np.uint8)
+    ok = cv2.imwrite(str(image_path), cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+    assert ok
+
+    pipeline = ObjectGeometryPipeline(
+        captioner=_FakeCaptioner(),
+        output_root=str(tmp_path),
+        detector=_FakeDetector(),
+        segmenter=_FakeSegmenter(),
+        depth_estimator=_FakeDepthEstimator(),
+        dino_embedder=_FakeDINOEmbedder(),
+        enable_dinov3_embedding=True,
+        save_artifacts=False,
+    )
+
+    result = pipeline.run_for_view(
+        entry_id=14,
+        image_path=str(image_path),
+        image_rgb=image_rgb,
+        camera_x=0.0,
+        camera_y=1.6,
+        camera_z=0.0,
+        camera_orientation_deg=0.0,
+        max_objects=4,
+    )
+
+    row = result.object_rows[0]
+    assert row["dinov3_status"] == "success"
+    assert row["dinov3_model_name"] == "fake-dinov3"
+    assert row["dinov3_embedding_dim"] == 3
+    assert row["dinov3_input_type"] == "bbox_crop"
+    assert row["dinov3_normalized"] is True
+    assert result.timings["dinov3_total_sec"] >= 0.0
 
 
 def test_internal_detector_is_recreated_when_class_list_changes(tmp_path, monkeypatch):

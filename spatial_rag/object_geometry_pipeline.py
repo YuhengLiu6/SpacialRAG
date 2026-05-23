@@ -14,7 +14,7 @@ import numpy as np
 from spatial_rag.config import (
     BBOX_CONF_THRESHOLD,
     DEPTH_PRO_MODEL_PATH,
-    ENABLE_DINOV2_EMBEDDING,
+    ENABLE_DINOV3_EMBEDDING,
     FOV,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
@@ -611,7 +611,7 @@ class ObjectGeometryPipeline:
         image_width_px: int = int(IMAGE_WIDTH),
         image_height_px: int = int(IMAGE_HEIGHT),
         save_artifacts: bool = True,
-        enable_dinov2_embedding: bool = bool(ENABLE_DINOV2_EMBEDDING),
+        enable_dinov3_embedding: bool = bool(ENABLE_DINOV3_EMBEDDING),
         bbox_conf_threshold: float = float(BBOX_CONF_THRESHOLD),
         occlusion_reweight_w1: float = float(OCCLUSION_REWEIGHT_W1),
         occlusion_reweight_w2: float = float(OCCLUSION_REWEIGHT_W2),
@@ -638,7 +638,7 @@ class ObjectGeometryPipeline:
         self.image_width_px = int(image_width_px)
         self.image_height_px = int(image_height_px)
         self.save_artifacts = bool(save_artifacts)
-        self.enable_dinov2_embedding = bool(enable_dinov2_embedding)
+        self.enable_dinov3_embedding = bool(enable_dinov3_embedding)
         self.bbox_conf_threshold = float(bbox_conf_threshold)
         self.occlusion_reweight_w1 = float(occlusion_reweight_w1)
         self.occlusion_reweight_w2 = float(occlusion_reweight_w2)
@@ -705,12 +705,12 @@ class ObjectGeometryPipeline:
             "mask_total_sec": 0.0,
             "angle_geometry_total_sec": 0.0,
             "crop_vlm_description_total_sec": 0.0,
-            "dinov2_total_sec": 0.0,
+            "dinov3_total_sec": 0.0,
             "object_description_call_count": 0,
             "mask_per_object_sec": [],
             "angle_geometry_per_object_sec": [],
             "crop_vlm_description_per_object_sec": [],
-            "dinov2_per_object_sec": [],
+            "dinov3_per_object_sec": [],
             "selected_object_type_count": 0,
             "detection_count_raw": 0,
             "detection_count_class_matched": 0,
@@ -727,8 +727,8 @@ class ObjectGeometryPipeline:
             finalized["crop_vlm_description_avg_sec"] = (
                 float(sum(per_crop) / len(per_crop)) if per_crop else 0.0
             )
-            per_dino = list(finalized.get("dinov2_per_object_sec") or [])
-            finalized["dinov2_avg_sec"] = (
+            per_dino = list(finalized.get("dinov3_per_object_sec") or [])
+            finalized["dinov3_avg_sec"] = (
                 float(sum(per_dino) / len(per_dino)) if per_dino else 0.0
             )
             return finalized
@@ -1086,7 +1086,7 @@ class ObjectGeometryPipeline:
             dino_embedding_dim = None
             dino_normalized = None
             dino_sec = 0.0
-            if self.enable_dinov2_embedding:
+            if self.enable_dinov3_embedding:
                 if self.dino_embedder is None:
                     dino_status = "missing"
                     dino_failure_reason = "embedder_unavailable"
@@ -1098,8 +1098,8 @@ class ObjectGeometryPipeline:
                             dtype=np.float32,
                         ).reshape(-1)
                         dino_sec = float(time.perf_counter() - dino_t0)
-                        timings["dinov2_total_sec"] = float(timings["dinov2_total_sec"] + dino_sec)
-                        timings["dinov2_per_object_sec"].append(dino_sec)
+                        timings["dinov3_total_sec"] = float(timings["dinov3_total_sec"] + dino_sec)
+                        timings["dinov3_per_object_sec"].append(dino_sec)
                         dino_status = "success"
                         dino_model_name = str(getattr(self.dino_embedder, "model_name", "") or "")
                         dino_embedding_dim = int(dino_embedding.shape[0]) if dino_embedding.ndim == 1 else None
@@ -1236,14 +1236,14 @@ class ObjectGeometryPipeline:
                     "timing_mask_sec": mask_sec,
                     "timing_angle_geometry_sec": angle_sec,
                     "timing_crop_vlm_description_sec": crop_sec,
-                    "timing_dinov2_sec": dino_sec,
-                    "dinov2_embedding": dino_embedding,
-                    "dinov2_model_name": dino_model_name,
-                    "dinov2_embedding_dim": dino_embedding_dim,
-                    "dinov2_input_type": "bbox_crop",
-                    "dinov2_normalized": dino_normalized,
-                    "dinov2_status": dino_status,
-                    "dinov2_failure_reason": dino_failure_reason,
+                    "timing_dinov3_sec": dino_sec,
+                    "dinov3_embedding": dino_embedding,
+                    "dinov3_model_name": dino_model_name,
+                    "dinov3_embedding_dim": dino_embedding_dim,
+                    "dinov3_input_type": "bbox_crop",
+                    "dinov3_normalized": dino_normalized,
+                    "dinov3_status": dino_status,
+                    "dinov3_failure_reason": dino_failure_reason,
                 }
             )
 
@@ -1322,12 +1322,12 @@ class ObjectGeometryPipeline:
                 "occluding_overlap_pixel_count": visible_occlusion.get("occluding_overlap_pixel_count"),
                 "foreground_occluder_count": visible_occlusion.get("foreground_occluder_count"),
                 "occlusion_target_overlap_threshold": visible_occlusion.get("occlusion_target_overlap_threshold"),
-                "dinov2_model_name": candidate.get("dinov2_model_name"),
-                "dinov2_embedding_dim": candidate.get("dinov2_embedding_dim"),
-                "dinov2_input_type": candidate.get("dinov2_input_type"),
-                "dinov2_normalized": candidate.get("dinov2_normalized"),
-                "dinov2_status": candidate.get("dinov2_status"),
-                "dinov2_failure_reason": candidate.get("dinov2_failure_reason"),
+                "dinov3_model_name": candidate.get("dinov3_model_name"),
+                "dinov3_embedding_dim": candidate.get("dinov3_embedding_dim"),
+                "dinov3_input_type": candidate.get("dinov3_input_type"),
+                "dinov3_normalized": candidate.get("dinov3_normalized"),
+                "dinov3_status": candidate.get("dinov3_status"),
+                "dinov3_failure_reason": candidate.get("dinov3_failure_reason"),
             }
             row.update({key: value for key, value in candidate.items() if key != "mask"})
             object_rows.append(row)

@@ -19,11 +19,14 @@ from spatial_rag.config import (
     DEFAULT_CROSS_AFFINITY_MIN,
     DEFAULT_DISTANCE_GATE_DSQ0,
     DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
-    ENABLE_DINOV2_SCORING,
+    ENABLE_DINOV3_SCORING,
+    ENABLE_VLM_COMPRESS,
+    ENABLE_VLM_MEMBER_SPATIAL,
     SCORE_WEIGHT_M1,
     SCORE_WEIGHT_M2,
+    SPATIAL_DB_VLM_MODEL,
 )
-from spatial_rag.object_index import load_object_db, load_object_dinov2_db
+from spatial_rag.object_index import load_object_db, load_object_dinov3_db
 from spatial_rag.object_instance_clustering import (
     _estimate_dbscan_eps,
     _alpha_blit,
@@ -46,7 +49,7 @@ from spatial_rag.object_instance_clustering import (
 DEFAULT_DB_DIR = "/Users/liuyuheng/Desktop/antigravityTest/spatial_db_nd"
 DEFAULT_VIEW_IDS = ("view_00019", "view_00024", "view_00058", "view_00065")
 DEFAULT_WEIGHT_TEXT = float(SCORE_WEIGHT_M1)
-DEFAULT_WEIGHT_DINOV2 = float(SCORE_WEIGHT_M2)
+DEFAULT_WEIGHT_DINOV3 = float(SCORE_WEIGHT_M2)
 DEFAULT_WEIGHT_GLOBAL_GEO = 0.20
 DEFAULT_WEIGHT_POLAR = 0.10
 DEFAULT_GLOBAL_SIGMA_M = 2.0
@@ -70,7 +73,7 @@ OBJECT_CLUSTER_SIMILARITY_TABLE_COLUMNS = (
     "estimated_global_y",
     "estimated_global_z",
     "term1_cosine",
-    "term2_dinov2",
+    "term2_dinov3",
     "semantic_visual_similarity",
     "xy_distance_m",
     "dsq",
@@ -160,11 +163,11 @@ def _normalize_weight_triplet(
     weight_text: float,
     weight_global_geo: float,
     weight_polar: float,
-    weight_dinov2: float = 0.0,
+    weight_dinov3: float = 0.0,
 ) -> Dict[str, float]:
     weights = {
         "text": max(0.0, float(weight_text)),
-        "dinov2": max(0.0, float(weight_dinov2)),
+        "dinov3": max(0.0, float(weight_dinov3)),
         "global_geo": max(0.0, float(weight_global_geo)),
         "polar": max(0.0, float(weight_polar)),
     }
@@ -229,10 +232,111 @@ def _proto_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np.ndarra
     return _l2_normalize_vec(np.asarray(mean_vec, dtype=np.float32))
 
 
-def _proto_dinov2_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np.ndarray]:
+def _cluster_member_text(row: Mapping[str, Any]) -> str:
+    for key in ("long_form_open_description", "description", "label"):
+        value = _safe_text(row.get(key))
+        if not value:
+            continue
+        if _normalize_label(value) in EXCLUDED_LABELS:
+            continue
+        return value
+    return ""
+
+
+_DIRECTION_8_WORDS = {
+    "N": "north",
+    "NE": "northeast",
+    "E": "east",
+    "SE": "southeast",
+    "S": "south",
+    "SW": "southwest",
+    "W": "west",
+    "NW": "northwest",
+    "CENTER": "center",
+}
+
+
+def _direction_8_from_dx_dz(dx_m: float, dz_m: float) -> Tuple[str, str]:
+    if math.isclose(float(dx_m), 0.0, abs_tol=1e-9) and math.isclose(float(dz_m), 0.0, abs_tol=1e-9):
+        return "CENTER", _DIRECTION_8_WORDS["CENTER"]
+    angle_deg = math.degrees(math.atan2(float(dz_m), float(dx_m)))
+    if angle_deg < 0.0:
+        angle_deg += 360.0
+    direction_cycle = ("E", "NE", "N", "NW", "W", "SW", "S", "SE")
+    direction = direction_cycle[int(((angle_deg + 22.5) % 360.0) // 45.0)]
+    return direction, _DIRECTION_8_WORDS[direction]
+
+
+def _member_spatial_relations(
+    members: Sequence[Mapping[str, Any]],
+    prototype_xyz: Mapping[str, Any],
+) -> List[Dict[str, Any]]:
+    proto_x = _safe_float(prototype_xyz.get("x"))
+    proto_z = _safe_float(prototype_xyz.get("z"))
+    if proto_x is None or proto_z is None:
+        return []
+
+    relations: List[Dict[str, Any]] = []
+    for member_index, row in enumerate(members, start=1):
+        object_x = _safe_float(row.get("estimated_global_x"))
+        object_z = _safe_float(row.get("estimated_global_z"))
+        if object_x is None or object_z is None:
+            continue
+        dx_m = float(object_x) - float(proto_x)
+        dz_m = float(object_z) - float(proto_z)
+        direction_8, direction_text = _direction_8_from_dx_dz(dx_m, dz_m)
+        distance_m = float(round(math.hypot(dx_m, dz_m), 2))
+        relations.append(
+            {
+                "member_index": int(member_index),
+                "object_global_id": _safe_int(row.get("object_global_id"), -1),
+                "label": _safe_text(row.get("label"), "unknown"),
+                "direction_8": direction_8,
+                "direction_text": direction_text,
+                "distance_m": distance_m,
+            }
+        )
+    return relations
+
+
+def _make_cluster_text_compression_context(
+    db_dir: str,
+    *,
+    enable_vlm_compress: bool,
+    enable_vlm_member_spatial: bool,
+) -> Optional[Dict[str, Any]]:
+    if not enable_vlm_compress:
+        return None
+
+    from spatial_rag.vlm_captioner import VLMCaptioner
+
+    cache_root = Path(db_dir) / "sequential_vlm_cluster_cache"
+    captioner = VLMCaptioner(
+        model_name=SPATIAL_DB_VLM_MODEL,
+        use_cache=False,
+        object_use_cache=True,
+        object_cache_dir=str(cache_root),
+    )
+
+    embedder = None
+    try:
+        from spatial_rag.embedder import Embedder
+
+        embedder = Embedder()
+    except Exception:
+        embedder = None
+
+    return {
+        "captioner": captioner,
+        "embedder": embedder,
+        "enable_member_spatial": bool(enable_vlm_member_spatial),
+    }
+
+
+def _proto_dinov3_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np.ndarray]:
     vectors: List[np.ndarray] = []
     for row in members:
-        vec = row.get("dinov2_embedding")
+        vec = row.get("dinov3_embedding")
         if vec is None:
             continue
         vectors.append(np.asarray(vec, dtype=np.float32).reshape(-1))
@@ -243,36 +347,106 @@ def _proto_dinov2_embedding(members: Sequence[Mapping[str, Any]]) -> Optional[np
     return _l2_normalize_vec(np.asarray(mean_vec, dtype=np.float32))
 
 
-def _build_cluster(cluster_id: int, members: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
+def _build_cluster(
+    cluster_id: int,
+    members: Sequence[Mapping[str, Any]],
+    *,
+    cluster_text_compression_context: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
     member_rows = [dict(row) for row in members]
     histogram = Counter(_safe_text(row.get("label"), "unknown") for row in member_rows)
+    label_histogram = dict(sorted(histogram.items()))
+    prototype_embedding = _proto_embedding(member_rows)
+    prototype_xyz = _proto_xyz(member_rows)
+    cluster_text_description: Optional[str] = None
+    cluster_text_status = "disabled"
+    cluster_text_member_spatial_relations: List[Dict[str, Any]] = []
+
+    if cluster_text_compression_context is not None:
+        member_texts = [_cluster_member_text(row) for row in member_rows]
+        member_texts = [text for text in member_texts if text]
+        if len(member_rows) <= 1:
+            cluster_text_description = member_texts[0] if member_texts else None
+            cluster_text_status = "singleton_passthrough"
+        elif not member_texts:
+            cluster_text_status = "fallback_member_mean"
+        else:
+            captioner = cluster_text_compression_context.get("captioner")
+            embedder = cluster_text_compression_context.get("embedder")
+            if bool(cluster_text_compression_context.get("enable_member_spatial")):
+                cluster_text_member_spatial_relations = _member_spatial_relations(member_rows, prototype_xyz)
+            compressed_text: Optional[str] = None
+            if captioner is not None:
+                try:
+                    compressed_text = captioner.compress_cluster_member_texts(
+                        member_texts,
+                        label_histogram=label_histogram,
+                        member_count=len(member_rows),
+                        member_spatial_relations=cluster_text_member_spatial_relations,
+                    )
+                except Exception:
+                    compressed_text = None
+            if compressed_text:
+                cluster_text_description = compressed_text
+                if embedder is not None:
+                    try:
+                        compressed_embedding = np.asarray(embedder.embed_text(compressed_text), dtype=np.float32).reshape(-1)
+                        prototype_embedding = _l2_normalize_vec(compressed_embedding)
+                        cluster_text_status = "vlm_compressed"
+                    except Exception:
+                        cluster_text_status = "fallback_member_mean"
+                else:
+                    cluster_text_status = "fallback_member_mean"
+            else:
+                cluster_text_status = "fallback_member_mean"
+
     return {
         "cluster_id": int(cluster_id),
         "member_rows": member_rows,
         "member_object_ids": [_safe_int(row.get("object_global_id"), -1) for row in member_rows],
         "member_view_ids": [_safe_text(row.get("view_id")) for row in member_rows],
-        "label_histogram": dict(sorted(histogram.items())),
-        "prototype_embedding": _proto_embedding(member_rows),
-        "prototype_dinov2_embedding": _proto_dinov2_embedding(member_rows),
-        "prototype_xyz": _proto_xyz(member_rows),
+        "label_histogram": label_histogram,
+        "prototype_embedding": prototype_embedding,
+        "prototype_dinov3_embedding": _proto_dinov3_embedding(member_rows),
+        "prototype_xyz": prototype_xyz,
         "prototype_polar": _proto_polar(member_rows),
+        "cluster_text_description": cluster_text_description,
+        "cluster_text_status": cluster_text_status,
+        "cluster_text_member_spatial_relations": cluster_text_member_spatial_relations,
     }
 
 
-def _append_member(cluster: Mapping[str, Any], row: Mapping[str, Any]) -> Dict[str, Any]:
+def _append_member(
+    cluster: Mapping[str, Any],
+    row: Mapping[str, Any],
+    *,
+    cluster_text_compression_context: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
     members = list(cluster.get("member_rows", []))
     members.append(dict(row))
-    return _build_cluster(int(cluster.get("cluster_id", -1)), members)
+    return _build_cluster(
+        int(cluster.get("cluster_id", -1)),
+        members,
+        cluster_text_compression_context=cluster_text_compression_context,
+    )
 
 
-def _merge_clusters(clusters: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
+def _merge_clusters(
+    clusters: Sequence[Mapping[str, Any]],
+    *,
+    cluster_text_compression_context: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
     if not clusters:
         raise ValueError("Cannot merge an empty cluster list")
     ordered = sorted((dict(cluster) for cluster in clusters), key=lambda item: int(item.get("cluster_id", 10**9)))
     merged_members: List[Dict[str, Any]] = []
     for cluster in ordered:
         merged_members.extend([dict(row) for row in cluster.get("member_rows", [])])
-    return _build_cluster(int(ordered[0].get("cluster_id", -1)), merged_members)
+    return _build_cluster(
+        int(ordered[0].get("cluster_id", -1)),
+        merged_members,
+        cluster_text_compression_context=cluster_text_compression_context,
+    )
 
 
 def _cluster_view_id_set(cluster: Mapping[str, Any]) -> set[str]:
@@ -379,13 +553,13 @@ def _cross_detail_for_pair(
     current_rows: Sequence[Mapping[str, Any]],
     cluster: Mapping[str, Any],
     weight_text: float,
-    weight_dinov2: float,
+    weight_dinov3: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
-    enable_dinov2_scoring: bool,
+    enable_dinov3_scoring: bool,
 ) -> Dict[str, Any]:
     if 0 <= int(cur_idx) < len(cross_details):
         row_details = cross_details[int(cur_idx)]
@@ -396,11 +570,11 @@ def _cross_detail_for_pair(
     return _pair_affinity_detail(
         current_rows[int(cur_idx)],
         cluster,
-        weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2),
+        weights=_normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov3),
         global_sigma_m=global_sigma_m,
         similarity_mode=similarity_mode,
         distance_gate_dsq0=distance_gate_dsq0,
-        enable_dinov2_scoring=enable_dinov2_scoring,
+        enable_dinov3_scoring=enable_dinov3_scoring,
     )
 
 
@@ -409,16 +583,16 @@ def _best_live_memory_match(
     slots: Sequence[Optional[Mapping[str, Any]]],
     *,
     weight_text: float,
-    weight_dinov2: float,
+    weight_dinov3: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
-    enable_dinov2_scoring: bool,
+    enable_dinov3_scoring: bool,
 ) -> Optional[Tuple[float, int, Dict[str, Any]]]:
     best: Optional[Tuple[float, int, Dict[str, Any]]] = None
-    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2)
+    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov3)
     for mem_idx, cluster in enumerate(slots):
         if cluster is None:
             continue
@@ -429,7 +603,7 @@ def _best_live_memory_match(
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
         )
         score = float(detail.get("combined_similarity") or 0.0)
         candidate = (score, int(mem_idx), detail)
@@ -446,8 +620,11 @@ def _cluster_summary(cluster: Mapping[str, Any]) -> Dict[str, Any]:
         "member_object_ids": list(cluster.get("member_object_ids", [])),
         "member_view_ids": list(cluster.get("member_view_ids", [])),
         "label_histogram": dict(cluster.get("label_histogram", {})),
+        "cluster_text_description": cluster.get("cluster_text_description"),
+        "cluster_text_status": _safe_text(cluster.get("cluster_text_status")),
+        "cluster_text_member_spatial_relations": list(cluster.get("cluster_text_member_spatial_relations", [])),
         "prototype_embedding": cluster.get("prototype_embedding"),
-        "prototype_dinov2_embedding": cluster.get("prototype_dinov2_embedding"),
+        "prototype_dinov3_embedding": cluster.get("prototype_dinov3_embedding"),
         "prototype_xyz": cluster.get("prototype_xyz"),
         "prototype_polar": cluster.get("prototype_polar"),
     }
@@ -464,6 +641,9 @@ def _cluster_output_summary(cluster: Mapping[str, Any]) -> Dict[str, Any]:
         "members": members,
         "member_view_ids": list(cluster.get("member_view_ids", [])),
         "label_histogram": dict(cluster.get("label_histogram", {})),
+        "cluster_text_description": cluster.get("cluster_text_description"),
+        "cluster_text_status": _safe_text(cluster.get("cluster_text_status")),
+        "cluster_text_member_spatial_relations": list(cluster.get("cluster_text_member_spatial_relations", [])),
     }
 
 
@@ -474,7 +654,7 @@ def _detail_summary(detail: Optional[Mapping[str, Any]]) -> Optional[Dict[str, A
         "similarity_mode": _safe_text(detail.get("similarity_mode")),
         "combined_similarity": _safe_float(detail.get("combined_similarity")),
         "text_similarity": _safe_float(detail.get("text_similarity")),
-        "dinov2_similarity": _safe_float(detail.get("dinov2_similarity")),
+        "dinov3_similarity": _safe_float(detail.get("dinov3_similarity")),
         "semantic_visual_similarity": _safe_float(detail.get("semantic_visual_similarity")),
         "global_geo_similarity": _safe_float(detail.get("global_geo_similarity")),
         "polar_similarity": _safe_float(detail.get("polar_similarity")),
@@ -596,7 +776,7 @@ def _object_assignment_record(
 ) -> Dict[str, Any]:
     status = similarity_detail_status or _assignment_detail_status(assignment_reason, detail)
     term1_cosine = _safe_float(detail.get("text_similarity")) if detail else None
-    term2_dinov2 = _safe_float(detail.get("dinov2_similarity")) if detail else None
+    term2_dinov3 = _safe_float(detail.get("dinov3_similarity")) if detail else None
     semantic_visual_similarity = _safe_float(detail.get("semantic_visual_similarity")) if detail else None
     xy_distance_m = _safe_float(detail.get("xy_distance_m")) if detail else None
     dsq = _safe_float(detail.get("xy_distance_sq_m2")) if detail else None
@@ -621,7 +801,7 @@ def _object_assignment_record(
         "estimated_global_y": _safe_float(row.get("estimated_global_y")),
         "estimated_global_z": _safe_float(row.get("estimated_global_z")),
         "term1_cosine": term1_cosine,
-        "term2_dinov2": term2_dinov2,
+        "term2_dinov3": term2_dinov3,
         "semantic_visual_similarity": semantic_visual_similarity,
         "xy_distance_m": xy_distance_m,
         "dsq": dsq,
@@ -748,6 +928,8 @@ def _step_report_summary(step_report: Mapping[str, Any]) -> Dict[str, Any]:
         "step_index": _safe_int(step_report.get("step_index"), -1),
         "view_id": _safe_text(step_report.get("view_id")),
         "enforce_same_view_uniqueness": bool(step_report.get("enforce_same_view_uniqueness")),
+        "enable_vlm_compress": bool(step_report.get("enable_vlm_compress")),
+        "enable_vlm_member_spatial": bool(step_report.get("enable_vlm_member_spatial")),
         "num_current_objects": _safe_int(step_report.get("num_current_objects"), 0),
         "num_existing_clusters": _safe_int(step_report.get("num_existing_clusters"), 0),
         "num_appended": _safe_int(step_report.get("num_appended"), 0),
@@ -965,7 +1147,7 @@ def load_sequence_objects(
     object_rows, long_emb, _entry_to_indices = loaded
     if long_emb.shape[0] != len(object_rows):
         raise ValueError("Object long embeddings are misaligned with object_meta.jsonl")
-    dino_loaded = load_object_dinov2_db(str(root))
+    dino_loaded = load_object_dinov3_db(str(root))
     dino_embedding_by_object_id: Dict[int, np.ndarray] = {}
     if dino_loaded is not None:
         _dino_meta, dino_emb, object_id_to_sidecar_row = dino_loaded
@@ -988,7 +1170,7 @@ def load_sequence_objects(
         prepared["entry_id"] = entry_id
         prepared["embedding"] = _l2_normalize_vec(np.asarray(long_emb[index], dtype=np.float32))
         prepared["text_embedding"] = prepared["embedding"]
-        prepared["dinov2_embedding"] = dino_embedding_by_object_id.get(int(object_id))
+        prepared["dinov3_embedding"] = dino_embedding_by_object_id.get(int(object_id))
         meta_row = meta_by_view_id.get(view_id)
         if meta_row is not None:
             prepared["file_name"] = prepared.get("file_name") or meta_row.get("file_name")
@@ -1036,9 +1218,9 @@ def _text_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Opti
     return float(np.clip(np.dot(np.asarray(row_vec, dtype=np.float32), np.asarray(proto_vec, dtype=np.float32)), -1.0, 1.0))
 
 
-def _dinov2_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Optional[float]:
-    row_vec = row.get("dinov2_embedding")
-    proto_vec = cluster.get("prototype_dinov2_embedding")
+def _dinov3_similarity(row: Mapping[str, Any], cluster: Mapping[str, Any]) -> Optional[float]:
+    row_vec = row.get("dinov3_embedding")
+    proto_vec = cluster.get("prototype_dinov3_embedding")
     if row_vec is None or proto_vec is None:
         return None
     return float(
@@ -1110,17 +1292,17 @@ def _pair_affinity_detail(
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
     similarity_mode: str = DEFAULT_SIMILARITY_MODE,
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
-    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
+    enable_dinov3_scoring: bool = bool(ENABLE_DINOV3_SCORING),
 ) -> Dict[str, Any]:
     text_sim = _text_similarity(row, cluster)
-    dinov2_sim = _dinov2_similarity(row, cluster) if enable_dinov2_scoring else None
+    dinov3_sim = _dinov3_similarity(row, cluster) if enable_dinov3_scoring else None
     similarity_mode_clean = _safe_text(similarity_mode) or DEFAULT_SIMILARITY_MODE
     if similarity_mode_clean == "legacy_weighted_fusion":
         geo_sim, geo_distance, used_3d_geo = _global_geo_similarity(row, cluster, sigma_m=global_sigma_m)
         polar_sim = _polar_similarity(row, cluster)
         available_weights = {
             "text": weights["text"] if text_sim is not None else 0.0,
-            "dinov2": weights.get("dinov2", 0.0) if dinov2_sim is not None else 0.0,
+            "dinov3": weights.get("dinov3", 0.0) if dinov3_sim is not None else 0.0,
             "global_geo": weights["global_geo"] if geo_sim is not None else 0.0,
             "polar": weights["polar"] if polar_sim is not None else 0.0,
         }
@@ -1133,8 +1315,8 @@ def _pair_affinity_detail(
             combined = 0.0
             if text_sim is not None:
                 combined += normalized_weights["text"] * float(text_sim)
-            if dinov2_sim is not None:
-                combined += normalized_weights["dinov2"] * float(dinov2_sim)
+            if dinov3_sim is not None:
+                combined += normalized_weights["dinov3"] * float(dinov3_sim)
             if geo_sim is not None:
                 combined += normalized_weights["global_geo"] * float(geo_sim)
             if polar_sim is not None:
@@ -1143,7 +1325,7 @@ def _pair_affinity_detail(
             "similarity_mode": similarity_mode_clean,
             "combined_similarity": float(combined),
             "text_similarity": text_sim,
-            "dinov2_similarity": dinov2_sim,
+            "dinov3_similarity": dinov3_sim,
             "semantic_visual_similarity": None,
             "global_geo_similarity": geo_sim,
             "polar_similarity": polar_sim,
@@ -1162,7 +1344,7 @@ def _pair_affinity_detail(
     used_3d_geo = False
     semantic_weights = {
         "text": weights["text"] if text_sim is not None else 0.0,
-        "dinov2": weights.get("dinov2", 0.0) if dinov2_sim is not None else 0.0,
+        "dinov3": weights.get("dinov3", 0.0) if dinov3_sim is not None else 0.0,
     }
     semantic_weight_total = sum(semantic_weights.values())
     semantic_visual_similarity = None
@@ -1170,20 +1352,20 @@ def _pair_affinity_detail(
         semantic_visual_similarity = 0.0
         if text_sim is not None:
             semantic_visual_similarity += (semantic_weights["text"] / semantic_weight_total) * float(text_sim)
-        if dinov2_sim is not None:
-            semantic_visual_similarity += (semantic_weights["dinov2"] / semantic_weight_total) * float(dinov2_sim)
+        if dinov3_sim is not None:
+            semantic_visual_similarity += (semantic_weights["dinov3"] / semantic_weight_total) * float(dinov3_sim)
     if semantic_visual_similarity is None:
         combined = 0.0
         distance_gate = None
         geo_distance = xy_distance_m
-        normalized_weights = {"text": 0.0, "dinov2": 0.0, "global_geo": 0.0, "polar": 0.0}
+        normalized_weights = {"text": 0.0, "dinov3": 0.0, "global_geo": 0.0, "polar": 0.0}
     elif xy_distance_sq_m2 is None:
         distance_gate = 1.0
         combined = float(semantic_visual_similarity)
         geo_distance = None
         normalized_weights = {
             "text": float(semantic_weights["text"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
-            "dinov2": float(semantic_weights["dinov2"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "dinov3": float(semantic_weights["dinov3"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
             "global_geo": 0.0,
             "polar": 0.0,
         }
@@ -1193,7 +1375,7 @@ def _pair_affinity_detail(
         geo_distance = xy_distance_m
         normalized_weights = {
             "text": float(semantic_weights["text"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
-            "dinov2": float(semantic_weights["dinov2"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
+            "dinov3": float(semantic_weights["dinov3"] / semantic_weight_total) if semantic_weight_total > 0.0 else 0.0,
             "global_geo": 0.0,
             "polar": 0.0,
         }
@@ -1201,7 +1383,7 @@ def _pair_affinity_detail(
         "similarity_mode": similarity_mode_clean,
         "combined_similarity": float(combined),
         "text_similarity": text_sim,
-        "dinov2_similarity": dinov2_sim,
+        "dinov3_similarity": dinov3_sim,
         "semantic_visual_similarity": semantic_visual_similarity,
         "global_geo_similarity": geo_sim,
         "polar_similarity": polar_sim,
@@ -1220,15 +1402,15 @@ def build_cross_affinity_matrix(
     current_rows: Sequence[Mapping[str, Any]],
     *,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
-    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
+    weight_dinov3: float = DEFAULT_WEIGHT_DINOV3,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
     similarity_mode: str = DEFAULT_SIMILARITY_MODE,
     distance_gate_dsq0: float = DEFAULT_DISTANCE_GATE_DSQ0,
-    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
+    enable_dinov3_scoring: bool = bool(ENABLE_DINOV3_SCORING),
 ) -> Tuple[np.ndarray, List[List[Dict[str, Any]]]]:
-    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2)
+    weights = _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov3)
     matrix = np.zeros((len(current_rows), len(memory_clusters)), dtype=np.float32)
     details: List[List[Dict[str, Any]]] = []
     for row in current_rows:
@@ -1241,7 +1423,7 @@ def build_cross_affinity_matrix(
                 global_sigma_m=global_sigma_m,
                 similarity_mode=similarity_mode,
                 distance_gate_dsq0=distance_gate_dsq0,
-                enable_dinov2_scoring=enable_dinov2_scoring,
+                enable_dinov3_scoring=enable_dinov3_scoring,
             )
             row_details.append(detail)
         details.append(row_details)
@@ -1849,8 +2031,17 @@ def _step5_block_order(
     return order, boundaries
 
 
-def _create_new_cluster_from_rows(rows: Sequence[Mapping[str, Any]], next_cluster_id: int) -> Dict[str, Any]:
-    return _build_cluster(int(next_cluster_id), rows)
+def _create_new_cluster_from_rows(
+    rows: Sequence[Mapping[str, Any]],
+    next_cluster_id: int,
+    *,
+    cluster_text_compression_context: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    return _build_cluster(
+        int(next_cluster_id),
+        rows,
+        cluster_text_compression_context=cluster_text_compression_context,
+    )
 
 
 def _resolved_step_spectral_embedding(
@@ -2243,13 +2434,13 @@ def _best_memory_detail_in_group(
     cross_details: Sequence[Sequence[Mapping[str, Any]]],
     current_rows: Sequence[Mapping[str, Any]],
     weight_text: float,
-    weight_dinov2: float,
+    weight_dinov3: float,
     weight_global_geo: float,
     weight_polar: float,
     global_sigma_m: float,
     similarity_mode: str,
     distance_gate_dsq0: float,
-    enable_dinov2_scoring: bool,
+    enable_dinov3_scoring: bool,
 ) -> Optional[Tuple[int, Dict[str, Any]]]:
     best: Optional[Tuple[float, int, int, Dict[str, Any]]] = None
     for mem_idx in mem_indices:
@@ -2261,13 +2452,13 @@ def _best_memory_detail_in_group(
             current_rows=current_rows,
             cluster=cluster,
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
         )
         score = float(detail.get("combined_similarity") or 0.0)
         if 0 <= int(cur_idx) < int(cross_affinity.shape[0]) and 0 <= int(mem_idx) < int(cross_affinity.shape[1]):
@@ -2315,7 +2506,7 @@ def apply_incremental_step(
     step_index: int,
     next_cluster_id: int,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
-    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
+    weight_dinov3: float = DEFAULT_WEIGHT_DINOV3,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -2325,7 +2516,8 @@ def apply_incremental_step(
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
     enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
-    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
+    enable_dinov3_scoring: bool = bool(ENABLE_DINOV3_SCORING),
+    cluster_text_compression_context: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Any]:
     del current_only_reattach_min_affinity
 
@@ -2401,13 +2593,19 @@ def apply_incremental_step(
                 cluster_id = int(running_cluster_id)
                 running_cluster_id += 1
 
-            member_rows: List[Dict[str, Any]] = []
-            for mem_idx in mem_indices:
-                member_rows.extend([dict(row) for row in list(slots[mem_idx].get("member_rows", []))])
-            for cur_idx in cur_indices:
-                member_rows.append(dict(current_rows[cur_idx]))
-
-            cluster = _build_cluster(int(cluster_id), member_rows)
+            if not cur_indices and len(mem_indices) == 1:
+                cluster = deepcopy(slots[mem_indices[0]])
+            else:
+                member_rows: List[Dict[str, Any]] = []
+                for mem_idx in mem_indices:
+                    member_rows.extend([dict(row) for row in list(slots[mem_idx].get("member_rows", []))])
+                for cur_idx in cur_indices:
+                    member_rows.append(dict(current_rows[cur_idx]))
+                cluster = _build_cluster(
+                    int(cluster_id),
+                    member_rows,
+                    cluster_text_compression_context=cluster_text_compression_context,
+                )
             next_memory.append(cluster)
 
             materialized_group = dict(resolved_group)
@@ -2425,13 +2623,13 @@ def apply_incremental_step(
                         cross_details=cross_details,
                         current_rows=current_rows,
                         weight_text=weight_text,
-                        weight_dinov2=weight_dinov2,
+                        weight_dinov3=weight_dinov3,
                         weight_global_geo=weight_global_geo,
                         weight_polar=weight_polar,
                         global_sigma_m=global_sigma_m,
                         similarity_mode=similarity_mode,
                         distance_gate_dsq0=distance_gate_dsq0,
-                        enable_dinov2_scoring=enable_dinov2_scoring,
+                        enable_dinov3_scoring=enable_dinov3_scoring,
                     )
                     if best_match is None:
                         similarity_reference_cluster_id = None
@@ -2521,7 +2719,7 @@ def _run_single_sequential_spectral_experiment(
     entry_ids: Optional[Sequence[Any]] = None,
     view_ids: Optional[Sequence[str]] = None,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
-    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
+    weight_dinov3: float = DEFAULT_WEIGHT_DINOV3,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -2532,7 +2730,9 @@ def _run_single_sequential_spectral_experiment(
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
     enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
-    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
+    enable_dinov3_scoring: bool = bool(ENABLE_DINOV3_SCORING),
+    enable_vlm_compress: bool = bool(ENABLE_VLM_COMPRESS),
+    enable_vlm_member_spatial: bool = bool(ENABLE_VLM_MEMBER_SPATIAL),
 ) -> Dict[str, Any]:
     sequence = load_sequence_objects(db_dir, entry_ids=entry_ids, view_ids=view_ids)
     selected_views = sequence["views"]
@@ -2557,12 +2757,23 @@ def _run_single_sequential_spectral_experiment(
         "stored_view_images": stored_view_images,
     }
     _write_json(root / "sequence_manifest.json", manifest)
+    cluster_text_compression_context = _make_cluster_text_compression_context(
+        str(db_dir),
+        enable_vlm_compress=enable_vlm_compress,
+        enable_vlm_member_spatial=enable_vlm_member_spatial,
+    )
 
     initial_view = selected_views[0]
     memory_clusters: List[Dict[str, Any]] = []
     next_cluster_id = 0
     for row in initial_view["objects"]:
-        memory_clusters.append(_create_new_cluster_from_rows([row], next_cluster_id))
+        memory_clusters.append(
+            _create_new_cluster_from_rows(
+                [row],
+                next_cluster_id,
+                cluster_text_compression_context=cluster_text_compression_context,
+            )
+        )
         next_cluster_id += 1
     assignment_records: List[Dict[str, Any]] = [
         _object_assignment_record(
@@ -2596,13 +2807,13 @@ def _run_single_sequential_spectral_experiment(
             memory_clusters,
             current_view["objects"],
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
             similarity_mode=similarity_mode,
             distance_gate_dsq0=distance_gate_dsq0,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
         )
         num_same_view_masked_edges = 0
         if enforce_same_view_uniqueness:
@@ -2701,7 +2912,7 @@ def _run_single_sequential_spectral_experiment(
             step_index=step_offset,
             next_cluster_id=next_cluster_id,
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2711,7 +2922,8 @@ def _run_single_sequential_spectral_experiment(
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
             enforce_same_view_uniqueness=enforce_same_view_uniqueness,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
+            cluster_text_compression_context=cluster_text_compression_context,
         )
         memory_clusters = update["memory_clusters"]
         next_cluster_id = int(update["next_cluster_id"])
@@ -2724,6 +2936,8 @@ def _run_single_sequential_spectral_experiment(
             "step_index": int(step_offset),
             "view_id": current_view["view_id"],
             "enforce_same_view_uniqueness": bool(enforce_same_view_uniqueness),
+            "enable_vlm_compress": bool(enable_vlm_compress),
+            "enable_vlm_member_spatial": bool(enable_vlm_member_spatial),
             "num_current_objects": len(current_view["objects"]),
             "num_existing_clusters": full_affinity.shape[0] - len(current_view["objects"]),
             "num_appended": int(update["num_appended"]),
@@ -2773,12 +2987,14 @@ def _run_single_sequential_spectral_experiment(
         "view_object_counts": {view["view_id"]: len(view["objects"]) for view in selected_views},
         "weights": {
             "text": float(weight_text),
-            "dinov2": float(weight_dinov2),
+            "dinov3": float(weight_dinov3),
             "global_geo": float(weight_global_geo),
             "polar": float(weight_polar),
-            "normalized": _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov2),
+            "normalized": _normalize_weight_triplet(weight_text, weight_global_geo, weight_polar, weight_dinov3),
         },
-        "enable_dinov2_scoring": bool(enable_dinov2_scoring),
+        "enable_dinov3_scoring": bool(enable_dinov3_scoring),
+        "enable_vlm_compress": bool(enable_vlm_compress),
+        "enable_vlm_member_spatial": bool(enable_vlm_member_spatial),
         "global_sigma_m": float(global_sigma_m),
         "similarity_mode": str(similarity_mode),
         "distance_gate_dsq0": float(distance_gate_dsq0),
@@ -2828,7 +3044,7 @@ def run_sequential_spectral_experiment(
     entry_ids: Optional[Sequence[Any]] = None,
     view_ids: Optional[Sequence[str]] = None,
     weight_text: float = DEFAULT_WEIGHT_TEXT,
-    weight_dinov2: float = DEFAULT_WEIGHT_DINOV2,
+    weight_dinov3: float = DEFAULT_WEIGHT_DINOV3,
     weight_global_geo: float = DEFAULT_WEIGHT_GLOBAL_GEO,
     weight_polar: float = DEFAULT_WEIGHT_POLAR,
     global_sigma_m: float = DEFAULT_GLOBAL_SIGMA_M,
@@ -2840,7 +3056,9 @@ def run_sequential_spectral_experiment(
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: int = DEFAULT_DBSCAN_MIN_SAMPLES,
     enforce_same_view_uniqueness: bool = DEFAULT_ENFORCE_SAME_VIEW_UNIQUENESS,
-    enable_dinov2_scoring: bool = bool(ENABLE_DINOV2_SCORING),
+    enable_dinov3_scoring: bool = bool(ENABLE_DINOV3_SCORING),
+    enable_vlm_compress: bool = bool(ENABLE_VLM_COMPRESS),
+    enable_vlm_member_spatial: bool = bool(ENABLE_VLM_MEMBER_SPATIAL),
 ) -> Dict[str, Any]:
     normalized_dsq0_values = _normalize_float_list(distance_gate_dsq0_values)
     if distance_gate_dsq0_values is not None and not normalized_dsq0_values:
@@ -2852,7 +3070,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2863,7 +3081,9 @@ def run_sequential_spectral_experiment(
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
             enforce_same_view_uniqueness=enforce_same_view_uniqueness,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
+            enable_vlm_compress=enable_vlm_compress,
+            enable_vlm_member_spatial=enable_vlm_member_spatial,
         )
     if len(normalized_dsq0_values) == 1:
         return _run_single_sequential_spectral_experiment(
@@ -2872,7 +3092,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2883,7 +3103,9 @@ def run_sequential_spectral_experiment(
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
             enforce_same_view_uniqueness=enforce_same_view_uniqueness,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
+            enable_vlm_compress=enable_vlm_compress,
+            enable_vlm_member_spatial=enable_vlm_member_spatial,
         )
 
     base_root = Path(output_dir) if output_dir else Path(db_dir) / "sequential_spectral_experiment_sweep"
@@ -2896,7 +3118,7 @@ def run_sequential_spectral_experiment(
             entry_ids=entry_ids,
             view_ids=view_ids,
             weight_text=weight_text,
-            weight_dinov2=weight_dinov2,
+            weight_dinov3=weight_dinov3,
             weight_global_geo=weight_global_geo,
             weight_polar=weight_polar,
             global_sigma_m=global_sigma_m,
@@ -2907,7 +3129,9 @@ def run_sequential_spectral_experiment(
             dbscan_eps=dbscan_eps,
             dbscan_min_samples=dbscan_min_samples,
             enforce_same_view_uniqueness=enforce_same_view_uniqueness,
-            enable_dinov2_scoring=enable_dinov2_scoring,
+            enable_dinov3_scoring=enable_dinov3_scoring,
+            enable_vlm_compress=enable_vlm_compress,
+            enable_vlm_member_spatial=enable_vlm_member_spatial,
         )
         sweep_runs.append(
             {
@@ -2917,6 +3141,8 @@ def run_sequential_spectral_experiment(
                 "enforce_same_view_uniqueness": bool(run_report.get("enforce_same_view_uniqueness")),
                 "dbscan_eps": run_report.get("dbscan_eps"),
                 "dbscan_min_samples": int(run_report.get("dbscan_min_samples") or 0),
+                "enable_vlm_compress": bool(run_report.get("enable_vlm_compress")),
+                "enable_vlm_member_spatial": bool(run_report.get("enable_vlm_member_spatial")),
                 "total_appended": int(run_report.get("total_appended") or 0),
                 "total_current_only_reattached": int(run_report.get("total_current_only_reattached") or 0),
                 "total_new_tail_clusters": int(run_report.get("total_new_tail_clusters") or 0),
@@ -2932,7 +3158,9 @@ def run_sequential_spectral_experiment(
         "db_dir": str(db_dir),
         "output_dir": str(sweep_root),
         "similarity_mode": str(similarity_mode),
-        "enable_dinov2_scoring": bool(enable_dinov2_scoring),
+        "enable_dinov3_scoring": bool(enable_dinov3_scoring),
+        "enable_vlm_compress": bool(enable_vlm_compress),
+        "enable_vlm_member_spatial": bool(enable_vlm_member_spatial),
         "distance_gate_dsq0_values": [float(v) for v in normalized_dsq0_values],
         "enforce_same_view_uniqueness": bool(enforce_same_view_uniqueness),
         "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
@@ -2958,14 +3186,26 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Comma-separated ordered entry ids to include; overrides --view_ids when provided",
     )
     parser.add_argument("--weight_text", type=float, default=DEFAULT_WEIGHT_TEXT, help="Text branch weight")
-    parser.add_argument("--weight_dinov2", type=float, default=DEFAULT_WEIGHT_DINOV2, help="DINOv2 branch weight")
+    parser.add_argument("--weight_dinov3", type=float, default=DEFAULT_WEIGHT_DINOV3, help="DINOv3 branch weight")
     parser.add_argument("--weight_global_geo", type=float, default=DEFAULT_WEIGHT_GLOBAL_GEO, help="Global xyz branch weight")
     parser.add_argument("--weight_polar", type=float, default=DEFAULT_WEIGHT_POLAR, help="Polar branch weight")
     parser.add_argument(
-        "--enable_dinov2_scoring",
+        "--enable_dinov3_scoring",
         action=argparse.BooleanOptionalAction,
-        default=ENABLE_DINOV2_SCORING,
-        help="Whether to fuse DINOv2 visual consistency into the sequential affinity score.",
+        default=ENABLE_DINOV3_SCORING,
+        help="Whether to fuse DINOv3 visual consistency into the sequential affinity score.",
+    )
+    parser.add_argument(
+        "--enable_vlm_compress",
+        action=argparse.BooleanOptionalAction,
+        default=ENABLE_VLM_COMPRESS,
+        help="Whether to build multi-member cluster text prototypes via VLM compression before CLIP embedding.",
+    )
+    parser.add_argument(
+        "--enable_vlm_member_spatial",
+        action=argparse.BooleanOptionalAction,
+        default=ENABLE_VLM_MEMBER_SPATIAL,
+        help="Whether VLM cluster-text compression may use member-internal spatial relations relative to prototype_xyz.",
     )
     parser.add_argument("--global_sigma_m", type=float, default=DEFAULT_GLOBAL_SIGMA_M, help="Global xyz gaussian sigma")
     parser.add_argument(
@@ -3026,10 +3266,12 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         entry_ids=_normalize_entry_ids([args.entry_ids]) if args.entry_ids else None,
         view_ids=_normalize_view_ids([str(args.view_ids)]) if args.view_ids else None,
         weight_text=float(args.weight_text),
-        weight_dinov2=float(args.weight_dinov2),
+        weight_dinov3=float(args.weight_dinov3),
         weight_global_geo=float(args.weight_global_geo),
         weight_polar=float(args.weight_polar),
-        enable_dinov2_scoring=bool(args.enable_dinov2_scoring),
+        enable_dinov3_scoring=bool(args.enable_dinov3_scoring),
+        enable_vlm_compress=bool(args.enable_vlm_compress),
+        enable_vlm_member_spatial=bool(args.enable_vlm_member_spatial),
         global_sigma_m=float(args.global_sigma_m),
         similarity_mode=str(args.similarity_mode),
         distance_gate_dsq0=float(args.distance_gate_dsq0),

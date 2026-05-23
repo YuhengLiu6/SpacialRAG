@@ -8,7 +8,7 @@ import pytest
 
 import spatial_rag.reweight_sweep as reweight_sweep_module
 from spatial_rag.occlusion_scoring import compute_reweighted_detection_score
-from spatial_rag.spectral_threshold_ablation import run_spectral_threshold_ablation
+from spatial_rag.spectral_threshold_ablation import _build_arg_parser, run_spectral_threshold_ablation
 from spatial_rag.spatial_db_builder import _write_jsonl
 
 
@@ -411,6 +411,77 @@ def test_threshold_ablation_writes_native_pipeline_outputs(tmp_path, monkeypatch
         assert row["sequential_native_output_root"]
 
 
+def test_threshold_ablation_propagates_sequential_dbscan_overrides(tmp_path, monkeypatch):
+    db_dir = _make_ablation_db(tmp_path, filtered=False)
+    monkeypatch.setattr(reweight_sweep_module, "_make_embedder", lambda: _FakeEmbedder())
+    monkeypatch.setattr(reweight_sweep_module, "_save_faiss_index", _fake_save_faiss_index)
+
+    report = run_spectral_threshold_ablation(
+        db_dir=str(db_dir),
+        entry_ids=[19, 24, 58, 65],
+        thresholds=[None],
+        output_dir=str(tmp_path / "ablation_runs_dbscan_override"),
+        weight_text=0.8,
+        weight_dinov3=0.6,
+        enable_dinov3_scoring=True,
+        enable_vlm_compress=True,
+        enable_vlm_member_spatial=True,
+        distance_gate_dsq0=2.5,
+        dbscan_eps=0.1,
+        dbscan_min_samples=1,
+        enforce_same_view_uniqueness=False,
+    )
+
+    assert report["sequential_overrides"] == {
+        "weight_text": 0.8,
+        "weight_dinov3": 0.6,
+        "enable_dinov3_scoring": True,
+        "enable_vlm_compress": True,
+        "enable_vlm_member_spatial": True,
+        "distance_gate_dsq0": 2.5,
+        "dbscan_eps": 0.1,
+        "dbscan_min_samples": 1,
+        "enforce_same_view_uniqueness": False,
+    }
+
+    threshold_run = report["threshold_runs"][0]
+    seq_report = threshold_run["sequential_report"]
+    assert np.isclose(seq_report["weight_text"], 0.8)
+    assert np.isclose(seq_report["weight_dinov3"], 0.6)
+    assert seq_report["enable_dinov3_scoring"] is True
+    assert seq_report["enable_vlm_compress"] is True
+    assert seq_report["enable_vlm_member_spatial"] is True
+    assert np.isclose(seq_report["distance_gate_dsq0"], 2.5)
+    assert np.isclose(seq_report["dbscan_eps"], 0.1)
+    assert seq_report["dbscan_min_samples"] == 1
+    assert seq_report["enforce_same_view_uniqueness"] is False
+
+    rows = list(csv.DictReader((Path(report["output_dir"]) / "threshold_results.csv").open("r", encoding="utf-8")))
+    assert len(rows) == 1
+    assert rows[0]["sequential_weight_text"] == "0.8"
+    assert rows[0]["sequential_weight_dinov3"] == "0.6"
+    assert rows[0]["sequential_enable_dinov3_scoring"] == "True"
+    assert rows[0]["sequential_enable_vlm_compress"] == "True"
+    assert rows[0]["sequential_enable_vlm_member_spatial"] == "True"
+    assert rows[0]["sequential_distance_gate_dsq0"] == "2.5"
+    assert rows[0]["sequential_dbscan_eps"] == "0.1"
+    assert rows[0]["sequential_dbscan_min_samples"] == "1"
+    assert rows[0]["sequential_enforce_same_view_uniqueness"] == "False"
+
+    experiment_report = json.loads(
+        (Path(threshold_run["sequential_native_output_root"]) / "experiment_report.json").read_text(encoding="utf-8")
+    )
+    assert np.isclose(experiment_report["weights"]["text"], 0.8)
+    assert np.isclose(experiment_report["weights"]["dinov3"], 0.6)
+    assert experiment_report["enable_dinov3_scoring"] is True
+    assert experiment_report["enable_vlm_compress"] is True
+    assert experiment_report["enable_vlm_member_spatial"] is True
+    assert np.isclose(experiment_report["distance_gate_dsq0"], 2.5)
+    assert np.isclose(experiment_report["dbscan_eps"], 0.1)
+    assert experiment_report["dbscan_min_samples"] == 1
+    assert experiment_report["enforce_same_view_uniqueness"] is False
+
+
 def test_threshold_ablation_can_export_filtered_object_crops(tmp_path, monkeypatch):
     db_dir = _make_ablation_db(tmp_path, filtered=False)
     monkeypatch.setattr(reweight_sweep_module, "_make_embedder", lambda: _FakeEmbedder())
@@ -454,3 +525,39 @@ def test_threshold_ablation_rejects_filtered_db_for_export(tmp_path, monkeypatch
             thresholds=[None, 0.5],
             output_dir=str(tmp_path / "ablation_runs_filtered"),
         )
+
+
+def test_threshold_ablation_arg_parser_accepts_dbscan_overrides():
+    parser = _build_arg_parser()
+    args = parser.parse_args(
+        [
+            "--db_dir",
+            "/tmp/fake_db",
+            "--entry_ids",
+            "15,19,23,27",
+            "--weight_text",
+            "0.8",
+            "--weight_dinov3",
+            "0.6",
+            "--enable_dinov3_scoring",
+            "--enable_vlm_compress",
+            "--enable_vlm_member_spatial",
+            "--distance_gate_dsq0",
+            "2.5",
+            "--dbscan_eps",
+            "0.1",
+            "--dbscan_min_samples",
+            "1",
+            "--no-enforce_same_view_uniqueness",
+        ]
+    )
+
+    assert np.isclose(args.weight_text, 0.8)
+    assert np.isclose(args.weight_dinov3, 0.6)
+    assert args.enable_dinov3_scoring is True
+    assert args.enable_vlm_compress is True
+    assert args.enable_vlm_member_spatial is True
+    assert np.isclose(args.distance_gate_dsq0, 2.5)
+    assert np.isclose(args.dbscan_eps, 0.1)
+    assert args.dbscan_min_samples == 1
+    assert args.enforce_same_view_uniqueness is False

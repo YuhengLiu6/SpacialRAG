@@ -843,6 +843,31 @@ def test_build_spatial_database_forwards_bbox_conf_threshold(monkeypatch):
     assert captured["bbox_conf_threshold"] == 0.42
 
 
+def test_build_spatial_database_forwards_dinov3_config(monkeypatch):
+    captured = {}
+
+    def _fake_core(**kwargs):
+        captured.update(kwargs)
+        return {"ok": True}
+
+    monkeypatch.setattr("spatial_rag.spatial_db_builder._build_spatial_database_core", _fake_core)
+
+    report = build_spatial_database(
+        enable_dinov3_embedding=True,
+        store_dinov3_embedding=True,
+        dinov3_model_name="facebook/dinov3-small",
+        dinov3_batch_size=8,
+        dinov3_normalize=False,
+    )
+
+    assert report == {"ok": True}
+    assert captured["enable_dinov3_embedding"] is True
+    assert captured["store_dinov3_embedding"] is True
+    assert captured["dinov3_model_name"] == "facebook/dinov3-small"
+    assert captured["dinov3_batch_size"] == 8
+    assert captured["dinov3_normalize"] is False
+
+
 def test_build_spatial_database_forwards_occlusion_target_overlap_threshold(monkeypatch):
     captured = {}
 

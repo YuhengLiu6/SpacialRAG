@@ -1,11 +1,33 @@
 import json
 
 from spatial_rag.config import OBJECT_SURROUNDING_MAX
+from spatial_rag.household_taxonomy import COMMON_PRELIST_OBJECT_TYPES
 from spatial_rag.vlm_captioner import VLMCaptioner
 
 
-def test_object_crop_prompt_version_bumped_for_yolo_hard_constraint():
-    assert VLMCaptioner._object_crop_prompt_version() == "object_crop_descriptor_builder_aligned_v5"
+class _FakeChatCompletionResponse:
+    def __init__(self, text: str):
+        self.choices = [type("Choice", (), {"message": type("Message", (), {"content": text})()})()]
+
+
+class _FakeCompletionsClient:
+    def __init__(self, text: str):
+        self.text = str(text)
+        self.calls = []
+
+    def create(self, **kwargs):
+        self.calls.append(dict(kwargs))
+        return _FakeChatCompletionResponse(self.text)
+
+
+class _FakeOpenAIClient:
+    def __init__(self, text: str):
+        self.completions = _FakeCompletionsClient(text)
+        self.chat = type("Chat", (), {"completions": self.completions})()
+
+
+def test_object_crop_prompt_version_bumped_for_vlm_label_generation():
+    assert VLMCaptioner._object_crop_prompt_version() == "object_crop_descriptor_builder_aligned_v8_prelist_label"
 
 
 def test_object_crop_prompt_version_differs_when_occlusion_requested():
@@ -13,7 +35,7 @@ def test_object_crop_prompt_version_differs_when_occlusion_requested():
 
 
 def test_batched_object_prompt_version_bumped_for_text_only_batch_schema():
-    assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_textonly_v3"
+    assert VLMCaptioner._batched_object_description_prompt_version() == "object_detection_batch_descriptor_textonly_v5_prelist_label"
 
 
 def test_object_prompt_version_differs_between_standard_and_angle_split():
@@ -39,6 +61,7 @@ def test_crop_response_schema_contains_required_fields():
     assert "long_description" in props
     assert "attributes" in props
     assert "distance_from_camera_m" in props
+    assert props["label"]["enum"] == [*COMMON_PRELIST_OBJECT_TYPES, "unknown"]
 
 
 def test_crop_response_schema_includes_occlusion_when_requested():
@@ -92,6 +115,103 @@ def test_object_cache_path_uses_structured_directory_layout(tmp_path):
     assert rel_parts[3] == "pose_00000"
     assert cache_path.name.startswith("pose_00000_o090_000001__")
     assert cache_path.name.endswith(".objects.json")
+
+
+def test_cluster_text_compression_user_prompt_includes_member_spatial_relations():
+    prompt = VLMCaptioner._cluster_text_compression_user_prompt(
+        ["brown wooden chair", "side view of the same chair"],
+        member_count=2,
+        member_spatial_relations=[
+            {
+                "member_index": 1,
+                "object_global_id": 10,
+                "label": "chair",
+                "direction_8": "W",
+                "direction_text": "west",
+                "distance_m": 1.0,
+            },
+            {
+                "member_index": 2,
+                "object_global_id": 11,
+                "label": "chair",
+                "direction_8": "E",
+                "direction_text": "east",
+                "distance_m": 1.0,
+            },
+        ],
+    )
+
+    assert "Member spatial relations:" in prompt
+    assert "member 1, object_id=10, label=chair: west, 1.00m from cluster prototype on the global x-z plane" in prompt
+    assert "member 2, object_id=11, label=chair: east, 1.00m from cluster prototype on the global x-z plane" in prompt
+
+
+def test_cluster_text_compression_cache_path_varies_by_member_spatial_relations(tmp_path):
+    captioner = VLMCaptioner(use_cache=False, object_use_cache=True, object_cache_dir=str(tmp_path / "vlm_object_cache"))
+
+    cache_path_a = captioner._cluster_text_compression_cache_path(
+        ["brown wooden chair"],
+        member_spatial_relations=[
+            {
+                "member_index": 1,
+                "object_global_id": 10,
+                "label": "chair",
+                "direction_8": "W",
+                "direction_text": "west",
+                "distance_m": 1.0,
+            }
+        ],
+    )
+    cache_path_b = captioner._cluster_text_compression_cache_path(
+        ["brown wooden chair"],
+        member_spatial_relations=[
+            {
+                "member_index": 1,
+                "object_global_id": 10,
+                "label": "chair",
+                "direction_8": "E",
+                "direction_text": "east",
+                "distance_m": 1.0,
+            }
+        ],
+    )
+
+    assert cache_path_a != cache_path_b
+
+
+def test_compress_cluster_member_texts_cache_payload_includes_member_spatial_relations(tmp_path):
+    captioner = VLMCaptioner(use_cache=False, object_use_cache=True, object_cache_dir=str(tmp_path / "vlm_object_cache"))
+    fake_client = _FakeOpenAIClient("compressed spatial chair")
+    captioner.client = fake_client
+    member_spatial_relations = [
+        {
+            "member_index": 1,
+            "object_global_id": 10,
+            "label": "chair",
+            "direction_8": "W",
+            "direction_text": "west",
+            "distance_m": 1.0,
+        }
+    ]
+
+    result = captioner.compress_cluster_member_texts(
+        ["brown wooden chair", "side view of the same chair"],
+        member_count=2,
+        member_spatial_relations=member_spatial_relations,
+    )
+
+    cache_path = captioner._cluster_text_compression_cache_path(
+        ["brown wooden chair", "side view of the same chair"],
+        member_spatial_relations=member_spatial_relations,
+    )
+    cached_payload = json.loads(cache_path.read_text(encoding="utf-8"))
+
+    assert result == "compressed spatial chair"
+    assert cache_path.exists()
+    assert cached_payload["cluster_text_description"] == "compressed spatial chair"
+    assert cached_payload["member_spatial_relations"] == member_spatial_relations
+    user_prompt = fake_client.completions.calls[0]["messages"][1]["content"]
+    assert "Member spatial relations:" in user_prompt
 
 
 def test_selector_cache_legacy_file_is_promoted_to_structured_path(tmp_path):
@@ -205,7 +325,9 @@ def test_object_crop_user_prompt_includes_detector_context():
 
     assert '"chair"' in prompt
     assert "0.716" in prompt
-    assert "short_description should correspond to a short precise object description" in prompt
+    assert "Treat this detected class only as a hint" in prompt
+    assert "Choose label from this same household pre-list" in prompt
+    assert "If none of those labels fit the visible object, return unknown." in prompt
 
 
 def test_batched_detected_objects_prompt_no_longer_requests_occlusion_level():
@@ -225,6 +347,52 @@ def test_batched_detected_objects_prompt_no_longer_requests_occlusion_level():
     assert "occlusion_level" not in system_prompt
     assert "occlusion_level" not in user_prompt
     assert "Judge occlusion for the detector-localized object instance itself" not in user_prompt
+    assert "Use the detector-provided class only as a localization hint" in system_prompt
+    assert "Allowed label values:" in system_prompt
+    assert "choose label from this same household pre-list" in user_prompt
+    assert "Return exactly one JSON object per listed object_local_id" in user_prompt
+
+
+def test_object_description_schema_uses_non_empty_strings():
+    schema = VLMCaptioner._object_crop_response_schema()
+    props = schema["schema"]["properties"]
+    assert props["label"]["minLength"] == 1
+    assert props["short_description"]["minLength"] == 1
+    assert props["long_description"]["minLength"] == 1
+
+
+def test_object_description_schema_constrains_label_to_prelist_and_unknown():
+    schema = VLMCaptioner._batched_detected_objects_response_schema(max_objects=2)
+    item_props = schema["schema"]["properties"]["objects"]["items"]["properties"]
+    assert item_props["label"]["enum"] == [*COMMON_PRELIST_OBJECT_TYPES, "unknown"]
+
+
+def test_normalize_object_description_forces_out_of_prelist_label_to_unknown():
+    payload = VLMCaptioner._normalize_object_description_payload(
+        {"label": "sofa", "short_description": "gray sofa", "long_description": "gray sofa"},
+        default_payload=VLMCaptioner._default_object_crop_description(),
+        label_hint="chair",
+        include_occlusion=False,
+    )
+
+    assert payload["label"] == "unknown"
+
+
+def test_batched_object_schema_requires_non_empty_object_local_id():
+    schema = VLMCaptioner._batched_detected_objects_response_schema(max_objects=2)
+    item_props = schema["schema"]["properties"]["objects"]["items"]["properties"]
+    assert item_props["object_local_id"]["minLength"] == 1
+
+
+def test_normalize_object_description_does_not_replace_unknown_label_with_hint():
+    payload = VLMCaptioner._normalize_object_description_payload(
+        {},
+        default_payload=VLMCaptioner._default_object_crop_description(),
+        label_hint="chair",
+        include_occlusion=False,
+    )
+
+    assert payload["label"] == "unknown"
 
 
 def test_response_has_length_finish_reason_detects_truncated_cache_payload():

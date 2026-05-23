@@ -1,1297 +1,1349 @@
 # Spatial RAG Pipeline Documentation
 
-## No.1 Prompt Suite for Spatial RAG
+This README documents the current local `spatial_rag/` codebase as a pipeline. The package is currently a flat module layout, so runnable module paths use `python -m spatial_rag.<file_name_without_py>`.
 
-### 1. Caption Image Prompt
-**Purpose:**
-Used to generate a concise scene summary for the entire image for spatial retrieval. The output is a factual 2–4 sentence scene summary that emphasizes key objects and the rough layout.
+Current core path:
 
-**Prompt content:**
-- **System:**
-  You are an image understanding assistant.
-  Write a compact factual summary of this scene for spatial retrieval.
+```text
+Habitat exploration
+  -> VLM selector
+  -> YOLO-World detection
+  -> NanoSAM mask + DepthPro depth + geometric projection
+  -> batched/crop object VLM description
+  -> CLIP / DINOv3 embeddings
+  -> spatial DB artifacts
+  -> VPR / object localization / instance clustering / analysis
+```
 
-- **User:**
-  Summarize the visible scene in 2-4 sentences, including key objects and rough layout cues.
+Important current implementation notes:
 
+- The active DINO branch is **DINOv3**.
+- The active sequential pipeline uses `cosine_geo_gate` by default, with `DEFAULT_CROSS_AFFINITY_MIN = 0.5`, `DEFAULT_DISTANCE_GATE_DSQ0 = 4`, and same-view uniqueness enabled.
+- Current module paths are flat, for example `python -m spatial_rag.spatial_db_builder`.
+- `batch_predict_object_match_mlp.py` is currently a stale wrapper that references missing nested modules.
+- `visible_occlusion 2.py` is an exact duplicate of `visible_occlusion.py`.
 
-### 2. Object Crop Prompt (single-object crop description)
-**Purpose:**
-Used to generate a fine-grained description for a single object crop. The focus is to generate structured JSON for the main object in the crop, based on the category provided by the detector, including label, short_description, long_description, attributes, and distance_from_camera_m. Suitable for constructing object-level database text.
+Coordinate naming note:
 
-**Prompt content:**
-- **System:**
-  You are a strict vision parser for object crops.
-  Return JSON only, matching the schema exactly.
-  Describe only the main visible object in the crop.
-  Use the detector-provided class as the object category you must describe.
-  Match the style of object descriptions used in a spatial database builder:
-  the short description should read like a concise object instance description,
-  and the long description should read like a detailed open-form object description.
-  Do not return generic placeholders when any visible cue is available.
-  If the object is partial, edge-cropped, occluded, blurred, dark, or tiny, explicitly say so in the descriptions.
-
-- **User:**
-  A detector has identified the object in this crop as "{yolo_label_clean or 'unknown'}"
-  (confidence: {yolo_conf_text}).
-  Treat this detected class as the object category to describe.
-  Describe this specific object instance visible in the cropped image in the same style as the database builder's
-  object fields: short_description should correspond to a short precise object description, and long_description
-  should correspond to a detailed long-form open description.
-  Ignore the wider room and focus on the object itself.
-  Return a compact label for that detected category, a short description useful for retrieval,
-  a richer long description, a list of notable visual attributes, and an approximate distance
-  from the camera in meters when you can infer it. Mention the approximate distance directly
-  in the short or long description when possible.
-
-  **Requirements:**
-  - `short_description` must be 3 to 8 words
-  - Do not write only the bare category name unless absolutely nothing is visible
-  - It must include at least one visible feature, such as color, material, shape, state, position in the crop, or whether it is partially visible
-  - Prefer using a noun phrase, such as:
-    "dark wooden chair edge crop"
-    "gold-framed wall picture"
-  - `long_description` must be specific and should include color, material, texture, shape, state, size cues, and whether it is cropped whenever possible
-  - If the crop is partial / clipped, explicitly mention partial, cropped, edge, or cut off
-  - Even when uncertain, describe what is visible instead of refusing
-  - `attributes` should be concise visible attributes, not vague generalities
-  - Output JSON only
-
-
-### 3. Object Extraction Prompt (extracting objects from the whole image, standard / angle_split)
-**Purpose:**
-Used to perform full scene-level + object-level parsing for an entire room image.
-It not only outputs overall scene attributes, but also extracts multiple concrete objects and provides, for each object:
-- description
-- attributes
-- relative_position_laterality / distance / verticality
-- distance_from_camera_m
-- relative_height_from_camera_m
-- relative_bearing_deg
-- support_relation
-- any_text
-- long_form_open_description
-- location_relative_to_other_objects
-- surrounding_context
-
-Suitable for downstream retrieval, deduplication, and spatial relationship modeling.
-
-**Prompt content:**
-- **System:**
-  You are a strict vision parser for spatial retrieval.
-  Return JSON only, matching the schema exactly.
-  No markdown, no explanations, no extra keys.
-
-- **User:**
-  I am going to show you a photograph taken from a particular node location and orientation on a building.
-  Your job is to describe the overall image, and separately extract concrete visible objects from this image
-  to provide detailed descriptions and spatial characteristics for downstream retrieval and deduplication.
-  Do not output wall feature or floor pattern as standalone objects.
-  Put those into scene_attributes or into a nearby concrete object's attributes when relevant.
-
-  **[camera_context_block]**
-  - **If there is no camera_context:**
-    Camera global pose is unavailable for this request.
-    Image geometry convention: horizontal FOV is {FOV} degrees.
-    Straight ahead is 0 degrees.
-    Objects near the left image edge are about -45 degrees.
-    Objects near the right image edge are about +45 degrees.
-    Negative bearing means left of image center.
-    Positive bearing means right of image center.
-    Still estimate each object's distance_from_camera_m and relative_bearing_deg from the image alone.
-
-  - **If there is camera_context:**
-    Current camera global pose: x=..., z=..., orientation_deg=...
-    Use this pose only to reason about spatial consistency.
-    Do not return absolute global coordinates.
-    Return relative geometry only, and let the downstream program compute global coordinates.
-    Same image geometry convention as above.
-
-  **[only additionally included in the angle_split version]**
-  For relative_position_laterality, divide the image horizontally into exactly three discrete sectors:
-  left, center, and right.
-  Assign every object to exactly one of these sectors based on where most of the object appears in the image.
-  Do not use laterality vaguely or comparatively; treat it as a strict bucket.
-  Use left for objects mainly in the left third, center for the middle third, and right for the right third.
-
-  **[shared main requirements]**
-  For every object, estimate its approximate distance from the camera in meters whenever possible and fill
-  distance_from_camera_m with that estimate.
-  Also estimate relative_bearing_deg in the range [-90, 90], where 0 means the object is straight ahead,
-  negative means left of image center, and positive means right of image center.
-  Also estimate relative_height_from_camera_m, the object's vertical offset relative to the camera center in meters:
-  negative means lower than the camera, positive means higher than the camera, and 0 means roughly level with the camera.
-  Keep relative_position_distance broadly consistent with the meter estimate.
-
-  For each primary object, list up to {OBJECT_SURROUNDING_MAX} visible surrounding objects in surrounding_context,
-  sorted by increasing distance_from_primary_m.
-  Each surrounding item must include:
-  - label
-  - attributes
-  - distance_from_primary_m
-  - distance_from_camera_m
-  - relative_height_from_camera_m
-  - relative_bearing_deg
-  - relation_to_primary
-
-  If a quantity cannot be inferred, return null instead of guessing.
-  Do not return absolute global coordinates.
-
-  **[JSON output structure requirements]**
-  **Top-level fields include:**
-  - view_type
-  - room_function
-  - style_hint
-  - clutter_level
-  - scene_attributes
-  - visual_feature[]
-  - floor_pattern
-  - lighting_ceiling
-  - wall_color
-  - additional_notes
-  - image_summary
-
-  **Each visual_feature includes:**
-  - type
-  - description
-  - attributes
-  - relative_position_laterality
-  - relative_position_distance
-  - relative_position_verticality
-  - distance_from_camera_m
-  - relative_height_from_camera_m
-  - relative_bearing_deg
-  - support_relation
-  - any_text
-  - long_form_open_description
-  - location_relative_to_other_objects
-  - surrounding_context[]
-
-  **Ending requirements:**
-  Fill in every JSON field above as completely as possible.
-  If something is entirely out of frame or unidentifiable, you can use 'unknown' or null where allowed.
-  Return at most {max_objects} items in visual_feature.
-  Output JSON only.
-
-
-### 4. Selector Prompt (scene summary + pre-selected object categories)
-**Purpose:**
-Used for lightweight scene summarization and object category pre-selection.
-At this stage, no object instance enumeration or per-object spatial geometry estimation is performed. It only selects the subset of categories from the candidate household object list that are clearly visible in the image and worth searching for with the detector/localizer.
-
-**Prompt content:**
-- **System:**
-  You are a strict vision parser for scene summarization and household category selection.
-  Return JSON only, matching the schema exactly.
-  Use only categories from the provided candidate list.
-
-- **User:**
-  I am going to show you a room image.
-  Your job is to do scene summarization and object category pre-selection only.
-  Do not enumerate object instances and do not estimate per-object geometry in this step.
-  Use the candidate object list provided below as a household pre-list,
-  and return only the subset that is clearly visible in the image.
-  Prefer categories that are visually present as concrete objects, not inferred from context alone.
-  Include an object type only if it is likely visible enough for a detector to localize.
-  Exclude categories that are absent, ambiguous, or only suggested by the room type.
-
-  [camera_context_block]
-  Candidate object list: {selector_candidate_list_text(COMMON_PRELIST_OBJECT_TYPES)}.
-  Return JSON only.
-
-
-### 5. Camera Context Prompt Block (reused by multiple prompts)
-**Purpose:**
-This is a reusable prompt fragment, not a complete standalone task prompt.
-It is responsible for injecting the camera pose and image geometry conventions into the main prompt, helping the model estimate the following more stably:
-- distance_from_camera_m
-- relative_bearing_deg
-- relative_height_from_camera_m
-
-It also avoids returning absolute global coordinates.
-
-**Prompt content:**
-- **When there is no camera_context:**
-  Camera global pose is unavailable for this request.
-  Image geometry convention: horizontal FOV is {FOV} degrees.
-  Straight ahead is 0 degrees.
-  Objects near the left image edge are about -45 degrees.
-  Objects near the right image edge are about +45 degrees.
-  Negative bearing means left of image center.
-  Positive bearing means right of image center.
-  Still estimate each object's distance_from_camera_m and relative_bearing_deg from the image alone.
-
-- **When there is camera_context:**
-  Current camera global pose: x={camera_x:.3f}, z={camera_z:.3f}, orientation_deg={camera_orientation_deg:.1f}.
-  Use this pose only to reason about spatial consistency.
-  Do not return absolute global coordinates.
-  Return relative geometry only, and let the downstream program compute global coordinates.
-  Image geometry convention: horizontal FOV is {FOV} degrees.
-  Straight ahead is 0 degrees.
-  Objects near the left image edge are about -45 degrees.
-  Objects near the right image edge are about +45 degrees.
-  Negative bearing means left of image center.
-  Positive bearing means right of image center.
-
+- Current DB rows store Habitat pose as `world_position = [x, y, z]`, and duplicate those values into top-level `x`, `y`, `z`.
+- Current retrieval and sequential matching code uses `estimated_global_x` and `estimated_global_y` as the planar distance-gate axes.
+- Current geometry projection stores the vertical-offset projection in `estimated_global_z`.
+- This README describes the code as it exists now, including those field names.
 
 ---
 
+## No.1 Prompt Suite For Spatial RAG
 
-## No.2 Pipeline1: VLM -> YOLOworld -> Spatial DB
+The prompt logic is implemented in `spatial_rag/vlm_captioner.py`.
+
+### 1. Caption Image Prompt
+
+**Purpose:**
+Generate a concise view-level scene summary for spatial retrieval.
+
+**Code:**
+
+- `VLMCaptioner.caption_image(...)`
+
+**Output:**
+
+- A compact 2-4 sentence scene summary.
+- Utility / compatibility API only in the current codebase.
+- The main DB builder currently composes frame text from selector/object metadata rather than calling `caption_image(...)` directly.
+
+**Conceptual prompt:**
+
+- System: image understanding assistant for spatial retrieval.
+- User: summarize visible scene with key objects and rough layout cues.
+
+---
+
+### 2. Object Crop Prompt
+
+**Purpose:**
+Describe one detector-localized object crop. This produces object-level text fields used by the spatial DB:
+
+- `label`
+- `short_description`
+- `long_description`
+- `attributes`
+- optional VLM distance / geometry hints
+- optional VLM occlusion fields when requested
+
+**Code:**
+
+- `VLMCaptioner.describe_object_crop_with_meta(...)`
+- `VLMCaptioner._object_crop_system_prompt(...)`
+- `VLMCaptioner._object_crop_user_prompt(...)`
+- `VLMCaptioner._object_crop_response_schema(...)`
+
+**Current prompt version:**
+
+```text
+object_crop_descriptor_builder_aligned_v8_prelist_label
+object_crop_descriptor_builder_aligned_v8_prelist_label_and_occlusion
+```
+
+**Core requirements:**
+
+- Return JSON only.
+- Describe only the main visible object in the crop.
+- Treat detector label as a localization/category hint, not a hard category constraint.
+- Choose `label` from the household pre-list in `household_taxonomy.py`; return `unknown` if nothing fits.
+- `short_description` should be a concise noun phrase with visible cues.
+- `long_description` should include color, material, texture, shape, state, size cues, and cropping/occlusion if visible.
+- Do not output generic placeholders when visible cues exist.
+- When `include_occlusion=True`, also return `occlusion_level`; the default DB path uses deterministic bbox/depth occlusion instead.
+
+---
+
+### 3. Batched Detected Object Description Prompt
+
+**Purpose:**
+Describe all detector-localized objects in one image-level VLM call. This is the current preferred object text path for the mask/depth geometry route because it avoids one VLM call per crop when possible.
+
+**Code:**
+
+- `VLMCaptioner.describe_detected_objects_with_meta(...)`
+- `VLMCaptioner._batched_detected_objects_system_prompt(...)`
+- `VLMCaptioner._batched_detected_objects_user_prompt(...)`
+- `VLMCaptioner._batched_detected_objects_response_schema(...)`
+
+**Current prompt version:**
+
+```text
+object_detection_batch_descriptor_textonly_v5_prelist_label
+```
+
+**Input:**
+
+- Full RGB image.
+- A list of detector results: `det_idx`, `label`, `bbox_xyxy`, `confidence`.
+
+**Output:**
+
+Per detection:
+
+- `det_idx`
+- `label`
+- `short_description`
+- `long_description`
+- `attributes`
+
+This text is later merged with geometry metadata from `ObjectGeometryPipeline`.
+
+**Important behavior:**
+
+- This batched prompt is used in the default `visible_mask` occlusion path.
+- If `--occlusion_source vlm` is selected, the pipeline falls back to per-crop VLM calls because batched descriptions do not return occlusion labels.
+- If object descriptions are precomputed in the staged execution path, the geometry pipeline can reuse those results instead of calling the VLM again.
+
+---
+
+### 4. Object Extraction Prompt
+
+**Purpose:**
+Parse a whole image into scene-level attributes and object-level visual features. This path is used for full scene/object JSON parsing and as a fallback when deterministic geometry/detection routes cannot produce usable objects.
+
+**Code:**
+
+- `VLMCaptioner.describe_objects_with_meta(...)`
+- `VLMCaptioner._object_system_prompt(...)`
+- `VLMCaptioner._object_user_prompt(...)`
+- `spatial_rag/object_parser.py`
+- `spatial_rag/object_schema.py`
+
+**Current prompt versions:**
+
+```text
+home_prompt_surrounding_anchor_height_hierarchy_v3
+home_prompt_angle_split_surrounding_anchor_height_hierarchy_v3
+```
+
+**Top-level output fields:**
+
+- `view_type`
+- `room_function`
+- `style_hint`
+- `clutter_level`
+- `scene_attributes`
+- `visual_feature[]`
+- `floor_pattern`
+- `lighting_ceiling`
+- `wall_color`
+- `additional_notes`
+- `image_summary`
+
+**Per-object output fields:**
+
+- `type`
+- `description`
+- `attributes`
+- `relative_position_laterality`
+- `relative_position_distance`
+- `relative_position_verticality`
+- `distance_from_camera_m`
+- `relative_height_from_camera_m`
+- `relative_bearing_deg`
+- `support_relation`
+- `any_text`
+- `long_form_open_description`
+- `location_relative_to_other_objects`
+- `surrounding_context[]`
+
+---
+
+### 5. Selector Prompt
+
+**Purpose:**
+Lightweight scene summary and object-category pre-selection. It selects which household object categories are likely visible enough to pass into YOLO-World.
+
+**Code:**
+
+- `VLMCaptioner.select_object_types_with_meta(...)`
+- `VLMCaptioner._selector_user_prompt(...)`
+- `VLMCaptioner._selector_response_schema(...)`
+- `spatial_rag/household_taxonomy.py`
+
+**Current prompt version:**
+
+```text
+household_selector_scene_summary_v1
+```
+
+**Output:**
+
+- scene attributes
+- `floor_pattern`
+- `lighting_ceiling`
+- `wall_color`
+- `additional_notes`
+- `image_summary`
+- `selected_object_types`
+
+The selected types become the detector class list for `Detector.detect(...)`.
+
+---
+
+### 6. Camera Context Prompt Block
+
+**Purpose:**
+Inject camera pose and image geometry into prompts so VLM outputs can estimate relative geometry more consistently.
+
+**Code:**
+
+- `VLMCaptioner._camera_context_prompt_block(...)`
+
+**Fields passed when available:**
+
+- `camera_x`
+- `camera_y`
+- `camera_orientation_deg`
+- `FOV`
+
+**Meaning:**
+
+- Do not ask VLM for absolute global coordinates.
+- Ask for relative camera geometry:
+  - `distance_from_camera_m`
+  - `relative_bearing_deg`
+  - `relative_height_from_camera_m`
+
+---
+
+### 7. Cluster Text Compression Prompt
+
+**Purpose:**
+Compress multiple observations that already belong to the same memory cluster into one stable object-centric text prototype for sequential clustering.
+
+**Code:**
+
+- `VLMCaptioner.compress_cluster_member_texts(...)`
+- `VLMCaptioner._cluster_text_compression_system_prompt(...)`
+- `VLMCaptioner._cluster_text_compression_user_prompt(...)`
+
+**Current prompt version:**
+
+```text
+sequential_cluster_text_compress_v2_member_spatial
+```
+
+**Used by:**
+
+- `spatial_rag/sequential_spectral_experiment.py`
+- controlled by `ENABLE_VLM_COMPRESS`
+- optional member-internal spatial cues controlled by `ENABLE_VLM_MEMBER_SPATIAL`
+
+---
+
+## No.2 Pipeline 1: VLM -> YOLO-World -> Spatial DB
 
 ### Input / Output
-1. **VLM + selector prompt**: extracts the object categories that may exist in the image
-2. Feed the extracted object categories as the prompt input together with the image into **YOLOworld** for object detection
-3. **YOLOworld returns** (it does not output angle information itself):
-   ```json
-   {
-     "det_idx": 0,
-     "label": "couch",
-     "bbox_xyxy": [496.889, 640.528, 1056.839, 1080.0],
-     "confidence": 0.8892
-   }
-   ```
+
+**Input:**
+
+- Habitat scene file from `SCENE_PATH` or `--scene_path`
+- exploration config from `Explorer`
+- VLM model from `SPATIAL_DB_VLM_MODEL`
+- detector/model settings from `config.py`
+
+Key defaults from `config.py`:
+
+| Setting | Current value |
+| --- | --- |
+| `SPATIAL_DB_VLM_MODEL` | `gpt-5-mini` |
+| `SCAN_ANGLES` | `(0, 90, 180, 270)` |
+| `OBJECT_MAX_PER_FRAME` | `24` |
+| `BBOX_CONF_THRESHOLD` | `0.3` |
+| `DETECTOR_TYPE` | `YOLO_WORLD` |
+| `YOLO_WORLD_MODEL_PATH` | `yolov8s-world.pt` |
+| `OCCLUSION_SOURCE` | `visible_mask` |
+| `ENABLE_DINOV3_EMBEDDING` | `True` |
+| `STORE_DINOV3_EMBEDDING` | `True` |
+| `DINOV3_MODEL_NAME` | `facebook/dinov3-vit7b16-pretrain-lvd1689m` |
+
+**Main command:**
+
+```bash
+python -m spatial_rag.spatial_db_builder \
+  --builder_variant angle_split \
+  --output_dir spatial_db_origin \
+  --occlusion_reweight_w1 0.0 \
+  --occlusion_reweight_w2 1.0 \
+  --occlusion_reweight_b 0 \
+  --export_object_crops_by_global_id_dir object_crops_by_global_id
+```
+
+**Random smoke run:**
+
+```bash
+python -m spatial_rag.spatial_db_builder \
+  --builder_variant angle_split \
+  --output_dir spatial_db_test \
+  --tour_mode random \
+  --random_num_steps 3 \
+  --occlusion_reweight_w1 0.0 \
+  --occlusion_reweight_w2 1.0 \
+  --occlusion_reweight_b 0 \
+  --export_object_crops_by_global_id_dir object_crops_by_global_id
+```
+
+### Execution Modes And Fallbacks
+
+The builder has two execution modes:
+
+- `capture_then_parallel_vlm` is the default. It captures frames, runs selector/object-description work in staged batches where possible, then materializes DB rows.
+- `legacy_per_frame` keeps the older per-frame control flow and can also be forced with `--legacy_per_frame true`.
+
+The preferred per-frame object route is:
+
+```text
+selector prompt
+  -> detector class list
+  -> YOLO-World detections
+  -> bbox confidence filter
+  -> max-object truncation
+  -> DepthPro + NanoSAM + angle geometry
+  -> batched detected-object VLM description
+  -> merged geometry/text object rows
+```
+
+If the deterministic geometry route fails for a frame, the builder falls back to the whole-image object extraction prompt (`describe_objects_with_meta`) and marks object rows with `geometry_source = "vlm_fallback"`.
+
+Optional postprocess / filtering:
+
+- `--r_threshold`: drops geometry-derived objects whose `reweighted_detection_score_r` is below the threshold.
+- `--run_polar_surrounding_postprocess true`: writes `object_polar_relations.jsonl` and `object_meta_with_polar_surroundings.jsonl`; it does not replace `object_meta.jsonl`.
+- `--export_object_crops_by_global_id_dir`: exports final object crops plus a manifest under the DB output directory unless an absolute path is provided.
+
+### High-Level Flow
+
+```mermaid
+flowchart TD
+    A["Habitat scene"]
+    B["Explorer<br/>captures RGB/depth frames"]
+    C["VLM selector<br/>scene summary + selected_object_types"]
+    D["YOLO-World detector<br/>classes = selected_object_types"]
+    E["Detections<br/>label + bbox_xyxy + confidence"]
+    F["DepthPro<br/>whole-image dense depth"]
+    G["NanoSAM<br/>bbox -> object mask"]
+    H["Mask + depth + FOV geometry<br/>depth, bearing, height, global xyz"]
+    I["Visible occlusion<br/>bbox overlap + depth ordering"]
+    J["DINOv3 crop embedding"]
+    K["Batched object VLM description"]
+    K2["Whole-image VLM fallback<br/>if geometry route fails"]
+    L["Merged object metadata"]
+    M["CLIP embeddings<br/>image/text/object text"]
+    N["Spatial DB artifacts"]
+
+    A --> B --> C --> D --> E
+    E --> F
+    E --> G
+    F --> H
+    G --> H
+    H --> I
+    H --> J
+    E --> K
+    E -. failure .-> K2
+    I --> L
+    J --> L
+    K --> L
+    K2 --> L
+    B --> M
+    L --> M
+    M --> N
+```
+
+### Key Code Locations
+
+| Stage | Main files |
+| --- | --- |
+| Explore/capture | `explorer.py`, `spatial_db_builder.py` |
+| Selector VLM | `vlm_captioner.py`, `household_taxonomy.py` |
+| Detection | `detector.py` |
+| Mask/depth/geometry | `object_geometry_pipeline.py`, `depth_stats.py` |
+| Visible occlusion | `visible_occlusion.py`, `occlusion_scoring.py` |
+| Object text parsing | `vlm_captioner.py`, `object_parser.py`, `object_schema.py`, `object_canonicalizer.py` |
+| Embeddings | `embedder.py` |
+| DB writing | `spatial_db_builder.py` |
+| Relation writing | `spatial_db_builder.py`, `object_relation_builder.py`, `graph_builder.py` |
+
+---
 
 ### Subpipeline: NanoSAM + DepthPro
 
-#### 1. NanoSAM mask
-- **Purpose:** 
-  YOLO-World only provides a rectangular box, but the box includes background pixels. NanoSAM is used to cut out the target object pixels inside the box from the background, producing a more accurate object mask.
-- **Input:**
-  - `image_rgb`: the full RGB image
-  - `bbox_xyxy`: the detection box `[x1, y1, x2, y2]` returned by YOLO-World
-- **Output:**
-  A boolean mask with the same size as the original image:
-  - shape: `(H, W)`
-  - Type: `bool` (`True` means the pixel belongs to the target object)
+#### 1. NanoSAM Mask
 
-#### 2. DepthPro depth estimation
+**Purpose:**
+YOLO-World only returns a rectangular bbox. NanoSAM refines the target region into an object mask so depth and centroid geometry are less affected by background pixels.
 
-**Step 1: Depth map generation**
-- **Input:** original image `image_path`
-- **Method:** Run `DepthProAdapter.predict_depth(...)` once on the full image to generate a dense depth map, where each pixel has one depth value.
-- **Output:** `depth_map_m[H, W]`
-- **Code locations:**
-  - `object_geometry_pipeline.py` (line 402)
-  - `object_geometry_pipeline.py` (line 724)
+**Input:**
 
-**Step 2: Object mask extraction**
-- **Input:** 
-  - YOLO-World `bbox`
-  - original image
-- **Method:** Use NanoSAM to generate an object mask from the bbox, with the goal of removing the background inside the box and keeping only the object region.
-- **Output:** `mask[H, W]`, a boolean foreground mask
-- **Code locations:**
-  - `object_geometry_pipeline.py` (line 286)
-  - `object_geometry_pipeline.py` (line 754)
+- `image_rgb`
+- `bbox_xyxy`
 
-**Step 3: Masked depth aggregation**
-- **Input:**
-  - `depth_map_m`
-  - `object mask`
-- **Method:** 
-  - Keep only valid depth pixels inside the mask
-  - Remove invalid values and values `<= 0`
-  - Compute median, trimmed median, p10, and p90
-  - The current main pipeline actually uses `trimmed_median_m` as the depth of this object
-- **Output:** `forward_depth_m`, along with auxiliary statistics `median/p10/p90`
-- **Code locations:**
-  - `object_geometry_pipeline.py` (line 113)
-  - `object_geometry_pipeline.py` (line 782)
+**Output:**
 
-**Step 4: Convert depth into object-level geometry**
-- **Input:**
-  - `forward_depth_m`
-  - the `angle` corresponding to the object centroid
-- **Method:** Use depth as the object’s forward depth relative to the camera. Then combine it with the horizontal and vertical angles to derive `projected_planar_distance_m` and `relative_height_from_camera_m`.
-- **Output:** 
-  object-level geometric metadata:
-  - `distance_from_camera_m`
-  - `projected_planar_distance_m`
-  - `relative_height_from_camera_m`
+- `mask[H, W]`, boolean foreground mask
 
-> **One-sentence summary**
-> The core idea of DepthPro is not to estimate depth separately for each bbox, but to first generate a dense depth map for the whole image, then aggregate a robust object depth within the target region using NanoSAM’s object mask, and finally combine it with angles to convert it into object-level spatial attributes.
+**Code:**
 
-#### 2.5 Visible occlusion estimation
+- `NanoSAMMaskRefiner` in `object_geometry_pipeline.py`
+- `ObjectGeometryPipeline.run_for_view(...)`
 
-The current deterministic `occlusion_level` keeps the compatibility source name `visible_mask`, but the implementation is now **bbox overlap + depth ordering**, not mask-boundary interaction.
+---
 
-**Detection filtering before occlusion**
-- YOLO-World detections are first filtered by `bbox_conf_threshold`, default `0.3`.
-- Boxes below that threshold do **not** enter `object_rows`.
-- They are still written to:
-  - `geometry/view_xxxxx/filtered_detections.json`
-  - `geometry/view_xxxxx/filtered_detection_overlay.jpg`
-- These low-confidence boxes also do **not** participate in occlusion estimation.
+#### 2. DepthPro Depth Estimation
 
-**What is actually measured**
-- We do **not** ask whether the crop looks visually cluttered.
-- We do **not** ask for amodal semantic occlusion.
-- We ask:
-  - among the **kept** detected objects in the same image,
-  - how much of the target **bbox** is covered by other bboxes
-  - whose overlap with the target is large enough
-  - and whose estimated depth is closer to the camera
+**Step 1: Dense depth map**
 
-**Detailed logic**
-1. **Target bbox and target depth**
-   - Keep the target YOLO bbox.
-   - Reuse the object depth already estimated by the mask+DepthPro geometry path.
-   - This stored depth representative is exposed as `object_depth_median`.
+- Input: full image.
+- Output: `depth_map_m[H, W]`.
+- Code: `DepthProAdapter` in `object_geometry_pipeline.py`.
 
-2. **Candidate overlapping objects**
-   - Compare the target bbox with every other kept bbox in the same image.
-   - Compute:
-     `target_overlap_ratio = intersection_area(target_bbox, other_bbox) / target_bbox_area`
-   - Keep only pairs with:
-     `target_overlap_ratio >= occlusion_target_overlap_threshold`
-   - Current default:
-     `occlusion_target_overlap_threshold = 0.1`
+**Step 2: Masked depth aggregation**
 
-3. **Depth ordering**
-   - For every overlapping pair, compare their depth representatives.
-   - If:
-     `other_depth < target_depth - depth_margin_delta`
-     then the other object is treated as a foreground occluder.
-   - Current default:
-     `depth_margin_delta = 0.0`
+- Input: `depth_map_m` + object mask.
+- Keep finite positive depth values inside the mask.
+- Compute median, trimmed median, p10, p90.
+- Current geometry path uses a robust representative depth for object projection.
+- Code: `mask_depth_stats(...)` in `object_geometry_pipeline.py` and `depth_stats.py`.
 
-4. **Union all foreground overlap regions**
-   - For every foreground occluder, take its intersection region with the target bbox.
-   - Union all such regions together.
-   - Let:
-     `occluding_overlap_pixel_count = area(union_of_intersections)`
+**Step 3: Convert depth into object geometry**
 
-5. **Final visible occlusion ratio**
-   - Compute:
-     `visible_occlusion_ratio = occluding_overlap_pixel_count / target_bbox_area`
-   - Clamp to `[0, 1]`
+The system combines object depth with mask centroid angles:
 
-6. **Convert ratio to level**
-   - `ratio < 0.10` -> `fully visible`
-   - `0.10 <= ratio < 0.30` -> `slightly occluded`
-   - `0.30 <= ratio < 0.60` -> `moderately occluded`
-   - `ratio >= 0.60` -> `heavily occluded`
+- `distance_from_camera_m`
+- `projected_planar_distance_m`
+- `relative_height_from_camera_m`
+- `relative_bearing_deg`
+- `estimated_global_x`
+- `estimated_global_y`
+- `estimated_global_z`
 
-7. **Convert ratio to penalty**
-   - The stored penalty is:
-     `occlusion_penalty_p_o = 0.5 * visible_occlusion_ratio`
+**One-sentence summary:**
+DepthPro is run once on the whole image; object depth is aggregated inside the NanoSAM mask; FOV and mask centroid convert that depth into object-level spatial geometry.
 
-**Compact pseudo code**
+---
+
+### Subpipeline: Angle Estimation
+
+The object angle is derived from the mask centroid, not the bbox center.
+
+**Steps:**
+
+1. Compute the object mask centroid:
+   `x_obj, y_obj = mean foreground pixel position`.
+2. Treat the image center as the optical axis:
+   `cx = (W - 1) / 2`, `cy = (H - 1) / 2`.
+3. Infer camera focal lengths from horizontal FOV and image aspect ratio.
+4. Convert pixel offset into angles:
+   - `relative_bearing_deg = atan((x_obj - cx) / fx)`
+   - `vertical_angle_deg = atan((cy - y_obj) / fy)`
+5. Project object position into global coordinates using camera pose and orientation.
+
+**Code:**
+
+- `mask_centroid(...)`
+- `pixel_center_to_relative_angles_deg(...)`
+- `project_global_xyz_from_geometry(...)`
+- `ObjectGeometryPipeline.run_for_view(...)`
+
+---
+
+### Subpipeline: Visible Occlusion Estimation
+
+The current deterministic `occlusion_source` default is `visible_mask`, but the actual implementation is bbox overlap + depth ordering.
+
+**What it measures:**
+
+For each kept detection, among other kept detections in the same image:
+
+- how much of the target bbox is covered by other bboxes
+- whether those overlapping boxes are closer to the camera
+- union overlap area as a ratio of target bbox area
+
+Only detections that survive class matching, `bbox_conf_threshold`, and `object_max_per_frame` truncation participate in deterministic occlusion. Low-confidence class-matched detections are written to `filtered_detections.json` / `filtered_detection_overlay.jpg` when artifacts are enabled, but they do not become objects and do not occlude other objects.
+
+**Important defaults:**
+
+- `bbox_conf_threshold = 0.3`
+- `occlusion_target_overlap_threshold = 0.1`
+- `visible_occ_depth_margin_delta = 0.0`
+
+**Pseudo code:**
 
 ```text
 kept = detections with confidence >= bbox_conf_threshold
 
 for target in kept:
-    target_depth = target.depth_from_mask_depth
-    overlap_union = union(
-        intersection(target.bbox, other.bbox)
-        for other in kept if other != target
-        if intersection_area(target.bbox, other.bbox) / area(target.bbox) >= 0.1
-        if other.depth < target_depth - depth_margin_delta
-    )
+    target_depth = target.object_depth_median
+    foreground_regions = []
 
-    visible_occlusion_ratio = area(overlap_union) / area(target.bbox)
+    for other in kept:
+        if other == target:
+            continue
+
+        target_overlap_ratio = intersection_area(target.bbox, other.bbox) / area(target.bbox)
+        if target_overlap_ratio < occlusion_target_overlap_threshold:
+            continue
+
+        if other.depth < target_depth - depth_margin_delta:
+            foreground_regions.append(intersection(target.bbox, other.bbox))
+
+    visible_occlusion_ratio = union_area(foreground_regions) / area(target.bbox)
     occlusion_level = bucket(visible_occlusion_ratio)
     occlusion_penalty_p_o = 0.5 * visible_occlusion_ratio
 ```
 
-**Important interpretation**
-- This score is now a **bbox coverage ratio**, not a visible-boundary contact metric.
-- Undetected objects still do not count.
-- Background pixels and plain walls do not count.
-- The old boundary/ring diagnostic fields remain in the schema for compatibility, but the deterministic bbox-overlap path now writes them as `null`.
+**Level buckets:**
 
-**Code references**
-- Occlusion level bucketing:
-  - `spatial_rag/visible_occlusion.py`
-- Occlusion metrics:
-  - `spatial_rag/object_geometry_pipeline.py`
-  - `spatial_rag/visible_occlusion.py`
-- Stored penalty / reweight score:
-  - `spatial_rag/occlusion_scoring.py`
+- `< 0.10`: `fully visible`
+- `0.10 - 0.30`: `slightly occluded`
+- `0.30 - 0.60`: `moderately occluded`
+- `>= 0.60`: `heavily occluded`
 
-#### 3. Angle Estimation
-The angle is measured from the camera optical-axis center to the centroid of the object mask, not the bbox center.
+**Score formula:**
 
-**Core concept:**
-The **mask centroid** is computed directly from the object mask output by NanoSAM (the geometric center of the segmented object region, i.e., the mean center of the pixels).
-- **Foreground pixels:** pixels that NanoSAM considers to belong to the object
-- **Object geometric center:** the average of the coordinates of these foreground pixels (the mask centroid)
-- **Angle computation:** use the offset of the object geometric center relative to the image center together with the camera FOV, and convert it into `relative_bearing_deg` and `vertical_angle_deg` using the pinhole camera model.
+For the deterministic `visible_mask` path:
 
-**Detailed calculation steps:**
-1. **Choose the representative point of the object**
-   Instead of using the bbox center, first use the centroid of the NanoSAM mask as the representative point of the object in the image:
-   `x_obj, y_obj = mask centroid` (the mean coordinates of the segmented foreground pixels)
+```text
+p_o = 0.5 * visible_occlusion_ratio
+r = sigmoid(w1 * logit(detector_confidence) - w2 * p_o + b)
+```
 
-2. **Define the center of the camera optical axis**
-   Treat the image center as the projection point of the camera optical axis:
-   `cx = (W - 1) / 2`
-   `cy = (H - 1) / 2`
-   (Here, `W` is the image width and `H` is the image height)
+For `--occlusion_source vlm`, `p_o` comes from the fixed occlusion-level mapping in `occlusion_scoring.py`:
 
-3. **Infer pixel focal lengths from the FOV**
-   Given the horizontal field of view `HFOV`, first compute:
-   `fx = W / (2 * tan(HFOV / 2))`
-   Then derive the vertical field of view `VFOV` from the image aspect ratio, and further compute:
-   `fy = H / (2 * tan(VFOV / 2))`
+| Level | Penalty |
+| --- | ---: |
+| `fully visible` | 0.0 |
+| `slightly occluded` | 0.1 |
+| `moderately occluded` | 0.25 |
+| `heavily occluded` | 0.5 |
+| `uncertain` | 0.35 |
 
-4. **Convert pixel offsets into angles**
-   Use the pinhole camera model to convert the offset of the object center relative to the image center into viewing angles:
-   - **Horizontal angle / bearing:**
-     `relative_bearing_deg = atan((x_obj - cx) / fx)`
-   - **Vertical angle:**
-     `vertical_angle_deg = atan((cy - y_obj) / fy)`
-   Finally convert them to degrees.
+**Code:**
 
-5. **Sign convention**
-   - `relative_bearing_deg < 0`: the object is to the left of the image center
-   - `relative_bearing_deg > 0`: the object is to the right of the image center
-   - `vertical_angle_deg > 0`: the object is above the camera center line of sight
-   - `vertical_angle_deg < 0`: the object is below the camera center line of sight
-
-> **One-sentence summary**
-> The essence of this method is to treat the geometric center of the object mask as the target point of the viewing ray, then use its pixel offset relative to the image center together with the camera FOV, and convert it into relative horizontal and vertical angles using the pinhole camera model.
-
+- `visible_occlusion.py`
+- `occlusion_scoring.py`
+- `object_geometry_pipeline.py`
+- `spatial_db_builder.py`
 
 ---
 
+### Subpipeline: DINOv3 Crop Embedding
 
+Each accepted object crop can be encoded with DINOv3.
 
-### 1. Object Instance Pipeline
-**text embedding (long / long_neighbors) -> affinity -> batch multi-view dedup**
+**Config:**
 
+- `DINOV3_MODEL_NAME`
+- `DINOV3_BATCH_SIZE`
+- `DINOV3_NORMALIZE`
+- `ENABLE_DINOV3_EMBEDDING`
+- `STORE_DINOV3_EMBEDDING`
 
-```mermaid
-flowchart TD
-    A["4 input images"]
+**Output files:**
 
-    subgraph P1["Per-image pipeline"]
-        B["Single image<br/>+ camera context"]
-        C["Selector Prompt<br/>+ predefined object category list"]
-        D["VLM"]
-        E["Selector output<br/>scene-level metadata<br/>+ selected_object_types"]
-        E2["View-level metadata<br/>view_type / room_function / style_hint /<br/>clutter_level / scene_attributes / image_summary"]
+- `object_dinov3_emb.npy`
+- `dinov3_embedding_row_index` in `object_meta.jsonl`
 
-        F["YOLO-World<br/>input: selected_object_types"]
-        G["Detections<br/>label + bbox_xyxy + confidence"]
-        H["DepthPro<br/>whole image -> dense depth map"]
+**Code:**
 
-        subgraph P2["Per-detection geometry branch"]
-            I["NanoSAM<br/>image + bbox -> object mask"]
-            J["Geometry from mask + depth + FOV<br/>masked depth -> distance<br/>mask centroid -> bearing / height"]
-            K["Object-level geometry metadata<br/>bbox / mask / depth / angle / estimated_global_xyz"]
-        end
+- `DINOv3Embedder` in `embedder.py`
+- DINO integration in `object_geometry_pipeline.py`
+- DB storage in `spatial_db_builder.py`
+- loading via `load_object_dinov3_db(...)` in `object_index.py`
 
-        M["Per-image batched object description VLM<br/>whole image + YOLO detections"]
-        N["Batched object text metadata<br/>object_local_id + label + short_description +<br/>long_description + attributes + distance_from_camera_m"]
-        O["Merged object metadata<br/>geometry metadata + batched object text"]
-    end
+---
 
-    subgraph P3["Cross-image object-instance pipeline"]
-        P["Optional polar surrounding postprocess<br/>surrounding_context / neighbor list"]
-        Q["Text embedding<br/>default: long<br/>optional: long_neighbors"]
-        R["Cosine similarity matrix"]
-        S["Affinity adjustment<br/>same-view penalty + similarity threshold"]
-        T["Multi-view deduplication<br/>spectral clustering"]
-    end
+## No.3 Spatial DB Artifacts
 
-    A --> B --> C --> D --> E
-    E --> E2
-    E --> F
-    F --> G
-    G --> H
+The builder writes these core artifacts:
 
-    G --> I
-    H --> J
-    I --> J
-    J --> K
+| Artifact | Meaning |
+| --- | --- |
+| `meta.jsonl` / `metadata.jsonl` | view/frame-level metadata |
+| `raw_api_responses.jsonl` | per-frame raw VLM/API envelope, selected types, geometry artifact paths, and timing fields |
+| `per_image_timings.jsonl` | compact per-frame timing and route summary |
+| `image_emb.npy` | CLIP image embeddings |
+| `text_emb_short.npy` | frame short-text embeddings |
+| `text_emb_long.npy` | frame long-text embeddings |
+| `image_index.faiss` | FAISS index over image embeddings |
+| `text_index_short.faiss` / `text_index_long.faiss` | FAISS indexes over frame text embeddings |
+| `object_meta.jsonl` | object-level metadata |
+| `object_text_emb_short.npy` | object short-text embeddings |
+| `object_text_emb_long.npy` | object long-text embeddings |
+| `object_dinov3_emb.npy` | DINOv3 object crop embeddings |
+| `object_index_short.faiss` / `object_index_long.faiss` | FAISS indexes over object text embeddings |
+| `view_object_relations.jsonl` | view-object graph edges |
+| `object_object_relations.jsonl` | object-object spatial graph edges |
+| `object_r_scores_pre_threshold.csv` | object scores before threshold filtering |
+| `object_r_scores.csv` | final object scores |
+| `build_report.json` | build config, counts, timings, summary |
+| `geometry/` | per-view geometry artifacts, masks, crops, overlays, depth maps |
+| `overview/` | floor-plan / trajectory overview images and projection metadata |
+| `vlm_cache/`, `vlm_object_cache/` | cached VLM responses |
 
-    G --> M
-    M --> N
+Optional artifacts:
 
-    K --> O
-    N --> O
-    E -. scene attributes .-> O
+| Artifact | Trigger |
+| --- | --- |
+| `object_polar_relations.jsonl` | `--run_polar_surrounding_postprocess true` or `python -m spatial_rag.polar_surrounding_postprocess` |
+| `object_meta_with_polar_surroundings.jsonl` | same polar postprocess; contains populated `surrounding_context` and `surrounding_source` |
+| `object_crops_by_global_id/` | `--export_object_crops_by_global_id_dir ...` |
 
-    O --> P --> Q --> R --> S --> T
+---
 
+## No.4 Query Pipelines
+
+### 1. VPR Query
+
+**Purpose:**
+Given a query camera pose, capture/render a query image, describe/embed it, and retrieve likely matching DB views.
+
+**Command:**
+
+```bash
+python -m spatial_rag.vpr_query \
+  --db_dir spatial_db_origin \
+  --x0 0.0 \
+  --y0 0.0 \
+  --theta0 0.0 \
+  --top_k 5 \
+  --results_dir vpr_results/query
 ```
 
-The core idea of this pipeline is:
-First build object-level metadata per image using `Selector -> YOLO-World -> NanoSAM/DepthPro/angle`, then run one **batched whole-image VLM call** to describe all detector-localized objects at once, and finally perform batch multi-view deduplication using text embeddings.
+**Code:**
 
-The affinity in this stage is still **text-only**, but it is not raw cosine alone: the pipeline computes a cosine similarity matrix and then applies a same-view penalty and similarity threshold before spectral clustering.
+- `vpr_query.py`
+- `VLMCaptioner`
+- `object_canonicalizer.py`
 
-For text input:
-- default mode is `long` (object text only)
-- optional mode is `long_neighbors` (object text + serialized `surrounding_context`)
+**Query artifacts:**
 
-#### What the input metadata looks like
-Suppose the current object record has a dining table as the primary object:
-```json
-{
-  "object_global_id": 93,
-  "label": "dining table",
-  "long_form_open_description": "a wooden dining table with a dark surface in the kitchen",
-  "surrounding_context": [
-    {
-      "label": "chair",
-      "relation_to_primary": "slightly left, slightly behind",
-      "distance_from_primary_m": 0.6
-    },
-    {
-      "label": "cabinet",
-      "relation_to_primary": "slightly right, slightly behind",
-      "distance_from_primary_m": 1.0
-    }
-  ]
-}
+- `query_image.jpg`
+- `query_overlay.jpg`
+- timestamped `query_*.json`
+
+**Similarity:**
+
+`vpr_query.py` loads `meta.jsonl`, `image_emb.npy`, and either `text_emb_short.npy` or `text_emb_long.npy`, then computes:
+
+```text
+fused = w_img * image_cosine + w_txt * text_cosine
 ```
-The key fields that actually participate in constructing the enhanced text are:
-- `long_form_open_description`
-- `surrounding_context[i].label`
-- `surrounding_context[i].relation_to_primary`
-- `surrounding_context[i].distance_from_primary_m`
 
-#### What the text looks like after enhancement
-The original long text of the object:
-> a wooden dining table with a dark surface in the kitchen
+---
 
-After adding neighbor metadata, the text actually sent for embedding becomes:
-> a wooden dining table with a dark surface in the kitchen | neighbors: chair [slightly left, slightly behind, 0.6m]; cabinet [slightly right, slightly behind, 1.0m]
+### 2. Object Localization Query
 
-This can be understood as:
-- **Primary object text** describes the object’s own visual semantics
-- **neighbor list** provides the surrounding context of the object
+**Purpose:**
+Given a query pose, detect a query object, describe it, embed it, retrieve matching object records, and aggregate object-level matches back to candidate DB views.
 
-After combining the two, it becomes easier to distinguish objects that look similar but have different surrounding environments.
+**Command:**
 
-#### How affinity is computed
-In this pipeline, the base similarity is still standard text similarity:
-`similarity(i, j) = cosine_similarity( embedding(text_i), embedding(text_j) )`
-
-Then the clustering pipeline applies:
-- a same-view penalty
-- a similarity threshold
-
-That is to say:
-- It does not use `distance_from_camera_m`
-- It does not use `relative_bearing_deg`
-- It does not use `relative_height_from_camera_m`
-- It does not use global `estimated_global_x/y/z`
-
-Batch multi-view dedup is therefore still a **text-driven** pipeline, but the actual affinity matrix is a post-processed version of cosine similarity rather than bare cosine alone.
-
-#### A more complete example
-**Object in View A**
-```json
-{
-  "label": "dining table",
-  "long_form_open_description": "a wooden dining table with a dark surface in the kitchen",
-  "surrounding_context": [
-    {
-      "label": "chair",
-      "relation_to_primary": "slightly left, slightly behind",
-      "distance_from_primary_m": 0.6
-    },
-    {
-      "label": "cabinet",
-      "relation_to_primary": "slightly right, slightly behind",
-      "distance_from_primary_m": 1.0
-    }
-  ]
-}
+```bash
+python -m spatial_rag.object_localization_query \
+  --db_dir spatial_db_origin \
+  --x0 0.0 \
+  --y0 0.0 \
+  --theta0 0.0 \
+  --top_k 5 \
+  --results_dir object_vpr_results/query
 ```
-Enhanced text:
-> a wooden dining table with a dark surface in the kitchen | neighbors: chair [slightly left, slightly behind, 0.6m]; cabinet [slightly right, slightly behind, 1.0m]
 
-**Object in View B**
-```json
-{
-  "label": "dining table",
-  "long_form_open_description": "a dark wooden dining table in the kitchen area",
-  "surrounding_context": [
-    {
-      "label": "chair",
-      "relation_to_primary": "left, slightly behind",
-      "distance_from_primary_m": 0.7
-    },
-    {
-      "label": "cabinet",
-      "relation_to_primary": "right, behind",
-      "distance_from_primary_m": 1.1
-    }
-  ]
-}
+**Code:**
+
+- `object_localization_query.py`
+- `detector.py`
+- `vlm_captioner.py`
+- `object_index.py`
+- `vpr_query.py`
+
+**Query artifacts:**
+
+- `query_image.jpg`
+- `query_detection_overlay.jpg`
+- `query_object_crop.jpg`
+- `retrieval_topk_overlay.jpg`
+- `top_k_contact_sheet.jpg`
+- timestamped `query_*.json`
+
+**Similarity:**
+
+The query crop is described by the object-crop prompt, embedded with CLIP text, searched against `object_index_short.faiss` or `object_index_long.faiss`, and then object matches are aggregated back to DB views.
+
+---
+
+## No.5 Object Instance Pipeline
+
+### 1. Batch Multi-View Dedup Pipeline
+
+**Summary:**
+
+```text
+object metadata
+  -> object text selection
+  -> CLIP text embeddings
+  -> affinity matrix
+  -> same-view penalty / threshold
+  -> spectral clustering
+  -> object instance groups
 ```
-Enhanced text:
-> a dark wooden dining table in the kitchen area | neighbors: chair [left, slightly behind, 0.7m]; cabinet [right, behind, 1.1m]
 
-Then:
-1. Compute embeddings for these two enhanced texts separately
-2. Compute affinity using cosine similarity
-3. If the affinity is high, they are more likely to be deduplicated into the same object instance
+**Command:**
+
+```bash
+python -m spatial_rag.object_instance_clustering \
+  --db_dir spatial_db_origin \
+  --output_dir object_instance_run \
+  --text_mode long \
+  --cluster_count_mode eigengap \
+  --same_view_policy soft_penalty
+```
+
+**Text modes:**
+
+- `short`: concise object text
+- `long`: long object description
+- `long_neighbors`: long object description plus serialized surrounding context
+- `dinov3`: use precomputed DINOv3 object crop embeddings where available
+
+**Code:**
+
+- `object_instance_clustering.py`
+- `object_canonicalizer.py`
+- `object_index.py`
+- `graph_builder.py`
+
+**Important behavior:**
+
+- This batch pipeline is mostly text/representation driven.
+- It can use neighbor context through `long_neighbors` only if the loaded `object_meta.jsonl` rows contain populated `surrounding_context`.
+- The builder's polar postprocess default writes `object_meta_with_polar_surroundings.jsonl` separately; `object_instance_clustering.py` still loads `object_meta.jsonl`, so use the postprocessed file intentionally if you want neighbor-enhanced clustering.
+- Same-view handling is controlled by `same_view_policy`.
+- It is different from the sequential pipeline below.
+
+**Outputs:**
+
+- top-level `summary.json`
+- optional `instance_candidate_graph.json`
+- per-group folders such as `selected_views/` or place ids
+- per-group `objects.json`
+- `cluster_labels.json`
+- `cluster_summary.json` / `cluster_summary.md`
+- `clustered_similarity_matrix.csv`
+- `view_annotations/` overlays and `manifest.json`
+- optional refined-graph artifacts when that path is used
 
 ---
 
 ### 2. Sequential Pipeline
-**text embedding + DINOv2 embedding + geo distance gate -> spectral graph -> DBSCAN materialization**
+
+**Current default:**
+
+```text
+text embedding + optional DINOv3 embedding + global geo distance gate
+  -> optional same-view hard masking
+  -> bipartite spectral graph
+  -> DBSCAN materialization
+  -> optional same-view uniqueness split
+  -> updated memory clusters
+```
+
+**Command:**
+
+```bash
+python -m spatial_rag.sequential_spectral_experiment \
+  --db_dir spatial_db_test \
+  --output_dir sequential_dbscan_run \
+  --similarity_mode cosine_geo_gate \
+  --distance_gate_dsq0 2.0 \
+  --min_cross_affinity 0.25 \
+  --dbscan_min_samples 2
+```
+
+With DINOv3 scoring:
+
+```bash
+python -m spatial_rag.sequential_spectral_experiment \
+  --db_dir spatial_db_test \
+  --similarity_mode cosine_geo_gate \
+  --enable_dinov3_scoring \
+  --weight_text 1.0 \
+  --weight_dinov3 1.0 \
+  --distance_gate_dsq0 4.0
+```
+
+### Sequential Flow
 
 ```mermaid
 flowchart TD
-    A["Selected views<br/>from built spatial DB"]
+    A["Selected views from spatial DB"]
+    B["Load object observations<br/>text emb + DINOv3 emb + xyz + polar"]
+    C["Initial view"]
+    D["Singleton memory clusters"]
+    E["Cluster prototypes<br/>text + DINOv3 + xyz + polar"]
+    F["Next view objects"]
+    G["Cross affinity<br/>current objects vs memory clusters"]
+    H["Text cosine"]
+    I["DINOv3 cosine"]
+    J["Semantic-visual weighted average"]
+    K["Geo distance gate<br/>exp(-dsq / (2*dsq0))"]
+    L["Final affinity<br/>semantic_visual * distance_gate"]
+    M["Bipartite graph"]
+    N["Capped spectral embedding"]
+    O["DBSCAN on step spectral embedding"]
+    P["Updated memory registry"]
+    Q["Final clusters + reports"]
 
-    subgraph S1["Load sequence"]
-        B["Load object observations<br/>text embedding + DINOv2 embedding + global xyz + polar metadata"]
-        C["Order views sequentially"]
-    end
-
-    subgraph S2["Initialize memory"]
-        D["Initial view"]
-        E["Create singleton memory clusters<br/>one object -> one cluster"]
-        E2["Build cluster prototypes<br/>prototype_embedding + prototype_dinov2_embedding + prototype_xyz + prototype_polar"]
-    end
-
-    subgraph S3["For each new view"]
-        F["Current view objects"]
-
-        G["Cross-affinity<br/>current objects vs memory clusters"]
-        G1["CLIP text cosine<br/>row embedding vs prototype_embedding"]
-        G2["DINOv2 cosine<br/>row dino vs prototype_dinov2_embedding"]
-        G3["Semantic-visual fusion<br/>weighted average over available text/DINO terms"]
-        G4["Distance gate<br/>exp(-dsq / (2*dsq0))"]
-        G5["dsq = planar x-y distance squared<br/>row xy vs prototype_xyz.xy"]
-        G6["Final cross-affinity<br/>semantic_visual_similarity * distance_gate"]
-
-        H["Bipartite affinity graph"]
-        I["Capped spectral clustering<br/>eigengap then cc+2 cap"]
-
-        J["DBSCAN on step spectral embedding"]
-        J1["Reuse smallest existing cluster_id<br/>if memory nodes are present"]
-        J2["Allocate new cluster_id<br/>for current-only DBSCAN groups"]
-        J3["Noise memory node -> keep singleton"]
-        J4["Noise current node -> new singleton"]
-    end
-
-    subgraph S4["Outputs"]
-        K["Updated memory registry"]
-        L["Final object clusters"]
-        M["Step reports + optional dsq0 sweep summary"]
-    end
-
-    A --> B --> C --> D --> E --> E2 --> F
-
+    A --> B --> C --> D --> E --> F
     F --> G
-    G --> G1
-    G --> G2
-    G --> G3
-    G --> G4
-    G --> G5
-    G --> G6
-    G1 --> G3
-    G2 --> G3
-    G5 --> G4
-    G3 --> G6
-    G4 --> G6
-    G6 --> H
-
-    H --> I --> J
-    J --> J1
-    J --> J2
-    J --> J3
-    J --> J4
-
-    J1 --> K
-    J2 --> K
-    J3 --> K
-    J4 --> K
-
-    K --> F
+    E --> G
+    G --> H --> J
+    G --> I --> J
+    G --> K
+    J --> L
     K --> L
-    K --> M
-
+    L --> M --> N --> O --> P
+    P --> F
+    P --> Q
 ```
 
-This pipeline differs from the one above:
-- the text embedding does not include neighbors
-- the default similarity is no longer the old text/geo/polar weighted fusion
-- instead, it first builds a **semantic-visual score from text cosine and optional DINOv2 cosine**, then gates that score by global planar distance
-- after the spectral stage, the next-step memory registry is materialized by **DBSCAN on the step spectral embedding**
-- when initializing memory clusters, each object is its own cluster, and the initial clusters are not merged with one another
+### Current Similarity Formula
 
-The active default mode is `cosine_geo_gate`.
-In this mode:
+Default mode is:
 
-`semantic_visual_similarity = weighted_average(text_similarity, dinov2_similarity)`
-
-`combined_similarity = semantic_visual_similarity * exp(-dsq / (2 * distance_gate_dsq0))`
-
-where:
-- `text_similarity` is the cosine between the current row text embedding and the cluster `prototype_embedding`
-- `dinov2_similarity` is the cosine between the current row DINOv2 embedding and the cluster `prototype_dinov2_embedding`
-- `dsq` is the squared planar distance on the global `x-y` plane
-- `distance_gate_dsq0` controls how quickly the geo gate decays
-- if DINOv2 is disabled or unavailable for a pair, the semantic-visual term falls back to text-only
-- if `x-y` geometry is missing for a pair, the distance gate falls back to `1.0`
-
-The old additive text/geo/polar fusion path is still available as `legacy_weighted_fusion` for compatibility runs, but it is no longer the active default.
-
-#### 2.1 Semantic / visual branch
-Here, the object’s own text is used, without concatenating neighbor information, and the object crop can additionally contribute a DINOv2 embedding.
-For example:
-```json
-{
-  "label": "dining table",
-  "long_form_open_description": "a wooden dining table with a dark surface in the kitchen"
-}
-```
-The text sent for embedding is:
-> a wooden dining table with a dark surface in the kitchen
-
-This branch mainly compares whether the semantic description and crop appearance of this object resemble the historical cluster prototype.
-
-In the current implementation:
-- text similarity is computed against `prototype_embedding`
-- DINOv2 similarity is computed against `prototype_dinov2_embedding`
-- the two are fused using normalized `weight_text` and `weight_dinov2`
-- only the available terms are renormalized, so missing DINOv2 does not automatically force the score toward zero
-
-#### 2.2 Geo
-Geo means whether the position of this object and the memory cluster are close in world coordinates.
-It uses the global coordinates of the object, for example:
-```json
-{
-  "estimated_global_x": -3.42,
-  "estimated_global_y": 0.78,
-  "estimated_global_z": 5.16
-}
-```
-A historical memory cluster also has a representative prototype/global position.
-
-In the latest default logic, geo is used as a **distance gate** rather than as an additive similarity term:
-
-`combined_similarity = semantic_visual_similarity * exp(-dsq / (2 * dsq0))`
-
-where:
-- `semantic_visual_similarity` is the fused text/DINOv2 score
-- `dsq` is the squared planar distance on the global `x-y` plane
-- `dsq0` controls how quickly similarity decays with distance
-
-So you can think of it as:
-- **semantic + visual** asks whether they describe and look like the same object family
-- **geo gate** asks whether they are close enough in the world to remain a plausible match
-
-Important implementation note:
-- although the cluster still stores `prototype_xyz`, the current default gate uses only `estimated_global_x` and `estimated_global_y`
-- `estimated_global_z` is retained in metadata and summaries, but it is not used by the default distance gate
-
-#### 2.3 Polar
-Polar means whether the object’s relative positional pattern in the camera-view coordinate system resembles that of a historical cluster.
-The key metadata used here is:
-```json
-{
-  "distance_from_camera_m": 2.4,
-  "relative_bearing_deg": -18.0,
-  "relative_height_from_camera_m": 0.3
-}
+```text
+similarity_mode = cosine_geo_gate
 ```
 
-**What each of these polar fields means**
-- `distance_from_camera_m`: how far the object is from the camera, in meters. The larger the value, the farther the object is.
-  - For example: `0.8` (relatively close to the camera)
-  - For example: `3.5` (relatively far from the camera)
-- `relative_bearing_deg`: the horizontal angle of the object relative to the camera’s center line of sight.
-  - Negative value: the object is on the left side of the image
-  - Positive value: the object is on the right side of the image
-  - The larger the absolute value, the more offset it is
-  - For example: `-25 deg` (clearly on the left), `0 deg` (near the image center), `+18 deg` (to the right)
-- `relative_height_from_camera_m`: the vertical offset of the object relative to the camera height, in meters. Essentially, it indicates whether the object is higher or lower than the camera, and by how much.
-  - For example: `+0.6` (the object is above the camera’s horizontal sight line)
-  - For example: `-0.4` (the object is below the camera)
+The score is:
 
-**How polar is used in the latest sequential logic**
-Suppose the current new object (row) is:
-```json
-{
-  "distance_from_camera_m": 2.4,
-  "relative_bearing_deg": -18.0,
-  "relative_height_from_camera_m": 0.3
-}
+```text
+semantic_visual_similarity = weighted_average(text_similarity, dinov3_similarity)
+distance_gate = exp(-dsq / (2 * distance_gate_dsq0))
+combined_similarity = semantic_visual_similarity * distance_gate
 ```
-The `prototype_polar` of the historical cluster is:
-```json
-{
-  "distance_from_camera_m": 2.0,
-  "relative_bearing_deg": -10.0,
-  "relative_height_from_camera_m": 0.1
-}
-```
-Note: the cluster_distance / cluster_bearing / cluster_height here do not come from a single old object, but from the `prototype_polar` of the memory cluster, which is the representative value of these polar fields among historical members.
 
-In the current default implementation, **polar metadata is still loaded and maintained in the cluster prototype, but it no longer contributes to the default `cosine_geo_gate` score**. It remains useful for:
-- diagnostics
-- cluster summaries
-- possible legacy comparisons
-- optional compatibility runs using `legacy_weighted_fusion`
+Where:
 
-So the current sequential matching logic is:
-1. **Text + optional DINOv2** provide the semantic-visual similarity
-2. **Global planar geo** provides the distance gate
-3. **Polar** is retained as metadata, but not used in the default affinity computation
+- `text_similarity` is cosine between row text embedding and cluster `prototype_embedding`.
+- `dinov3_similarity` is cosine between row DINOv3 crop embedding and cluster `prototype_dinov3_embedding`.
+- `dsq` is squared planar distance between row global position and cluster prototype position.
+- If DINOv3 is missing or disabled, the score renormalizes over available text terms.
+- If geometry is missing, distance gate falls back to `1.0`.
+
+The compatibility path `legacy_weighted_fusion` still exists.
+
+Current defaults from code:
+
+| Parameter | Default |
+| --- | ---: |
+| `similarity_mode` | `cosine_geo_gate` |
+| `distance_gate_dsq0` | `4` |
+| `min_cross_affinity` | `0.5` |
+| `dbscan_min_samples` | `2` |
+| `enforce_same_view_uniqueness` | `true` |
+| `enable_dinov3_scoring` | `true` |
+| `enable_vlm_compress` | `true` |
+| `enable_vlm_member_spatial` | `true` |
+
+### Cluster Prototypes
+
+Each memory cluster stores representative values:
+
+| Prototype | Source | Role |
+| --- | --- | --- |
+| `prototype_embedding` | mean of member text embeddings, normalized | semantic text center |
+| `prototype_dinov3_embedding` | mean of member DINOv3 embeddings, normalized | crop visual center |
+| `prototype_xyz` | median of `estimated_global_x/y/z` | world position center |
+| `prototype_polar` | median of camera-relative polar fields | diagnostic / legacy comparison |
+
+### DBSCAN Materialization
+
+After spectral embedding is computed for the step graph, DBSCAN assigns the next memory registry:
+
+- DBSCAN group with old memory nodes: merge represented rows and reuse the smallest existing `cluster_id`.
+- DBSCAN group with only current objects: allocate a new `cluster_id`.
+- DBSCAN noise memory node: keep singleton memory cluster.
+- DBSCAN noise current object: create a new singleton cluster.
+
+When `enforce_same_view_uniqueness` is true, the code also:
+
+- masks cross edges between current objects and memory clusters that already contain the same `view_id`;
+- splits DBSCAN groups that would otherwise contain multiple observations from the same view.
+
+The older append/merge/reattach/tail terminology remains in report fields for compatibility, but the active materialization decision is DBSCAN grouping plus same-view uniqueness handling.
+
+### Outputs
+
+Typical sequential outputs include:
+
+- `experiment_report.json`
+- `sequence_manifest.json`
+- `global_object_list_final.json`
+- `object_cluster_similarity_table.csv`
+- `step_XX_object_assignment_table.csv`
+- `step_XX_cluster_update.json`
+- `step_XX_cross_affinity_matrix.npy`
+- `step_XX_affinity_matrix.npy`
+- `step_XX_cocluster_matrix.npy` / `.csv`
+- co-cluster / Laplacian visualizations
+- `cumulative_cluster_progression_manifest.json`
+- per-step cluster artifacts
+- optional distance-gate sweep directories when `--distance_gate_dsq0_values` is passed
 
 ---
 
-#### 2.4 Maintain cluster
-Because a cluster may already contain multiple historical object observations, the system cannot compare a new object with every member in the cluster one by one each time. So it first compresses the cluster into a few representative values, i.e., prototypes. The purpose of the prototypes is to allow “a cluster” to participate in matching like “a comparable object.”
+## No.6 Reweighting And Threshold Ablation
 
-**1. `prototype_embedding`**
-Represents the textual semantic center of this cluster
+### Reweight Sweep
 
-**It is:**
-- the text embeddings of all members in the cluster
-- averaged first
-- then L2-normalized
+Use this to regenerate object scores and DB variants without rebuilding the original DB.
 
-**Its role is:**
-to represent the “semantic appearance” of this cluster
-
-When a new object arrives later, its embedding is compared with this `prototype_embedding` to compute text similarity.
-
-**1.5 `prototype_dinov2_embedding`**
-Represents the crop-level visual center of this cluster
-
-**It is:**
-- the DINOv2 embeddings of all members in the cluster
-- averaged first
-- then L2-normalized
-
-**Its role is:**
-to represent the crop-level visual consistency of this cluster
-
-When a new object arrives later, its DINOv2 embedding is compared with this `prototype_dinov2_embedding` to compute visual similarity.
-
-**2. `prototype_xyz`**
-Represents the global spatial position prototype of this cluster
-
-**It is aggregated from members’**:
-- `estimated_global_x`
-- `estimated_global_y`
-- `estimated_global_z`
-
-These are aggregated, and the current implementation uses the median.
-
-**Its role is:**
-to represent the approximate position of this cluster in world coordinates
-
-When a new object arrives later, it is compared with this `prototype_xyz` to compute geo similarity.
-In the current default path, only the `x` and `y` coordinates participate in the distance gate.
-
-**3. `prototype_polar`**
-Represents the camera-relative geometric prototype of this cluster
-
-**It is aggregated from members’**:
-- `distance_from_camera_m`
-- `relative_bearing_deg`
-- `relative_height_from_camera_m`
-
-These are aggregated, and the current implementation also uses the median.
-
-**Its role is:**
-to represent the typical relative positional pattern of this cluster in view coordinates
-
-When a new object arrives later, it can be compared with this `prototype_polar` to compute polar similarity in compatibility runs, but not in the active default `cosine_geo_gate` path.
-
-
-#### 2.5
-
-**2.5.1 `min_cross_affinity=0.25`: first decide which cross edges are allowed into the graph**
-
-This step happens after the `cross-affinity` between `current objects` and `memory clusters` has been computed.
-
-In the current default mode:
-- the score is **not** the old text/geo/polar weighted fusion
-- it is `semantic_visual_similarity * exp(-dsq / (2 * dsq0))`
-- `semantic_visual_similarity` is the normalized weighted average of available text and DINOv2 similarities
-- `polar` stays in metadata, but does not contribute to the default score
-
-All `cross edges` with values `< 0.25` are set to 0 before graph construction.
-This pruning removes obviously weak links and gives spectral clustering a cleaner bipartite structure.
-
-**2.5.2 Build the bipartite affinity graph and run capped spectral clustering**
-
-The system converts the pruned `cross-affinity` matrix into a bipartite `affinity matrix`:
-- upper-left block: memory nodes
-- lower-right block: current nodes
-- off-diagonal blocks: surviving cross edges
-
-Then it computes two structural views of the graph:
-- **`connectivity label`**: which connected component a node belongs to
-- **`spectral label`**: which cluster the capped spectral stage assigns to that node
-
-The spectral stage is not a free unconstrained eigengap estimate.
-Instead, the code:
-1. estimates `k` by eigengap
-2. computes the connected-component count of the graph
-3. caps the requested cluster count at `connected_components + 2`
-
-So spectral clustering can still split a connected component, but only within a controlled range.
-
-**2.5.3 Run DBSCAN on the step spectral embedding**
-
-After spectral clustering, the pipeline takes the **step spectral embedding** itself and runs DBSCAN over **all nodes in this round’s graph**:
-- memory cluster nodes
-- current object nodes
-
-Current default DBSCAN settings are:
-- `dbscan_eps=None`
-  - meaning epsilon is auto-estimated from the spectral embedding
-  - specifically, the implementation uses a median k-nearest-neighbor distance heuristic in embedding space
-- `dbscan_min_samples=2`
-
-This means the actual “which nodes become one updated cluster” decision is no longer made by append/merge/reattach heuristics.
-It is made by density structure in the step spectral embedding.
-
-**2.5.4 Materialize the next-step memory registry from DBSCAN groups**
-
-Once DBSCAN labels are available, the next memory registry is built with fixed rules:
-
-- If a DBSCAN group contains one or more old memory nodes:
-  - merge all rows represented by that group
-  - reuse the **smallest existing `cluster_id`** among those memory nodes
-- If a DBSCAN group contains only current objects:
-  - allocate a **new `cluster_id`**
-- If DBSCAN marks an old memory node as noise:
-  - keep it as a singleton cluster
-- If DBSCAN marks a current object as noise:
-  - create a new singleton cluster for that object
-
-So the sequential experiment still updates memory step by step, but the update policy is now:
-- **spectral graph construction**
-- then **DBSCAN-based cluster materialization**
-
-instead of:
-- append / merge / reattach / tail-cluster heuristics
-
-**2.5.5 What no longer happens in the active default path**
-
-The current DBSCAN-based sequential experiment no longer performs these old heuristic decisions:
-- no `same-view collision` hard blocking stage
-- no competitive append among old clusters
-- no `current_only_reattach_min_affinity` reattachment pass
-- no tail-cluster spawning heuristic
-
-The compatibility argument `current_only_reattach_min_affinity` is still accepted by the API and CLI, but it is now a no-op in the active DBSCAN materialization path.
-
-**2.5.6 Assignment tables and reports**
-
-The output files are still largely the same, but their semantics changed:
-
-- `step_XX_cluster_update.json` still exists
-  - now it contains both `spectral_summary` and `dbscan_summary`
-- `object_cluster_similarity_table.csv` still exists
-  - step `0` rows are still `initial_seed`
-  - later rows now use:
-    - `dbscan_attach`
-    - `dbscan_new_cluster`
-
-For a current object assigned by `dbscan_attach`:
-- the table chooses the best-affinity memory cluster **within the same DBSCAN group**
-- that cluster becomes `similarity_reference_cluster_id`
-- the corresponding text / geo-gate detail is copied into the row
-
-For a current object assigned by `dbscan_new_cluster`:
-- no old memory cluster is referenced
-- the similarity-detail fields are left empty
-- the object simply starts a new cluster in that step
-
-### 3. Core differences between the two pipelines
-
-#### Batch multi-view dedup
-**text-driven**
-- text embedding can use `long` or `long_neighbors`
-- default mode uses object text only
-- affinity is based on text cosine similarity, then adjusted by same-view penalty and similarity threshold
-- it does not consider geo or polar
-
-#### Sequential pipeline
-**text + optional DINOv2 + geo gate + spectral embedding DBSCAN**
-- text embedding does not use neighbors
-- affinity uses `semantic_visual_similarity * exp(-dsq / (2*dsq0))`
-- `semantic_visual_similarity` is the weighted combination of text cosine and DINOv2 cosine over available terms
-- `dsq` is the squared planar `x-y` distance to the cluster prototype
-- DINOv2 is fused directly into the sequential affinity score when `enable_dinov2_scoring=true`
-- polar metadata is retained, but not used in the default `cosine_geo_gate` similarity
-- the final per-step cluster materialization comes from DBSCAN on the step spectral embedding
-- same-view collisions are no longer hard-blocked in the active default path
-
-**Summary:**
-- **batch multi-view dedup** is more focused on deduplication after text-context enhancement
-- **sequential pipeline** is more focused on geo-gated semantic-visual matching followed by graph-structure-based DBSCAN materialization
-
-| Item | Value |
-|---|---:|
-| Total images | 164 |
-| Total objects | 1095 |
-| Avg objects per image | 6.68 |
-| `mask_depth` route images | 120 |
-| `vlm_fallback` route images | 44 |
-| Avg VLM tokens per image | 14,186.17 |
-| Avg prompt tokens per image | 7,461.44 |
-| Avg completion tokens per image | 6,724.73 |
-
-
-| Stage | Scope / Calls | Time Total (s) | Avg Time | Prompt Tokens | Completion Tokens | Total Tokens | Avg Total Tokens | Notes |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| Selector VLM | 164 image-level calls | 2389.31 | 14.57 s / call | 459,364 | 207,700 | 667,064 | 4,067.46 / call | scene summarization + selected_object_types |
-| Scene-Objects VLM (fallback parse) | 44 fallback image calls | 1965.09 | 44.66 s / call | 172,260 | 186,003 | 358,263 | 8,142.34 / call | only used on `vlm_fallback` route |
-| Crop VLM Description | 883 object-crop calls | 8426.64 | 9.54 s / call | 592,052 | 709,153 | 1,301,205 | 1,473.62 / call | dominant cost in `mask_depth` route |
-| **Total VLM** | **1091 VLM calls** | **12781.04** | **11.72 s / call** | **1,223,676** | **1,102,856** | **2,326,532** | **2,132.48 / call** | sum of all VLM calls above |
-| Detector (YOLO-World) | 164 image-level calls | 36.51 | 0.22 s / image | — | — | — | — | open-vocab detection |
-| DepthPro | 120 `mask_depth` images | 50.01 | 0.42 s / image | — | — | — | — | dense depth estimation |
-| NanoSAM Mask | 120 `mask_depth` images | 60.81 | 0.51 s / image | — | — | — | — | total mask refinement time per image |
-| Angle Geometry | 120 `mask_depth` images | 9.24 | 0.08 s / image | — | — | — | — | centroid + bearing + projection |
-| View Embedding | 164 images | 21.99 | 0.13 s / image | — | — | — | — | frame-level embedding |
-| Object Embedding | 164 images | 31.87 | 0.19 s / image | — | — | — | — | object text embedding |
-| Dependency Setup | 164 images | 460.12 | 2.81 s / image | — | — | — | — | detector / NanoSAM / DepthPro init |
-| Geometry Pipeline Total | 164 images | 11475.60 | 69.97 s / image | — | — | — | — | includes detector/depth/mask/crop-VLM or fallback branch |
-| Frame Total | 164 images | 13498.11 | 82.31 s / image | — | — | — | — | end-to-end per image |
-
-
-
-## Appendix: Metadata Format
-
-### 1. `metadata.jsonl`
-Each record represents the view-level metadata of one frame / view. It is more like a “view summary” rather than object-level details.
-```json
-{
-    "id": 0, // the main id of this frame/view
-    "frame_id": 0, // frame index
-    "x": -11.9470, // world-coordinate x of this view/camera
-    "y": -2.9729, // world-coordinate z of this view/camera
-    "world_position": [-11.9470, -0.2366, -2.9729], // 3D world coordinates of the camera [x, y, z]
-    "orientation": 0, // camera orientation of this frame
-    "file_name": "images/pose_00000_o000_000000.jpg", // image path
-    "text": "black-framed sailboat print, glazed | ...", // main text representation of this frame
-    "frame_text_short": "black-framed sailboat print, glazed | ...", // short text summary of this frame
-    "frame_text_long": "center sector | Rectangular black frame ...", // long text summary of this frame
-
-    "parse_status": "ok", // parse status of this frame
-    "parse_warnings": [], // parse warning list for this frame
-
-    "raw_vlm_output": "{\"view_type\": \"staircase\", ...}", // raw VLM output string, usually JSON text
-    "raw_api_source": "cache", // whether this result came from the API or cache
-
-    "text_input_for_clip_short": "black-framed sailboat print, glazed | ...", // short text input for CLIP
-    "text_input_for_clip_long": "center sector | Rectangular black frame ...", // long text input for CLIP
-
-    "object_text_inputs_short": [...], // list of short texts for each object in this frame
-    "object_text_inputs_long": [...], // list of long texts for each object in this frame
-
-    "builder_variant": "angle_split", // builder variant used when constructing the database
-    "object_prompt_variant": "angle_split", // VLM prompt variant used for object extraction
-    "attribute": {...}, // structured scene attributes of this frame
-    "object_count": 3 // number of objects in this frame
-}
+```bash
+python -m spatial_rag.reweight_sweep \
+  --db_dir spatial_db_origin \
+  --w1_values 1 \
+  --w2_values 1 \
+  --b_values 0 \
+  --thresholds none \
+  --export_db_variants true \
+  --output_dir spatial_db_var_w1_1_w2_1_b_0
 ```
-**The `attribute` substructure is as follows:**
+
+**Code:**
+
+- `reweight_sweep.py`
+- `occlusion_scoring.py`
+- `spatial_db_builder.py`
+
+**Outputs:**
+
+- timestamped sweep root under `--output_dir`
+- `sweep_summary.json`
+- `sweep_results.csv`
+- per-config folders named `config_<token>/`
+- optional exported DB variants with refreshed `object_meta.jsonl`, score CSVs, FAISS indexes, and `build_report.json`
+- optional filtered-object crop exports
+
+### Threshold Ablation
+
+```bash
+python -m spatial_rag.spectral_threshold_ablation \
+  --db_dir spatial_db_origin \
+  --entry_ids 15,19,23,27,31,35,39 \
+  --thresholds 0.4 \
+  --export_filtered_objects true \
+  --weight_text 0 \
+  --weight_dinov3 1 \
+  --distance_gate_dsq0 4.0 \
+  --output_dir evaluation/threshold_ablation_more
+```
+
+**Code:**
+
+- `spectral_threshold_ablation.py`
+- `reweight_sweep.py`
+- `object_instance_clustering.py`
+- `sequential_spectral_experiment.py`
+
+**Outputs:**
+
+- `summary.json`
+- `threshold_results.csv`
+- `threshold_results.md`
+- one `threshold_<token>/` directory per threshold
+- each threshold directory links/copies a `db_variant`, runs batch `object_instance`, and runs sequential clustering
+
+---
+
+## No.7 Semantic GT And Pair Mining
+
+### Build Semantic GT Dataset
+
+```bash
+python -m spatial_rag.semantic_label_dataset \
+  --spatial_db_dir spatial_db_origin \
+  --scene_path data/scene_datasets/scene_datasets/hm3d/minival/00800-TEEsavR23oF/TEEsavR23oF.basis.glb \
+  --semantic_txt_path data/scene_datasets/scene_datasets/hm3d/minival/00800-TEEsavR23oF/TEEsavR23oF.semantic.txt \
+  --output_dir semantic_gt_dataset
+```
+
+Outputs include:
+
+- `semantic_gt_object_meta.jsonl`
+- `semantic_gt_skipped.jsonl`
+- `object_text_emb_short.npy`
+- `object_text_emb_long.npy`
+- optional `view_image_emb.npy`
+- optional `object_dinov3_emb.npy`
+- `gt_label_ids.npy`
+- `gt_label_vocab.json`
+- `semantic_gt_stats.json`
+
+### Mine Semantic Pair Candidates
+
+```bash
+python -m spatial_rag.semantic_instance_pair_mining \
+  --db_dir spatial_db_origin \
+  --semantic_meta_path semantic_gt_dataset/semantic_gt_object_meta.jsonl \
+  --output_dir semantic_pair_candidates \
+  --view_ids 15,19,23,27
+```
+
+It produces `candidates.jsonl`, per-pair folders with `pair_manifest.json`, copied crop/frame images when available, and a README for manual labeling.
+
+### Mine Heuristic Object Pair Candidates
+
+```bash
+python -m spatial_rag.object_instance_pair_mining \
+  --db_dir spatial_db_origin \
+  --output_dir object_pair_candidates \
+  --max_pairs_per_bucket 50
+```
+
+It mines heuristic buckets such as same-label/same-place, same-label/adjacent-place, same-label/distant-place, and different-label/same-place. Suggested labels are heuristics and are intended for human verification.
+
+---
+
+## Appendix A: Metadata Format
+
+### 1. `meta.jsonl` / `metadata.jsonl`
+
+Each record represents one captured view.
+
+The current builder mirrors the Habitat pose into both `world_position` and top-level `x/y/z`. Do not assume the old documentation convention where top-level `y` meant Habitat `z`; use the fields exactly as written by the current code.
+
 ```json
 {
-    "view_type": "staircase", // room / view type
-    "room_function": "circulation", // room function
-    "style_hint": "traditional", // style hint
-    "clutter_level": "low", // clutter level
-    "floor_pattern": "carpet", // floor material / pattern
-    "lighting_ceiling": "natural light source", // lighting type
-    "wall_color": "beige", // main wall color
-    "scene_attributes": ["beige walls", "carpeted stairs", ...], // scene-level attributes
-    "additional_notes": "Right side shows stair banister/railing...", // additional notes
-    "image_summary": "Interior view of a beige-walled staircase area ..." // scene summary
+  "id": 0,
+  "frame_id": 0,
+  "x": -11.947,
+  "y": -0.237,
+  "z": -2.973,
+  "world_position": [-11.947, -0.237, -2.973],
+  "orientation": 0,
+  "file_name": "images/pose_00000_o000_000000.jpg",
+  "text": "black-framed sailboat print, glazed | ...",
+  "frame_text_short": "black-framed sailboat print, glazed | ...",
+  "frame_text_long": "center sector | rectangular black frame ...",
+  "parse_status": "ok",
+  "parse_warnings": [],
+  "raw_vlm_output": "{\"view_type\":\"staircase\",...}",
+  "raw_api_source": "api",
+  "text_input_for_clip_short": "black-framed sailboat print, glazed | ...",
+  "text_input_for_clip_long": "center sector | rectangular black frame ...",
+  "object_text_inputs_short": ["black-framed sailboat print, glazed"],
+  "object_text_inputs_long": ["center sector | rectangular black frame ..."],
+  "builder_variant": "angle_split",
+  "object_prompt_variant": "angle_split",
+  "attribute": {
+    "view_type": "staircase",
+    "room_function": "circulation",
+    "style_hint": "traditional",
+    "clutter_level": "low",
+    "scene_attributes": ["beige walls", "carpeted stairs"],
+    "image_summary": "Interior view of a staircase area."
+  },
+  "object_count": 3
 }
 ```
 
-### 2. `object_meta_with_polar_surroundings.jsonl`
-Each record represents the final object-level metadata of one object.
+### 2. `object_meta.jsonl`
+
+Each record represents one object observation.
+
 ```json
 {
-    "object_global_id": 0, // globally unique object id, used to reference this object across files
-    "frame_id": 0, // frame index to which this object belongs
-    "entry_id": 0, // view/entry id to which this object belongs
-    "file_name": "images/pose_00000_o000_000000.jpg", // relative path of the original image
+  "object_global_id": 0,
+  "frame_id": 0,
+  "entry_id": 0,
+  "view_id": "view_00000",
+  "file_name": "images/pose_00000_o000_000000.jpg",
 
-    "x": -11.9470, // world-coordinate x of this view/camera
-    "y": -2.9729, // world-coordinate z of this view/camera (in this project, x and y are often used to denote planar position)
-    "world_position": [-11.9470, -0.2366, -2.9729], // 3D world coordinates of the camera [x, y, z]
+  "x": -11.947,
+  "y": -0.237,
+  "z": -2.973,
+  "world_position": [-11.947, -0.237, -2.973],
+  "orientation": 0,
+  "frame_orientation": 0,
+  "object_orientation_deg": 344,
+  "angle_bucket": "center",
+  "builder_variant": "angle_split",
 
-    "orientation": 0, // camera orientation of this frame, in degrees
-    "frame_orientation": 0, // frame-level orientation info, usually the same as orientation
-    "object_orientation_deg": 344, // final global orientation / direction code of the object, usually derived from camera orientation and relative bearing
+  "object_local_id": "det_000",
+  "label": "picture frame",
+  "final_label": "picture frame",
+  "label_source": "vlm",
+  "label_conflict": false,
+  "object_confidence": 0.9086,
+  "detector_label": "picture frame",
+  "detector_label_raw": "picture frame",
+  "detector_confidence": 0.9086,
+  "vlm_label": "picture frame",
 
-    "angle_bucket": "center", // discrete horizontal angle bucket the object falls into, such as left / center / right
-    "angle_split_step_deg": 30, // step size used for angle discretization
-    "builder_variant": "angle_split", // database construction variant; here it indicates the angle-split version
+  "bbox_xyxy": [1109.39, 65.16, 1379.45, 309.91],
+  "bbox_xywh_norm": [0.5778, 0.0603, 0.1407, 0.2266],
+  "description": "black-framed sailboat print",
+  "long_form_open_description": "Rectangular black frame with a sailboat print...",
+  "attributes": ["black frame", "white mat"],
 
-    "object_local_id": "det_000", // local id of this object within the current view
-    "label": "picture frame", // compatibility alias; equals final_label in the current builder
-    "object_confidence": 0.9086, // main confidence of the object, usually from the detector
+  "laterality": "center",
+  "distance_bin": "middle",
+  "verticality": "high",
+  "distance_from_camera_m": 3.7554,
+  "relative_height_from_camera_m": 1.3745,
+  "relative_bearing_deg": 16.4281,
+  "vertical_angle_deg": 20.1034,
+  "projected_planar_distance_m": 3.9152,
+  "estimated_global_x": -10.8397,
+  "estimated_global_y": -3.992,
+  "estimated_global_z": -1.5983,
 
-    "bbox_xywh_norm": [0.5778, 0.0603, 0.1407, 0.2266], // normalized bbox, format [x, y, w, h]
-    "bbox_xyxy": [1109.39, 65.16, 1379.45, 309.91], // pixel-coordinate bbox, format [x1, y1, x2, y2]
+  "geometry_source": "mask_depth",
+  "geometry_fallback_reason": null,
+  "mask_area_px": 59000,
+  "mask_area_ratio": 0.02845,
+  "mask_centroid_x_px": 1242.55,
+  "mask_centroid_y_px": 188.13,
+  "depth_stat_median_m": 3.7554,
+  "depth_stat_p10_m": 3.7353,
+  "depth_stat_p90_m": 3.7744,
+  "object_depth_median": 3.7554,
 
-    "facing": "unknown", // semantic orientation label of the object; it may be unknown in many current samples
-    "orientation_confidence": 0.0, // confidence of the object orientation estimate
+  "occlusion_source": "visible_mask",
+  "occlusion_level": "fully visible",
+  "visible_occlusion_ratio": 0.0,
+  "occlusion_penalty_p_o": 0.0,
+  "reweighted_detection_score_r": 0.5,
+  "occluding_overlap_pixel_count": 0,
+  "foreground_occluder_count": 0,
+  "occlusion_target_overlap_threshold": 0.1,
 
-    "description": "black-framed sailboat print, glazed", // short description of the object, for concise retrieval
-    "long_form_open_description": "Rectangular black frame ...", // long description of the object, for richer retrieval and explanation
-    "attributes": ["black frame", "white double mat", ...], // list of visible attributes of the object
+  "object_text_short": "black-framed sailboat print",
+  "object_text_long": "center sector | rectangular black frame...",
+  "text_input_for_clip_short": "black-framed sailboat print",
+  "text_input_for_clip_long": "center sector | rectangular black frame...",
 
-    "laterality": "center", // left-right position of the object in the image
-    "distance_bin": "middle", // discrete distance bucket of the object
-    "verticality": "high", // vertical position bucket of the object in the image
+  "crop_path": "spatial_db_origin/geometry/view_00000/objects/obj_000_crop.jpg",
+  "mask_path": "spatial_db_origin/geometry/view_00000/objects/obj_000_mask.png",
+  "mask_overlay_path": "spatial_db_origin/geometry/view_00000/objects/obj_000_mask_overlay.jpg",
+  "depth_map_path": "spatial_db_origin/geometry/view_00000/depth_map.npy",
 
-    "distance_from_camera_m": 3.7554, // estimated depth of the object from the camera, in meters
-    "relative_height_from_camera_m": 1.3745, // height offset of the object relative to the camera center, in meters
-    "relative_bearing_deg": 16.4281, // horizontal angle of the object relative to the camera optical axis, in degrees
-    "estimated_global_x": -10.8397, // object global x projected from depth + bearing
-    "estimated_global_y": 1.1379, // object global y derived from vertical angle / height
-    "estimated_global_z": -6.7283, // object global z projected from depth + bearing
+  "dinov3_embedding_row_index": 0,
+  "dinov3_model_name": "facebook/dinov3-vit7b16-pretrain-lvd1689m",
+  "dinov3_embedding_dim": 4096,
+  "dinov3_input_type": "bbox_crop",
+  "dinov3_normalized": true,
+  "dinov3_status": "success",
+  "dinov3_failure_reason": null,
 
-    "any_text": "", // text recognized on the object; empty string if none
-    "location_relative_to_other_objects": "picture frame@1.20m[slightly right, above|E]", // compressed relationship description of the object relative to surrounding objects
-
-    "surrounding_context": [...], // list of surrounding context for the object; each element is a neighboring object relation
-    "surrounding_source": "polar_postprocess_v1", // source that generated the surrounding_context
-
-    "scene_attributes": ["beige walls", "carpeted stairs", ...], // scene-level attributes of this view
-    "view_type": "staircase", // room / view type
-    "room_function": "circulation", // room function
-    "style_hint": "traditional", // style hint
-    "clutter_level": "low", // clutter level
-
-    "object_text_short": "black-framed sailboat print, glazed", // short object text, for retrieval/embedding
-    "object_text_long": "center sector | Rectangular black frame ...", // long object text, for retrieval/embedding
-    "text_input_for_clip_short": "black-framed sailboat print, glazed", // short text input for CLIP
-    "text_input_for_clip_long": "center sector | Rectangular black frame ...", // long text input for CLIP
-
-    "parse_status": "ok", // parse status of this object record
-    "geometry_source": "mask_depth", // geometry source; indicates it was obtained from the mask + depth pipeline
-    "geometry_fallback_reason": null, // if fallback was used, the reason is recorded here; otherwise null
-
-    "detector_label": "picture frame", // compatibility alias for the detector label
-    "detector_label_raw": "picture frame", // original YOLO-World label
-    "detector_confidence": 0.9086, // original YOLO-World detection confidence
-    "vlm_label": "picture frame", // normalized label returned by VLM
-    "final_label": "picture frame", // final downstream label; VLM preferred, detector fallback
-    "label_source": "vlm", // source of final_label: vlm or detector
-    "label_conflict": false, // whether a usable VLM label disagreed with the normalized detector label
-
-    "occlusion_level": "fully visible", // compatibility bucket derived from bbox-overlap+depth deterministic occlusion
-    "occlusion_penalty_p_o": 0.0, // occlusion penalty derived from visible_occlusion_ratio
-    "reweighted_detection_score_r": 0.9534, // detector confidence after occlusion-aware reweighting
-    "visible_occlusion_ratio": 0.0, // union overlap area / target bbox area, in [0, 1]
-    "occluded_boundary_ratio": null, // legacy boundary metric; null in the current bbox-overlap deterministic path
-    "nearer_ring_overlap_ratio": null, // legacy ring metric; null in the current bbox-overlap deterministic path
-    "object_depth_median": 3.7554, // target depth representative reused for depth ordering
-    "boundary_pixel_count": null, // legacy boundary diagnostic; null in the current bbox-overlap deterministic path
-    "occluded_boundary_pixel_count": null, // legacy boundary diagnostic; null in the current bbox-overlap deterministic path
-    "ring_pixel_count": null, // legacy ring diagnostic; null in the current bbox-overlap deterministic path
-    "nearer_ring_pixel_count": null, // legacy ring diagnostic; null in the current bbox-overlap deterministic path
-    "depth_margin_delta": 0.0, // depth margin for deciding whether another overlapping bbox is in front of the target
-    "occluding_overlap_pixel_count": 0, // union area of all nearer overlapping bbox intersections with the target bbox
-    "foreground_occluder_count": 0, // number of nearer overlapping bboxes that passed the deterministic occlusion test
-    "occlusion_target_overlap_threshold": 0.1, // minimum intersection_area / target_bbox_area required to become an occlusion candidate
-
-    "mask_area_px": 59000, // number of foreground pixels in the mask
-    "mask_area_ratio": 0.02845, // proportion of the image area occupied by the mask
-    "mask_centroid_x_px": 1242.5542, // x pixel coordinate of the mask centroid
-    "mask_centroid_y_px": 188.1262, // y pixel coordinate of the mask centroid
-    "mask_centroid_x_norm": 0.6472, // normalized x of the mask centroid
-    "mask_centroid_y_norm": 0.1742, // normalized y of the mask centroid
-
-    "depth_stat_median_m": 3.7554, // median depth inside the mask
-    "depth_stat_p10_m": 3.7353, // 10th percentile depth inside the mask
-    "depth_stat_p90_m": 3.7744, // 90th percentile depth inside the mask
-    "projected_planar_distance_m": 3.9152, // planar distance projected from forward depth based on bearing
-    "vertical_angle_deg": 20.1034, // vertical angle of the object relative to the camera optical axis
-
-    "vlm_distance_from_camera_m": 2.0, // distance estimated by crop-level VLM, for reference
-    "vlm_relative_bearing_deg": null, // bearing estimated by VLM; usually null in current samples
-
-    "crop_path": "spatial_db_nd/geometry/view_00000/objects/obj_000_crop.jpg", // object crop image path
-    "mask_path": "spatial_db_nd/geometry/view_00000/objects/obj_000_mask.png", // object mask image path
-    "mask_overlay_path": "spatial_db_nd/geometry/view_00000/objects/obj_000_mask_overlay.jpg", // mask overlay visualization path
-    "depth_map_path": "spatial_db_nd/geometry/view_00000/depth_map.npy", // depth map path of this view
-
-    "crop_vlm_label": "picture frame", // compatibility alias for vlm_label
-    "dinov2_embedding_row_index": 0, // row index into object_dinov2_emb.npy; null if DINO is unavailable
-    "dinov2_model_name": "facebook/dinov2-base", // DINOv2 checkpoint used during build
-    "dinov2_embedding_dim": 768, // DINOv2 embedding dimension
-    "dinov2_input_type": "bbox_crop", // crop contract used for DINOv2 encoding
-    "dinov2_normalized": true, // whether the stored DINOv2 vector is L2-normalized
-    "dinov2_status": "success", // success | failed | disabled | missing
-    "dinov2_failure_reason": null, // populated only when DINOv2 extraction fails
-    "view_id": "view_00000" // view id to which this object belongs
-}
-```
-The full DINOv2 vectors are stored in `object_dinov2_emb.npy`.
-`object_meta.jsonl` keeps only the row index and model metadata so the main table stays debuggable.
-
-**The `surrounding_context` structure is as follows:**
-```json
-{
-    "target_object_global_id": 1, // id of the linked neighboring object
-    "label": "picture frame", // neighboring object label
-    "distance_from_primary_m": 1.1987, // distance from the neighboring object to the current primary object
-    "delta_angle_deg": 18.3999, // angle difference of the neighboring object relative to the primary object
-    "delta_depth_m": -0.0137, // depth difference of the neighboring object relative to the primary object
-    "delta_height_m": 0.6624, // height difference of the neighboring object relative to the primary object
-    "semantic_relation_local": "slightly right, above", // local semantic relation
-    "relation_to_primary": "slightly right, above", // relation text to the primary object
-    "allocentric_bearing_deg": 90.5243, // bearing angle in the global / allocentric reference frame
-    "allocentric_direction_8": "E", // 8-direction discrete orientation
-    "estimated_global_x": -9.3437, // neighboring object global x
-    "estimated_global_y": 1.8003, // neighboring object global y
-    "estimated_global_z": -6.7146 // neighboring object global z
+  "surrounding_context": [],
+  "view_type": "staircase",
+  "room_function": "circulation",
+  "style_hint": "traditional",
+  "clutter_level": "low"
 }
 ```
 
-### 3. `object_object_relations.jsonl`
+The full DINOv3 vectors are stored in `object_dinov3_emb.npy`. `object_meta.jsonl` stores only row indices and metadata.
+
+`reweighted_detection_score_r` depends on `--occlusion_reweight_w1`, `--occlusion_reweight_w2`, and `--occlusion_reweight_b`. In the common command above, `w1=0` and `b=0`, so a fully visible object receives `r = sigmoid(0) = 0.5`.
+
+`surrounding_source` is not written to default `object_meta.jsonl`. It appears in `object_meta_with_polar_surroundings.jsonl` when the polar surrounding postprocess is run.
+
+### 3. `surrounding_context`
+
 ```json
 {
-    "entry_id": 0, // entry/view index to which this relation belongs
-    "view_id": "view_00000", // view id to which this relation belongs
-
-    "source_object_global_id": 0, // global id of the source object in the relation
-    "target_object_global_id": 1, // global id of the target object in the relation
-
-    "source_obs_id": "obs_000000", // observation id of the source object
-    "target_obs_id": "obs_000001", // observation id of the target object
-
-    "source_label": "picture frame", // source object label
-    "target_label": "picture frame", // target object label
-
-    "source_x": -10.8397, // source object global x
-    "source_y": 1.1379, // source object global y
-    "source_z": -6.7283, // source object global z
-
-    "target_x": -9.3437, // target object global x
-    "target_y": 1.8003, // target object global y
-    "target_z": -6.7146, // target object global z
-
-    "dx": 1.4960, // x-axis displacement of the target relative to the source
-    "dy": 0.6624, // y-axis displacement of the target relative to the source
-    "dz": 0.0137, // z-axis displacement of the target relative to the source
-
-    "distance_m": 1.4961, // planar distance or main relation distance, computed using only x and z
-    "distance_3d_m": 1.6361, // 3D Euclidean distance, computed using x, y, and z
-
-    "direction": "right", // main direction of the target relative to the source
-    "direction_frame": "view_aligned", // coordinate system used to define the direction
-    "vertical_direction": "above", // vertical relation of the target relative to the source
-
-    "relation_type": "ObjectObject", // relation type
-    "relation_source": "geometry_postprocess" // source that generated the relation
+  "target_object_global_id": 1,
+  "label": "chair",
+  "distance_from_primary_m": 0.75,
+  "delta_angle_deg": 18.4,
+  "delta_depth_m": -0.1,
+  "delta_height_m": 0.2,
+  "semantic_relation_local": "slightly right, above",
+  "relation_to_primary": "slightly right, above",
+  "allocentric_bearing_deg": 90.5,
+  "allocentric_direction_8": "E",
+  "estimated_global_x": -9.34,
+  "estimated_global_y": -4.20,
+  "estimated_global_z": -1.40,
+  "surrounding_source": "polar_postprocess_v1"
 }
 ```
+
+### 4. `view_object_relations.jsonl`
+
+```json
+{
+  "entry_id": 0,
+  "view_id": "view_00000",
+  "object_global_id": 0,
+  "obs_id": "obs_000000",
+  "label": "picture frame",
+  "view_x": -11.947,
+  "view_y": -0.237,
+  "view_z": -2.973,
+  "object_x": -10.8397,
+  "object_y": -3.992,
+  "object_z": -1.5983,
+  "dx": 1.1073,
+  "dy": -3.7554,
+  "dz": 1.3747,
+  "distance_m": 3.9152,
+  "distance_3d_m": 4.1495,
+  "direction": "in",
+  "direction_frame": "view_aligned",
+  "vertical_direction": "above",
+  "relation_type": "ViewObject"
+}
+```
+
+### 5. `object_object_relations.jsonl`
+
+```json
+{
+  "entry_id": 0,
+  "view_id": "view_00000",
+  "source_object_global_id": 0,
+  "target_object_global_id": 1,
+  "source_label": "picture frame",
+  "target_label": "chair",
+  "source_x": -10.8397,
+  "source_y": -3.992,
+  "source_z": -1.5983,
+  "target_x": -9.3437,
+  "target_y": -4.6544,
+  "target_z": -1.5846,
+  "dx": 1.496,
+  "dy": -0.6624,
+  "dz": 0.0137,
+  "distance_m": 1.6361,
+  "distance_3d_m": 1.6362,
+  "direction": "right",
+  "direction_frame": "view_aligned",
+  "vertical_direction": "above",
+  "relation_type": "ObjectObject",
+  "relation_source": "geometry_postprocess"
+}
+```
+
+---
+
+## Appendix B: File Guide
+
+### Core Runtime
+
+| File | Role | Importance |
+| --- | --- | --- |
+| `config.py` | Global paths, model names, DINOv3, VLM, occlusion, and sequential defaults. | Core |
+| `spatial_db_builder.py` | Main spatial DB builder and artifact writer. | Core |
+| `object_geometry_pipeline.py` | YOLO detections to masks/depth/geometry/occlusion/DINOv3. | Core |
+| `vlm_captioner.py` | All VLM prompt families, JSON schemas, caching, and cluster compression. | Core |
+| `detector.py` | YOLO / YOLO-World / GroundingDINO wrapper. | Core |
+| `embedder.py` | CLIP and DINOv3 embedding wrappers. | Core |
+| `explorer.py` | Habitat simulator capture/navigation utilities. | Core |
+| `explorer_semantic.py` | Habitat explorer variant with semantic sensor support for semantic GT generation. | Core for semantic GT |
+| `object_schema.py` | Pydantic schema for structured scene/object data. | Core |
+| `object_parser.py` | Normalizes VLM JSON into schema objects. | Core |
+| `object_canonicalizer.py` | Stable text generation for frame/object embeddings. | Core |
+| `object_index.py` | Loads object DB and embedding sidecars. | Core |
+| `vpr_query.py` | View/place retrieval. | Core |
+| `object_localization_query.py` | Object-centric localization retrieval. | Core |
+| `household_taxonomy.py` | Household category list and label normalization. | Core |
+| `occlusion_scoring.py` | Occlusion penalty and reweighted score formula. | Core |
+| `visible_occlusion.py` | Bbox/depth visible occlusion measurement. | Core |
+
+### Analysis / Evaluation / Utilities
+
+| File | Role |
+| --- | --- |
+| `object_instance_clustering.py` | Batch same-instance clustering. |
+| `sequential_spectral_experiment.py` | Sequential spectral + DBSCAN clustering. |
+| `object_instance_eval.py` | Same-instance representation evaluation. |
+| `object_instance_pair_mining.py` | Heuristic candidate pair mining. |
+| `semantic_label_dataset.py` | Habitat semantic GT dataset builder. |
+| `semantic_instance_pair_mining.py` | Semantic GT candidate pair mining. |
+| `export_pipeline_same_object_groups.py` | Exports same-instance groups from positive candidate pairs. |
+| `export_object_crops_by_global_id.py` | Exports one crop per final object id. |
+| `export_object_occlusion_levels.py` | Exports object id / occlusion level CSV. |
+| `reweight_sweep.py` | Offline score reweighting and DB variant export. |
+| `spectral_threshold_ablation.py` | Threshold ablation pipeline. |
+| `vpr_batch_test.py` | Batch VPR evaluation. |
+| `object_localization_batch_test.py` | Batch object-localization evaluation. |
+| `graph_builder.py` | Graph payload and Neo4j load/query helpers. |
+| `graph_query_test_pipeline.py` | Neo4j graph query smoke tests. |
+| `object_relation_builder.py` | Rebuild relation files from existing DB metadata. |
+| `polar_surrounding_postprocess.py` | Recompute surrounding object relations. |
+| `floor_plan_projection_backfill.py` | Backfill floor-plan projection metadata. |
+| `object_birdview_visualizer.py` | Bird-view object visualization. |
+| `score_threshold_analysis.py` | Score distribution / threshold analysis. |
+| `room_object_similarity_analysis.py` | Room/object similarity matrix analysis. |
+| `hm3d_depth_eval.py` | Depth evaluation against Habitat/HM3D. |
+| `object_coordinate_gap_eval.py` | Object coordinate gap evaluation. |
+| `diagnose_geometry_fallback.py` | Geometry fallback diagnostics. |
+| `object_crop_prompt_probe.py` | Object crop prompt probing. |
+| `__init__.py` | Package marker. |
+
+### Legacy / Needs Attention
+
+| File | Status |
+| --- | --- |
+| `main.py`, `memory.py`, `retriever.py`, `llm_utils.py`, `inspect_memory.py`, `reset_memory.py` | Early memory-based demo path; not the current main DB pipeline. |
+| `batch_predict_object_match_mlp.py` | Stale wrapper that references missing nested modules; not runnable as-is in the flat layout. |
+| `visible_occlusion 2.py` | Duplicate of `visible_occlusion.py`; safe to remove after confirming no external script imports it. |
+| `root_cause_spatial_db_origin.py` | Hard-coded historical analysis script with stale DINOv2 field names; keep only if those old analysis runs are still needed. |
+
+---
+
+## Appendix C: Common Troubleshooting
+
+- If DINO vectors are missing, check `object_dinov3_emb.npy`, `ENABLE_DINOV3_EMBEDDING`, and `STORE_DINOV3_EMBEDDING`.
+- If VLM calls are too expensive, use cache directories and lower random smoke-run step counts.
+- If object crops are missing, pass `--export_object_crops_by_global_id_dir` or run `python -m spatial_rag.export_object_crops_by_global_id`.
+- If Habitat scene loading fails, verify `SCENE_PATH`, scene dataset config, and local HM3D/Habitat paths.
+- If an import mentions `spatial_rag.instance_matching`, `spatial_rag.database`, `spatial_rag.perception`, or `_compat`, it belongs to the older nested layout and must be updated or intentionally restored.

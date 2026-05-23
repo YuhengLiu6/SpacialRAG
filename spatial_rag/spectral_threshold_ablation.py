@@ -257,8 +257,10 @@ def run_spectral_threshold_ablation(
     batch_same_view_policy: str = DEFAULT_BATCH_SAME_VIEW_POLICY,
     batch_same_view_penalty: float = DEFAULT_BATCH_SAME_VIEW_PENALTY,
     weight_text: Optional[float] = None,
-    weight_dinov2: Optional[float] = None,
-    enable_dinov2_scoring: Optional[bool] = None,
+    weight_dinov3: Optional[float] = None,
+    enable_dinov3_scoring: Optional[bool] = None,
+    enable_vlm_compress: Optional[bool] = None,
+    enable_vlm_member_spatial: Optional[bool] = None,
     distance_gate_dsq0: Optional[float] = None,
     dbscan_eps: Optional[float] = None,
     dbscan_min_samples: Optional[int] = None,
@@ -328,10 +330,14 @@ def run_spectral_threshold_ablation(
         }
         if weight_text is not None:
             sequential_kwargs["weight_text"] = float(weight_text)
-        if weight_dinov2 is not None:
-            sequential_kwargs["weight_dinov2"] = float(weight_dinov2)
-        if enable_dinov2_scoring is not None:
-            sequential_kwargs["enable_dinov2_scoring"] = bool(enable_dinov2_scoring)
+        if weight_dinov3 is not None:
+            sequential_kwargs["weight_dinov3"] = float(weight_dinov3)
+        if enable_dinov3_scoring is not None:
+            sequential_kwargs["enable_dinov3_scoring"] = bool(enable_dinov3_scoring)
+        if enable_vlm_compress is not None:
+            sequential_kwargs["enable_vlm_compress"] = bool(enable_vlm_compress)
+        if enable_vlm_member_spatial is not None:
+            sequential_kwargs["enable_vlm_member_spatial"] = bool(enable_vlm_member_spatial)
         if distance_gate_dsq0 is not None:
             sequential_kwargs["distance_gate_dsq0"] = float(distance_gate_dsq0)
         if dbscan_eps is not None:
@@ -372,8 +378,10 @@ def run_spectral_threshold_ablation(
                 "output_dir": str(sequential_output_root),
                 "final_cluster_count": int(sequential_report.get("final_cluster_count") or 0),
                 "weight_text": _safe_float((sequential_report.get("weights") or {}).get("text")),
-                "weight_dinov2": _safe_float((sequential_report.get("weights") or {}).get("dinov2")),
-                "enable_dinov2_scoring": bool(sequential_report.get("enable_dinov2_scoring")),
+                "weight_dinov3": _safe_float((sequential_report.get("weights") or {}).get("dinov3")),
+                "enable_dinov3_scoring": bool(sequential_report.get("enable_dinov3_scoring")),
+                "enable_vlm_compress": bool(sequential_report.get("enable_vlm_compress")),
+                "enable_vlm_member_spatial": bool(sequential_report.get("enable_vlm_member_spatial")),
                 "distance_gate_dsq0": _safe_float(sequential_report.get("distance_gate_dsq0")),
                 "dbscan_eps": sequential_report.get("dbscan_eps"),
                 "dbscan_min_samples": int(sequential_report.get("dbscan_min_samples") or 0),
@@ -414,8 +422,10 @@ def run_spectral_threshold_ablation(
             "sequential_total_merged_clusters": sequential_metrics["total_merged_clusters"],
             "sequential_total_same_view_blocked_components": sequential_metrics["total_same_view_blocked_components"],
             "sequential_weight_text": _safe_float((sequential_report.get("weights") or {}).get("text")),
-            "sequential_weight_dinov2": _safe_float((sequential_report.get("weights") or {}).get("dinov2")),
-            "sequential_enable_dinov2_scoring": bool(sequential_report.get("enable_dinov2_scoring")),
+            "sequential_weight_dinov3": _safe_float((sequential_report.get("weights") or {}).get("dinov3")),
+            "sequential_enable_dinov3_scoring": bool(sequential_report.get("enable_dinov3_scoring")),
+            "sequential_enable_vlm_compress": bool(sequential_report.get("enable_vlm_compress")),
+            "sequential_enable_vlm_member_spatial": bool(sequential_report.get("enable_vlm_member_spatial")),
             "sequential_distance_gate_dsq0": _safe_float(sequential_report.get("distance_gate_dsq0")),
             "sequential_dbscan_eps": sequential_report.get("dbscan_eps"),
             "sequential_dbscan_min_samples": int(sequential_report.get("dbscan_min_samples") or 0),
@@ -442,8 +452,12 @@ def run_spectral_threshold_ablation(
         },
         "sequential_overrides": {
             "weight_text": None if weight_text is None else float(weight_text),
-            "weight_dinov2": None if weight_dinov2 is None else float(weight_dinov2),
-            "enable_dinov2_scoring": None if enable_dinov2_scoring is None else bool(enable_dinov2_scoring),
+            "weight_dinov3": None if weight_dinov3 is None else float(weight_dinov3),
+            "enable_dinov3_scoring": None if enable_dinov3_scoring is None else bool(enable_dinov3_scoring),
+            "enable_vlm_compress": None if enable_vlm_compress is None else bool(enable_vlm_compress),
+            "enable_vlm_member_spatial": (
+                None if enable_vlm_member_spatial is None else bool(enable_vlm_member_spatial)
+            ),
             "distance_gate_dsq0": None if distance_gate_dsq0 is None else float(distance_gate_dsq0),
             "dbscan_eps": None if dbscan_eps is None else float(dbscan_eps),
             "dbscan_min_samples": None if dbscan_min_samples is None else int(dbscan_min_samples),
@@ -489,8 +503,10 @@ def run_spectral_threshold_ablation(
             "sequential_total_merged_clusters",
             "sequential_total_same_view_blocked_components",
             "sequential_weight_text",
-            "sequential_weight_dinov2",
-            "sequential_enable_dinov2_scoring",
+            "sequential_weight_dinov3",
+            "sequential_enable_dinov3_scoring",
+            "sequential_enable_vlm_compress",
+            "sequential_enable_vlm_member_spatial",
             "sequential_distance_gate_dsq0",
             "sequential_dbscan_eps",
             "sequential_dbscan_min_samples",
@@ -535,16 +551,28 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Optional text weight override passed through to sequential_spectral_experiment.",
     )
     parser.add_argument(
-        "--weight_dinov2",
+        "--weight_dinov3",
         type=float,
         default=None,
-        help="Optional DINOv2 weight override passed through to sequential_spectral_experiment.",
+        help="Optional DINOv3 weight override passed through to sequential_spectral_experiment.",
     )
     parser.add_argument(
-        "--enable_dinov2_scoring",
+        "--enable_dinov3_scoring",
         action=argparse.BooleanOptionalAction,
         default=None,
-        help="Optional DINOv2 scoring override passed through to sequential_spectral_experiment.",
+        help="Optional DINOv3 scoring override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--enable_vlm_compress",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Optional VLM cluster-text compression override passed through to sequential_spectral_experiment.",
+    )
+    parser.add_argument(
+        "--enable_vlm_member_spatial",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Optional member-only spatial cue override passed through to sequential_spectral_experiment.",
     )
     parser.add_argument(
         "--distance_gate_dsq0",
@@ -587,8 +615,10 @@ def main(argv: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         export_filtered_objects=bool(args.export_filtered_objects),
         filtered_object_dirname=args.filtered_object_dirname,
         weight_text=args.weight_text,
-        weight_dinov2=args.weight_dinov2,
-        enable_dinov2_scoring=args.enable_dinov2_scoring,
+        weight_dinov3=args.weight_dinov3,
+        enable_dinov3_scoring=args.enable_dinov3_scoring,
+        enable_vlm_compress=args.enable_vlm_compress,
+        enable_vlm_member_spatial=args.enable_vlm_member_spatial,
         distance_gate_dsq0=args.distance_gate_dsq0,
         dbscan_eps=args.dbscan_eps,
         dbscan_min_samples=args.dbscan_min_samples,
