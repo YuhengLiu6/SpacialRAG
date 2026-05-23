@@ -292,6 +292,7 @@ Key defaults from `config.py`:
 | Setting | Current value |
 | --- | --- |
 | `SPATIAL_DB_VLM_MODEL` | `gpt-5-mini` |
+| `--meters_per_step` CLI default | `1.5` |
 | `SCAN_ANGLES` | `(0, 90, 180, 270)` |
 | `OBJECT_MAX_PER_FRAME` | `24` |
 | `BBOX_CONF_THRESHOLD` | `0.3` |
@@ -355,6 +356,78 @@ Optional postprocess / filtering:
 - `--r_threshold`: drops geometry-derived objects whose `reweighted_detection_score_r` is below the threshold.
 - `--run_polar_surrounding_postprocess true`: writes `object_polar_relations.jsonl` and `object_meta_with_polar_surroundings.jsonl`; it does not replace `object_meta.jsonl`.
 - `--export_object_crops_by_global_id_dir`: exports final object crops plus a manifest under the DB output directory unless an absolute path is provided.
+
+### Current Floor Exploration Algorithm
+
+The current `full_house` floor exploration is implemented in `Explorer.explore_full_house(...)`. It is an offline Habitat-navmesh coverage planner, not a learned exploration policy, SLAM frontier method, or image-based floor-plan search.
+
+**What the DB builder calls:**
+
+```text
+python -m spatial_rag.spatial_db_builder --tour_mode full_house
+  -> Explorer.explore_full_house(
+       meters_per_step=<CLI --meters_per_step, default 1.5>,
+       scan_angles=<CLI --scan_angles, default 0,90,180,270>
+     )
+```
+
+`Explorer` can auto-select a tour profile internally, but the DB builder currently passes `meters_per_step` from the CLI, so the default full-house grid spacing is `1.5m` unless changed by the user. The walking interpolation step still defaults to the Explorer profile value: `walk_step_m = clip(profile_meters_per_step / 3, 0.3, 0.8)`.
+
+**Algorithm steps:**
+
+1. Initialize Habitat simulator sensors:
+   - RGB pinhole camera at `SENSOR_HEIGHT`
+   - downward camera for local floor observations
+   - orthographic top-down sensor for overview rendering
+   - center-highest camera for trajectory overview rendering
+
+2. Initialize the agent at the first navigable point found by scanning scene bounds on a `0.5m` grid.
+
+3. Build a navigable floor grid:
+   - read pathfinder bounds: `min_x/max_x`, `min_z/max_z`
+   - sample grid coordinates with spacing `meters_per_step`
+   - keep only cells where `pathfinder.is_navigable([x, agent_y, z])` is true
+
+4. Split the navigable grid into connected floor regions:
+   - use 4-neighbor connectivity on grid keys `(ix, iz)`
+   - each connected component is treated as one reachable floor region candidate
+
+5. Choose which region to visit next:
+   - from the current position, rank component cells by Euclidean distance
+   - test up to 12 nearest candidate cells with Habitat `ShortestPath`
+   - pick the reachable component entry with the smallest geodesic distance
+   - if remaining components are unreachable, stop the floor tour
+
+6. Add transition waypoints:
+   - take the Habitat shortest path to the selected component
+   - downsample that path at approximately `meters_per_step`
+   - append these connector points so the scan route does not jump visually between regions
+
+7. Traverse inside the selected component:
+   - start from the selected entry cell
+   - repeatedly use BFS on the 4-neighbor grid to reach the nearest unvisited cell
+   - append every cell on that local grid path
+   - this makes the order locally continuous, rather than a pure row-by-row sweep
+
+8. Execute the waypoint route:
+   - for each target waypoint, call Habitat `ShortestPath` from current position
+   - walk along path points with interpolation substeps of `walk_step_m`
+   - orient the agent along each movement segment while walking
+
+9. Capture scan views at each waypoint:
+   - at the waypoint, set camera yaw to each configured scan angle
+   - default scan angles are `0, 90, 180, 270`
+   - each captured RGB frame is paired with a pose containing `position` and `rotation`
+
+**Random mode:**
+
+`--tour_mode random` uses `Explorer.explore_custom_tour(...)` instead. It samples a random yaw, proposes a fixed-distance step, keeps the candidate only if it is navigable and reachable by Habitat `ShortestPath`, and captures the same scan-angle set at accepted positions. This is mainly useful for smoke tests and controlled small runs.
+
+**Important interpretation:**
+
+- The floor exploration coverage comes from Habitat pathfinder navigability, not from detecting room boundaries in RGB.
+- The top-down floor-plan rendering is used for overview/debug artifacts; it is not the source of the waypoint plan.
+- `max_positions` in the builder limits positions after exploration planning; each position contributes `len(scan_angles)` orientation frames.
 
 ### High-Level Flow
 
