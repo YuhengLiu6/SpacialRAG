@@ -20,7 +20,6 @@ Important current implementation notes:
 - The active DINO branch is **DINOv3**.
 - The active sequential pipeline uses `cosine_geo_gate` by default, with `DEFAULT_CROSS_AFFINITY_MIN = 0.5`, `DEFAULT_DISTANCE_GATE_DSQ0 = 4`, and same-view uniqueness enabled.
 - Current module paths are flat, for example `python -m spatial_rag.spatial_db_builder`.
-- `batch_predict_object_match_mlp.py` is currently a stale wrapper that references missing nested modules.
 - `visible_occlusion 2.py` is an exact duplicate of `visible_occlusion.py`.
 
 Coordinate naming note:
@@ -303,6 +302,24 @@ Key defaults from `config.py`:
 | `STORE_DINOV3_EMBEDDING` | `True` |
 | `DINOV3_MODEL_NAME` | `facebook/dinov3-vit7b16-pretrain-lvd1689m` |
 
+Important object filtering / scoring parameters:
+
+| Parameter | Code / CLI name | Current default | Meaning |
+| --- | --- | ---: | --- |
+| Bbox confidence threshold | `BBOX_CONF_THRESHOLD` / `--bbox_conf_threshold` | `0.3` | After YOLO-World detection and selector-class matching, detections below this confidence are filtered out before geometry, occlusion, DINOv3, and object metadata generation. |
+| Occlusion target overlap threshold | `OCCLUSION_TARGET_OVERLAP_THRESHOLD` / `--occlusion_target_overlap_threshold` | `0.1` | A second bbox becomes an occlusion candidate only when `intersection_area(target_bbox, other_bbox) / area(target_bbox) >= threshold`. |
+| Reweighted object score | `reweighted_detection_score_r` | computed | Occlusion-aware score used by optional `--r_threshold` filtering. |
+| R threshold | `--r_threshold` | disabled (`None`) | If provided, geometry-derived objects with `reweighted_detection_score_r < r_threshold` are dropped from the final DB. |
+| Reweight coefficients | `--occlusion_reweight_w1`, `--occlusion_reweight_w2`, `--occlusion_reweight_b` | `1.0`, `1.0`, `0.0` | Control the score formula below. In the example commands in this README, `w1=0.0`, `w2=1.0`, `b=0` are passed explicitly. |
+
+The reweighted object score is:
+
+```text
+r = sigmoid(w1 * logit(c_det) - w2 * p(o) + b)
+```
+
+Where `c_det` is the detector confidence and `p(o)` is the occlusion penalty. With the default `visible_mask` occlusion source, `p(o)` is derived from deterministic bbox-overlap + depth-ordering visible occlusion.
+
 **Main command:**
 
 ```bash
@@ -474,12 +491,12 @@ flowchart TD
 | Explore/capture | `explorer.py`, `spatial_db_builder.py` |
 | Selector VLM | `vlm_captioner.py`, `household_taxonomy.py` |
 | Detection | `detector.py` |
-| Mask/depth/geometry | `object_geometry_pipeline.py`, `depth_stats.py` |
+| Mask/depth/geometry | `object_geometry_pipeline.py` |
 | Visible occlusion | `visible_occlusion.py`, `occlusion_scoring.py` |
 | Object text parsing | `vlm_captioner.py`, `object_parser.py`, `object_schema.py`, `object_canonicalizer.py` |
 | Embeddings | `embedder.py` |
 | DB writing | `spatial_db_builder.py` |
-| Relation writing | `spatial_db_builder.py`, `object_relation_builder.py`, `graph_builder.py` |
+| Relation writing | `spatial_db_builder.py`; `object_relation_builder.py` is an offline rebuild helper, and `graph_builder.py` is for graph / Neo4j payloads. |
 
 ---
 
@@ -520,7 +537,7 @@ YOLO-World only returns a rectangular bbox. NanoSAM refines the target region in
 - Keep finite positive depth values inside the mask.
 - Compute median, trimmed median, p10, p90.
 - Current geometry path uses a robust representative depth for object projection.
-- Code: `mask_depth_stats(...)` in `object_geometry_pipeline.py` and `depth_stats.py`.
+- Code: `mask_depth_stats(...)` in `object_geometry_pipeline.py`.
 
 **Step 3: Convert depth into object geometry**
 
@@ -834,7 +851,7 @@ python -m spatial_rag.object_instance_clustering \
 
 - This batch pipeline is mostly text/representation driven.
 - It can use neighbor context through `long_neighbors` only if the loaded `object_meta.jsonl` rows contain populated `surrounding_context`.
-- The builder's polar postprocess default writes `object_meta_with_polar_surroundings.jsonl` separately; `object_instance_clustering.py` still loads `object_meta.jsonl`, so use the postprocessed file intentionally if you want neighbor-enhanced clustering.
+- The builder's polar postprocess writes `object_meta_with_polar_surroundings.jsonl` separately. `object_instance_clustering.py` still loads `<db_dir>/object_meta.jsonl` directly, so `long_neighbors` will not automatically read the postprocessed file. To use polar surroundings, make the postprocessed rows the actual `object_meta.jsonl` in a deliberate DB copy or replace/rename the file intentionally.
 - Same-view handling is controlled by `same_view_policy`.
 - It is different from the sequential pipeline below.
 
@@ -945,8 +962,20 @@ Where:
 - `text_similarity` is cosine between row text embedding and cluster `prototype_embedding`.
 - `dinov3_similarity` is cosine between row DINOv3 crop embedding and cluster `prototype_dinov3_embedding`.
 - `dsq` is squared planar distance between row global position and cluster prototype position.
+- `distance_gate_dsq0` is the squared distance scale in the denominator; mathematically it corresponds to `d0^2` in `exp(-d^2 / (2*d0^2))`.
 - If DINOv3 is missing or disabled, the score renormalizes over available text terms.
 - If geometry is missing, distance gate falls back to `1.0`.
+
+After `combined_similarity` is computed for every current-object / memory-cluster pair, `min_cross_affinity` prunes weak cross edges before the bipartite spectral graph is built:
+
+```text
+if combined_similarity < min_cross_affinity:
+    graph_edge_weight = 0
+else:
+    graph_edge_weight = combined_similarity
+```
+
+In current code, the default `min_cross_affinity` is `0.5`. Some experiment commands set `--min_cross_affinity 0.25` explicitly for a looser graph.
 
 The compatibility path `legacy_weighted_fusion` still exists.
 
@@ -1119,6 +1148,258 @@ python -m spatial_rag.object_instance_pair_mining \
 ```
 
 It mines heuristic buckets such as same-label/same-place, same-label/adjacent-place, same-label/distant-place, and different-label/same-place. Suggested labels are heuristics and are intended for human verification.
+
+---
+
+## No.8 Object Match MLP Training
+
+The MLP path trains an object-to-object matcher from labeled same-instance pairs.
+It is separate from the unsupervised batch and sequential clustering pipelines above.
+
+### Object Matching MLP Flow
+
+```mermaid
+flowchart LR
+    subgraph I["Inputs / Data Sources"]
+        A["Anchor O1<br/>view V1"]
+        B["Candidate objects Oi<br/>in view V2<br/>i = 1...m"]
+    end
+
+    subgraph F["Feature Construction"]
+        X["Pair feature for each (O1, Oi)<br/>10 dims"]
+        F1["p1 xyz norm (3)"]
+        F2["pi xyz norm (3)"]
+        F3["description cosine (1)"]
+        F4["neighborhood cosine (1)"]
+        F5["DINOv3 cosine (1)"]
+        F6["DINOv3 valid mask (1)"]
+        X --> F1
+        X --> F2
+        X --> F3
+        X --> F4
+        X --> F5
+        X --> F6
+        F6 --> XT["X: [m, 10]"]
+    end
+
+    subgraph M["MLP Shared Scorer"]
+        M1["Linear 10 -> 64"]
+        M2["ReLU + Dropout"]
+        M3["Linear 64 -> 64"]
+        M4["ReLU + Dropout"]
+        M5["Linear 64 -> 1 score"]
+        M1 --> M2 --> M3 --> M4 --> M5
+    end
+
+    subgraph O["Output Aggregation"]
+        O1["scores: [s1 ... sm]"]
+        O2["append learnable none_logit"]
+        O3["logits: [m + 1]"]
+        O4["Softmax<br/>P(O1 = Oi) or none"]
+        O1 --> O2 --> O3 --> O4
+    end
+
+    subgraph T["Training"]
+        T1["target = matching candidate index or none"]
+        T2["loss = Cross Entropy"]
+        T3["padding mask hides invalid candidates"]
+        T1 --> T2 --> T3
+    end
+
+    A --> X
+    B --> X
+    XT --> M1
+    M5 --> O1
+    O4 --> T1
+
+    classDef input fill:#d9ecff,stroke:#2f6fbd,color:#111;
+    classDef feature fill:#eef6ff,stroke:#74a7df,color:#111;
+    classDef model fill:#e4f5dc,stroke:#4d913c,color:#111;
+    classDef output fill:#fff0dc,stroke:#f28c28,color:#111;
+    class A,B input;
+    class X,F1,F2,F3,F4,F5,F6,XT feature;
+    class M1,M2,M3,M4,M5 model;
+    class O1,O2,O3,O4,T1,T2,T3 output;
+```
+
+### Training Input
+
+The trainer reads one spatial DB plus one pair-label JSONL file.
+
+**Spatial DB inputs:**
+
+- `object_meta.jsonl`: object rows, object ids, entry ids, global positions, labels, crop metadata, and DINOv3 sidecar row ids.
+- `object_text_emb_long.npy`: row-aligned long object-text embeddings used for `cos_e`.
+- `object_dinov3_emb.npy`: optional DINOv3 crop embedding sidecar used for `cos_d`.
+
+**Pair-label JSONL fields:**
+
+```json
+{
+  "pair_id": "pair_000001",
+  "db_dir": "spatial_db_origin",
+  "obj_a_id": 80,
+  "obj_b_id": 96,
+  "is_same_instance": true,
+  "split": "train"
+}
+```
+
+The loader filters rows by `db_dir` and `split`.
+Each labeled pair is expanded in both directions, so object A can be the anchor and object B can also be the anchor in a separate sample.
+Pairs from the same `entry_id` are skipped because the task is cross-view object matching.
+
+### Dataset Construction
+
+For each anchor object and target view, the code builds a candidate-ranking sample:
+
+```text
+anchor object O1
+  + target view V2 candidates
+  -> candidate logits
+  -> learned none logit
+  -> cross entropy target
+```
+
+If a positive same-instance target exists in the target view, the target is that candidate object's index.
+If only labeled negatives exist for that anchor/view pair, the target is the appended `none` option.
+The candidate list is capped by `--candidates_per_sample`, with negatives sampled from the target entry.
+
+### Feature Vector
+
+Each anchor/candidate pair becomes a 10-dimensional feature vector:
+
+| Group | Feature names | Meaning |
+| --- | --- | --- |
+| `p_o` | `p1_x_norm`, `p1_y_norm`, `p1_z_norm` | Anchor object global position, normalized by train-set mean/std. |
+| `p_i` | `pi_x_norm`, `pi_y_norm`, `pi_z_norm` | Candidate object global position, normalized by the same stats. |
+| `cos_e` | `desc_cos` | Cosine similarity between long object-text embeddings. |
+| `cos_n` | `neighborhood_cos` | Cosine similarity between graph/neighborhood context embeddings. |
+| `cos_d` | `dinov3_cos` | Cosine similarity between DINOv3 object crop embeddings. |
+| `v_i` | `dinov3_valid` | `1.0` when both objects have DINOv3 vectors, else `0.0`. |
+
+If either object is missing DINOv3, `dinov3_cos` is set to `0.0` and `dinov3_valid` is set to `0.0`.
+
+### MLP Architecture
+
+`ObjectMatchMLP` scores every candidate independently, then appends a learned `none` score:
+
+```text
+input feature [D]
+  -> Linear(D, hidden=64)
+  -> ReLU
+  -> Dropout(0.1)
+  -> Linear(64, 64)
+  -> ReLU
+  -> Dropout(0.1)
+  -> Linear(64, 1)
+  -> candidate logit
+
+learned scalar none_logit
+  -> appended as final class
+```
+
+At runtime the model receives a padded tensor with shape `[batch, max_candidates, feature_dim]`.
+Invalid padded candidates are masked to a very negative logit.
+The output shape is `[batch, max_candidates + 1]`, where the final column is the `none` class.
+
+### Training Algorithm
+
+The training loss is cross entropy over all candidate logits plus the appended `none_logit`.
+The optimizer is AdamW.
+Default CLI values are:
+
+| Parameter | Default |
+| --- | ---: |
+| `epochs` | `100` |
+| `batch_size` | `64` |
+| `lr` | `1e-3` |
+| `weight_decay` | `1e-4` |
+| `hidden` | `64` |
+| `dropout` | `0.1` |
+| `candidates_per_sample` | `16` |
+
+Device selection defaults to `mps`, then `cuda`, then `cpu`, unless `--device` is passed.
+
+### Train
+
+```bash
+python -m spatial_rag.train_object_match_mlp \
+  --db_dir spatial_db_origin \
+  --gt_pairs semantic_pair_candidates_true100_no_cabinet/object_instance_pairs_for_mlp_80_20.jsonl \
+  --train_split train \
+  --val_split test \
+  --output_dir runs/object_match_mlp_validated_no_cabinet_80_20
+```
+
+Optional ablation suites:
+
+```bash
+python -m spatial_rag.train_object_match_mlp \
+  --db_dir spatial_db_origin \
+  --gt_pairs semantic_pair_candidates_true100_no_cabinet/object_instance_pairs_for_mlp_80_20.jsonl \
+  --train_split train \
+  --val_split test \
+  --output_dir runs/object_match_mlp_validated_no_cabinet_80_20_leave_one_out \
+  --ablation_suite leave_one_out
+```
+
+Supported ablation suites are:
+
+- `none`: train only the full feature model.
+- `leave_one_out`: train `full`, `no_p_o`, `no_p_i`, `no_cos_e`, `no_cos_n`, `no_cos_d`, and `no_v_i`.
+- `all_feature_sets`: train leave-one-out plus single-feature and focused-combination variants.
+
+### Predict
+
+Run one checkpoint against one anchor object and one target view:
+
+```bash
+python -m spatial_rag.predict_object_match_mlp \
+  --checkpoint runs/object_match_mlp_validated_no_cabinet_80_20/model.pt \
+  --obj_id 80 \
+  --view 19 \
+  --top_k 5
+```
+
+Run the same query against every `model.pt` under a model root:
+
+```bash
+python -m spatial_rag.batch_predict_object_match_mlp \
+  --models_root runs/object_match_mlp_validated_no_cabinet_80_20_leave_one_out \
+  --obj_id 80 \
+  --view 19 \
+  --top_k 5 \
+  --output_dir runs/object_match_mlp_validated_no_cabinet_80_20_leave_one_out/batch_predict_obj80_view19
+```
+
+### Outputs
+
+Single-model training writes:
+
+- `model.pt`: model weights, config, and position normalization stats.
+- `feature_stats.json`: position mean/std.
+- `train_config.json`: resolved training configuration.
+- `metrics.json`: training history plus train/validation metrics.
+- `val_predictions.csv`: per-sample prediction details.
+
+Ablation training additionally writes:
+
+- one subdirectory per feature set, each with its own model and metrics.
+- `ablation_summary.json`
+- `ablation_summary.csv`
+
+Batch prediction writes one JSON file per checkpoint plus:
+
+- `batch_summary.json`
+- `batch_summary.csv`
+
+**Code:**
+
+- `object_match_mlp.py`
+- `train_object_match_mlp.py`
+- `predict_object_match_mlp.py`
+- `batch_predict_object_match_mlp.py`
 
 ---
 
@@ -1353,6 +1634,7 @@ The full DINOv3 vectors are stored in `object_dinov3_emb.npy`. `object_meta.json
 
 | File | Role | Importance |
 | --- | --- | --- |
+| `__init__.py` | Package marker for `python -m spatial_rag.<module>` imports. | Core |
 | `config.py` | Global paths, model names, DINOv3, VLM, occlusion, and sequential defaults. | Core |
 | `spatial_db_builder.py` | Main spatial DB builder and artifact writer. | Core |
 | `object_geometry_pipeline.py` | YOLO detections to masks/depth/geometry/occlusion/DINOv3. | Core |
@@ -1360,7 +1642,6 @@ The full DINOv3 vectors are stored in `object_dinov3_emb.npy`. `object_meta.json
 | `detector.py` | YOLO / YOLO-World / GroundingDINO wrapper. | Core |
 | `embedder.py` | CLIP and DINOv3 embedding wrappers. | Core |
 | `explorer.py` | Habitat simulator capture/navigation utilities. | Core |
-| `explorer_semantic.py` | Habitat explorer variant with semantic sensor support for semantic GT generation. | Core for semantic GT |
 | `object_schema.py` | Pydantic schema for structured scene/object data. | Core |
 | `object_parser.py` | Normalizes VLM JSON into schema objects. | Core |
 | `object_canonicalizer.py` | Stable text generation for frame/object embeddings. | Core |
@@ -1370,46 +1651,7 @@ The full DINOv3 vectors are stored in `object_dinov3_emb.npy`. `object_meta.json
 | `household_taxonomy.py` | Household category list and label normalization. | Core |
 | `occlusion_scoring.py` | Occlusion penalty and reweighted score formula. | Core |
 | `visible_occlusion.py` | Bbox/depth visible occlusion measurement. | Core |
-
-### Analysis / Evaluation / Utilities
-
-| File | Role |
-| --- | --- |
-| `object_instance_clustering.py` | Batch same-instance clustering. |
-| `sequential_spectral_experiment.py` | Sequential spectral + DBSCAN clustering. |
-| `object_instance_eval.py` | Same-instance representation evaluation. |
-| `object_instance_pair_mining.py` | Heuristic candidate pair mining. |
-| `semantic_label_dataset.py` | Habitat semantic GT dataset builder. |
-| `semantic_instance_pair_mining.py` | Semantic GT candidate pair mining. |
-| `export_pipeline_same_object_groups.py` | Exports same-instance groups from positive candidate pairs. |
-| `export_object_crops_by_global_id.py` | Exports one crop per final object id. |
-| `export_object_occlusion_levels.py` | Exports object id / occlusion level CSV. |
-| `reweight_sweep.py` | Offline score reweighting and DB variant export. |
-| `spectral_threshold_ablation.py` | Threshold ablation pipeline. |
-| `vpr_batch_test.py` | Batch VPR evaluation. |
-| `object_localization_batch_test.py` | Batch object-localization evaluation. |
-| `graph_builder.py` | Graph payload and Neo4j load/query helpers. |
-| `graph_query_test_pipeline.py` | Neo4j graph query smoke tests. |
-| `object_relation_builder.py` | Rebuild relation files from existing DB metadata. |
-| `polar_surrounding_postprocess.py` | Recompute surrounding object relations. |
-| `floor_plan_projection_backfill.py` | Backfill floor-plan projection metadata. |
-| `object_birdview_visualizer.py` | Bird-view object visualization. |
-| `score_threshold_analysis.py` | Score distribution / threshold analysis. |
-| `room_object_similarity_analysis.py` | Room/object similarity matrix analysis. |
-| `hm3d_depth_eval.py` | Depth evaluation against Habitat/HM3D. |
-| `object_coordinate_gap_eval.py` | Object coordinate gap evaluation. |
-| `diagnose_geometry_fallback.py` | Geometry fallback diagnostics. |
-| `object_crop_prompt_probe.py` | Object crop prompt probing. |
-| `__init__.py` | Package marker. |
-
-### Legacy / Needs Attention
-
-| File | Status |
-| --- | --- |
-| `main.py`, `memory.py`, `retriever.py`, `llm_utils.py`, `inspect_memory.py`, `reset_memory.py` | Early memory-based demo path; not the current main DB pipeline. |
-| `batch_predict_object_match_mlp.py` | Stale wrapper that references missing nested modules; not runnable as-is in the flat layout. |
-| `visible_occlusion 2.py` | Duplicate of `visible_occlusion.py`; safe to remove after confirming no external script imports it. |
-| `root_cause_spatial_db_origin.py` | Hard-coded historical analysis script with stale DINOv2 field names; keep only if those old analysis runs are still needed. |
+| `polar_surrounding_postprocess.py` | Optional build-time postprocess for polar `surrounding_context` files. | Optional core postprocess |
 
 ---
 
