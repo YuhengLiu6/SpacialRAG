@@ -1158,69 +1158,7 @@ It is separate from the unsupervised batch and sequential clustering pipelines a
 
 ### Object Matching MLP Flow
 
-```mermaid
-flowchart LR
-    subgraph I["Inputs / Data Sources"]
-        A["Anchor O1<br/>view V1"]
-        B["Candidate objects Oi<br/>in view V2<br/>i = 1...m"]
-    end
-
-    subgraph F["Feature Construction"]
-        X["Pair feature for each (O1, Oi)<br/>10 dims"]
-        F1["p1 xyz norm (3)"]
-        F2["pi xyz norm (3)"]
-        F3["description cosine (1)"]
-        F4["neighborhood cosine (1)"]
-        F5["DINOv3 cosine (1)"]
-        F6["DINOv3 valid mask (1)"]
-        X --> F1
-        X --> F2
-        X --> F3
-        X --> F4
-        X --> F5
-        X --> F6
-        F6 --> XT["X: [m, 10]"]
-    end
-
-    subgraph M["MLP Shared Scorer"]
-        M1["Linear 10 -> 64"]
-        M2["ReLU + Dropout"]
-        M3["Linear 64 -> 64"]
-        M4["ReLU + Dropout"]
-        M5["Linear 64 -> 1 score"]
-        M1 --> M2 --> M3 --> M4 --> M5
-    end
-
-    subgraph O["Output Aggregation"]
-        O1["scores: [s1 ... sm]"]
-        O2["append learnable none_logit"]
-        O3["logits: [m + 1]"]
-        O4["Softmax<br/>P(O1 = Oi) or none"]
-        O1 --> O2 --> O3 --> O4
-    end
-
-    subgraph T["Training"]
-        T1["target = matching candidate index or none"]
-        T2["loss = Cross Entropy"]
-        T3["padding mask hides invalid candidates"]
-        T1 --> T2 --> T3
-    end
-
-    A --> X
-    B --> X
-    XT --> M1
-    M5 --> O1
-    O4 --> T1
-
-    classDef input fill:#d9ecff,stroke:#2f6fbd,color:#111;
-    classDef feature fill:#eef6ff,stroke:#74a7df,color:#111;
-    classDef model fill:#e4f5dc,stroke:#4d913c,color:#111;
-    classDef output fill:#fff0dc,stroke:#f28c28,color:#111;
-    class A,B input;
-    class X,F1,F2,F3,F4,F5,F6,XT feature;
-    class M1,M2,M3,M4,M5 model;
-    class O1,O2,O3,O4,T1,T2,T3 output;
-```
+![Object Matching MLP Flow](assets/MLP.png)
 
 ### Training Input
 
